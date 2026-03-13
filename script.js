@@ -112,8 +112,6 @@ Reply with ONLY this JSON structure, fully filled with real analysis:
 
 Replace ALL values with real specific analysis for ${raw}. No extra text, just the JSON.`;
 
-        const GEMINI_KEY = (window.GEMINI_API );
-
         try {
           const geminiBody = {
             contents: [
