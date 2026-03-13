@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>BUIMB SEO</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Cabinet+Grotesk:wght@300;400;500;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="cursor" id="cur"></div>
+    <div class="cursor-dot" id="curDot"></div>
+    <div class="bg-wrap">
+      <div class="bg-grad"></div>
+      <div class="bg-dots"></div>
+      <div class="bg-lines"></div>
+    </div>
+    <div class="wrap">
+      <nav>
+        <div class="logo">
+          <span class="logo-n">BUI</span>MB
+          <div class="logo-tag">SEO</div>
+        </div>
+        <div class="nav-r">
+          <div class="nav-badge">✦ AI Powered</div>
+          <div class="nav-live">
+            <div class="lring"></div>
+            Live
+          </div>
+        </div>
+      </nav>
+
+      <section class="hero">
+        <div class="hero-inner">
+          <div>
+            <div class="h-ey">
+              <div class="h-ey-line"></div>
+              <span class="h-ey-txt">BUIMB SEO Intelligence Engine</span>
+            </div>
+            <h1>
+              <span class="w1">CRUSH</span><span class="w2">GOOGLE</span
+              ><span class="w3">RANKINGS</span>
+            </h1>
+            <p class="h-sub">
+              Drop any URL. Our AI fires through 50+ SEO signals in seconds —
+              surfaces critical issues, hidden keyword goldmines, and your exact
+              path to Page 1.
+            </p>
+            <div class="irow">
+              <div class="i-ico">🔗</div>
+              <input
+                id="urlIn"
+                type="text"
+                placeholder="https://yourwebsite.com"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button id="goBtn" onclick="go()">Analyze →</button>
+            </div>
+            <div class="i-hints">
+              <div class="ihint">
+                <div class="ihint-dot"></div>
+                Free instant
+              </div>
+              <div class="ihint">
+                <div class="ihint-dot"></div>
+                No signup
+              </div>
+              <div class="ihint">
+                <div class="ihint-dot"></div>
+                50+ checks
+              </div>
+            </div>
+          </div>
+          <div class="hero-card">
+            <div class="hc-title">● Sample Score Preview</div>
+            <div class="hc-big">74</div>
+            <div class="hc-lbl">OVERALL SEO SCORE</div>
+            <div class="hcb">
+              <div class="hcb-meta">
+                <span>On-Page SEO</span
+                ><span style="color: var(--v3); font-weight: 700">82%</span>
+              </div>
+              <div class="hcb-track">
+                <div class="hcb-fill bc1" style="--w: 82%; width: 82%"></div>
+              </div>
+            </div>
+            <div class="hcb">
+              <div class="hcb-meta">
+                <span>Technical Health</span
+                ><span style="color: var(--t1); font-weight: 700">61%</span>
+              </div>
+              <div class="hcb-track">
+                <div class="hcb-fill bc2" style="--w: 61%; width: 61%"></div>
+              </div>
+            </div>
+            <div class="hcb">
+              <div class="hcb-meta">
+                <span>Keyword Coverage</span
+                ><span style="color: var(--c2); font-weight: 700">74%</span>
+              </div>
+              <div class="hcb-track">
+                <div class="hcb-fill bc3" style="--w: 74%; width: 74%"></div>
+              </div>
+            </div>
+            <div class="hc-div"></div>
+            <div class="hc-chips">
+              <div class="hcc hcc1">On-Page ✦</div>
+              <div class="hcc hcc2">Technical</div>
+              <div class="hcc hcc3">Keywords</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="err" id="errWrap">
+        <div class="err-in"><span>⚠</span><span id="errMsg"></span></div>
+      </div>
+
+      <div class="loader" id="loader">
+        <div class="hex-wrap">
+          <div class="hex">
+            <svg width="120" height="120" viewBox="0 0 120 120">
+              <defs>
+                <linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#7c3aed" />
+                  <stop offset="50%" stop-color="#ff5c5c" />
+                  <stop offset="100%" stop-color="#ffd166" />
+                </linearGradient>
+              </defs>
+              <polygon
+                points="60,8 104,32 104,88 60,112 16,88 16,32"
+                fill="none"
+                stroke="url(#hg)"
+                stroke-width="1.5"
+                opacity=".5"
+              />
+              <polygon
+                points="60,22 92,38 92,82 60,98 28,82 28,38"
+                fill="none"
+                stroke="url(#hg)"
+                stroke-width="1"
+                opacity=".2"
+              />
+            </svg>
+          </div>
+          <div class="hex-inner">🔍</div>
+        </div>
+        <div class="ld-title">Scanning Your Website</div>
+        <div class="ld-sub">AI analyzing 50+ SEO factors…</div>
+        <div class="pw">
+          <div class="pf" id="pFill"></div>
+          <div class="pg"></div>
+        </div>
+        <div class="ld-steps">
+          <div class="lstep on" id="ls1">
+            <span class="lstep-ic">🌐</span>Crawling site architecture
+          </div>
+          <div class="lstep" id="ls2">
+            <span class="lstep-ic">📄</span>Auditing on-page SEO
+          </div>
+          <div class="lstep" id="ls3">
+            <span class="lstep-ic">⚙️</span>Technical health check
+          </div>
+          <div class="lstep" id="ls4">
+            <span class="lstep-ic">🎯</span>Mining keyword opportunities
+          </div>
+          <div class="lstep" id="ls5">
+            <span class="lstep-ic">📊</span>Generating full report
+          </div>
+        </div>
+      </div>
+
+      <div class="results" id="results">
+        <div class="score-strip" id="sStrip">
+          <div class="ss-l">
+            <div class="ss-num" id="sNum">--</div>
+            <div class="ss-sub">SEO Score</div>
+            <div class="ss-gp" id="sGrade">–</div>
+          </div>
+          <div class="ss-c">
+            <div class="ss-dom" id="sDom">🌐 –</div>
+            <div class="ss-head" id="sHead">Your SEO Report</div>
+            <div class="ss-desc" id="sDesc"></div>
+          </div>
+          <div class="ss-r" id="sStats"></div>
+        </div>
+        <div class="tab-bar">
+          <button class="tab active" onclick="switchTab('issues', this)">
+            🔴 Issues
+          </button>
+          <button class="tab" onclick="switchTab('technical', this)">
+            ⚙️ Technical
+          </button>
+          <button class="tab" onclick="switchTab('keywords', this)">
+            🎯 Keywords
+          </button>
+          <button class="tab" onclick="switchTab('actions', this)">
+            ⚡ Actions
+          </button>
+        </div>
+        <div id="tab-issues" class="tc active"></div>
+        <div id="tab-technical" class="tc"></div>
+        <div id="tab-keywords" class="tc"></div>
+        <div id="tab-actions" class="tc"></div>
+      </div>
+
+      <section class="features">
+        <div class="feat-top">
+          <div class="feat-et">How It Works</div>
+          <h2 class="feat-h">Three Steps to <span>Page One</span></h2>
+          <p class="feat-p">
+            No complicated tools. Just drop your URL and dominate.
+          </p>
+        </div>
+        <div class="fgrid">
+          <div class="fcard">
+            <div
+              class="fglow"
+              style="background: rgba(124, 58, 237, 0.3)"
+            ></div>
+            <div class="fc-n">01</div>
+            <div class="fc-ico">🔗</div>
+            <h3>Paste Your URL</h3>
+            <p>
+              Any page, any site, any niche. E-commerce, blogs, SaaS — our AI
+              handles it all instantly.
+            </p>
+          </div>
+          <div class="fcard">
+            <div class="fglow" style="background: rgba(0, 217, 184, 0.2)"></div>
+            <div class="fc-n">02</div>
+            <div class="fc-ico">🤖</div>
+            <h3>AI Deep Audit</h3>
+            <p>
+              50+ SEO factors checked: meta tags, content gaps, Core Web Vitals,
+              keyword opportunities, technical health.
+            </p>
+          </div>
+          <div class="fcard">
+            <div class="fglow" style="background: rgba(255, 92, 92, 0.2)"></div>
+            <div class="fc-n">03</div>
+            <div class="fc-ico">🚀</div>
+            <h3>Dominate Search</h3>
+            <p>
+              Get a prioritized fix list, keyword goldmines, and content roadmap
+              to climb Page 1 fast.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <div class="fl"><span>BUIMB</span> SEO</div>
+        <div class="fc2">© 2025 BUIMB SEO — AI Intelligence Engine</div>
+        <div class="fr2"><a href="#">Powered by Claude AI →</a></div>
+      </footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
