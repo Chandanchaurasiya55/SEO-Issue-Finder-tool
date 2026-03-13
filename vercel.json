@@ -1,0 +1,7 @@
+{
+  "buildCommand": "echo 'Static build'",
+  "outputDirectory": ".",
+  "env": {
+    "GEMINI_API_KEY": "@gemini_api_key"
+  }
+}
