@@ -112,7 +112,7 @@ Reply with ONLY this JSON structure, fully filled with real analysis:
 
 Replace ALL values with real specific analysis for ${raw}. No extra text, just the JSON.`;
 
-        const GEMINI_KEY = process.env.GEMINI_API; // <-- ADD YOUR GEMINI API KEY HERE
+        const GEMINI_KEY = (window.GEMINI_API );
 
         try {
           const geminiBody = {
@@ -129,7 +129,7 @@ Replace ALL values with real specific analysis for ${raw}. No extra text, just t
           };
 
           const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyD2_2xQP66TKf53xSeJUcJu61L__WZCf14`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
