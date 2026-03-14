@@ -156,11 +156,11 @@ function setMode(m) {
 ═══════════════════════════════════════════════ */
 function toggleMob() {
   const open = $("mobPanel").classList.toggle("open");
-  $("mobBtn").textContent = open ? "Close ✕" : "Menu ↓";
+  $("mobBtn").textContent = open ? "✕" : "☰";
 }
 function closeMob() {
   $("mobPanel").classList.remove("open");
-  $("mobBtn").textContent = "Menu ↓";
+  $("mobBtn").textContent = "☰";
 }
 
 /* ═══════════════════════════════════════════════
