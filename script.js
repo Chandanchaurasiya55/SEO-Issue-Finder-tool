@@ -667,7 +667,7 @@ function downloadPDF() {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text("RANKZERO", mg, 9.5);
+  doc.text("NEUROON", mg, 9.5);
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.text(
@@ -965,11 +965,11 @@ function downloadPDF() {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     stc(LIGHT);
-    doc.text("RANKZERO — Visibility Intelligence", mg, ph - 4);
+    doc.text("NEUROON — Visibility Intelligence", mg, ph - 4);
     doc.text(`Page ${i} of ${totalPages}`, pw - mg, ph - 4, { align: "right" });
   }
 
-  doc.save(`rankzero-${lastMode}-${getDom(lastUrl)}-${Date.now()}.pdf`);
+  doc.save(`neuroon-${lastMode}-${getDom(lastUrl)}-${Date.now()}.pdf`);
 }
 
 /* ═══════════════════════════════════════════════
@@ -1057,7 +1057,7 @@ async function downloadDOCX() {
   const docChildren = [
     new Paragraph({
       children: [
-        new TextRun({ text: "RANKZERO", bold: true, size: 36, color: RED_HEX }),
+        new TextRun({ text: "NEUROON", bold: true, size: 36, color: RED_HEX }),
       ],
       alignment: AlignmentType.CENTER,
     }),
@@ -1249,7 +1249,7 @@ async function downloadDOCX() {
   const blob = await Packer.toBlob(document);
   const a = window.document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `rankzero-${lastMode}-${getDom(lastUrl)}-${Date.now()}.docx`;
+  a.download = `NEUROON-${lastMode}-${getDom(lastUrl)}-${Date.now()}.docx`;
   a.click();
   URL.revokeObjectURL(a.href);
 }
