@@ -1,162 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>NEUROON — SEO · AEO · GEO Intelligence</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
-<!-- jsPDF for PDF export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<!-- docx.js for Word export -->
-<script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.umd.min.js"></script>
-<link rel="stylesheet" href="style.css"/>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AuditX — SEO · AEO · GEO Site Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="mob-panel" id="mobPanel">
-  <div class="mob-row ms" id="mr-seo" onclick="setMode('seo');closeMob()">SEO <span class="mob-tag">Search Engine Optimization</span></div>
-  <div class="mob-row" id="mr-aeo" onclick="setMode('aeo');closeMob()">AEO <span class="mob-tag">Answer Engine Optimization</span></div>
-  <div class="mob-row" id="mr-geo" onclick="setMode('geo');closeMob()">GEO <span class="mob-tag">Generative Engine Optimization</span></div>
-</div>
-
-<nav>
-  <div class="logo" onclick="scrollTo(0,0)">
-    <div class="logo-mark">NR</div>
-    <span class="logo-name">NEU<span>ROON</span></span>
-  </div>
-  <div class="nav-mid">
-    <button class="nmb on s-on" id="nm-seo" onclick="setMode('seo')">SEO</button>
-    <button class="nmb" id="nm-aeo" onclick="setMode('aeo')">AEO</button>
-    <button class="nmb" id="nm-geo" onclick="setMode('geo')">GEO</button>
-  </div>
-  <div class="nav-r">
-    <div class="nav-badge"><div class="badge-dot"></div>AI Live</div>
-    <button class="mob-btn" id="mobBtn" onclick="toggleMob()">☰</button>
-  </div>
-</nav>
-
-<div class="W">
-
-  <div class="hero">
-    <div class="hero-pill" id="heroPill">
-      <div class="hp-dot sd" id="pillDot"></div>
-      <span id="pillTxt">SEO Intelligence</span>
-    </div>
-    <h1 id="heroH"><span class="acc">Crush.</span> GOOGLE. <em id="heroMode">Ranking.</em></h1>
-    <p class="hero-sub" id="heroSub">Enter any URL and get a full SEO audit powered by AI — technical issues, keyword gaps, and a prioritised fix list ready to action.</p>
-
-    <div class="hero-bar">
-      <div class="hbar" id="hbar">
-        <div class="hbar-ico">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        </div>
-        <input type="text" id="urlIn" placeholder="Paste a URL — e.g. https://yoursite.com" autocomplete="off" spellcheck="false"/>
-        <button id="goBtn" class="sb" onclick="go()">Analyse →</button>
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="#">
+      <div class="logo-sq">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M2 8L8 2L14 8L8 14L2 8Z" fill="white"/></svg>
       </div>
-      <div class="hero-hints">
-        <span>⚡ Real AI analysis</span>
-        <span>·</span><span>No signup</span>
-        <span>·</span><span id="hintSpan">50+ SEO checks</span>
-      </div>
-      <div class="err-bar" id="errBar"></div>
-    </div>
-
-    <div class="proof">
-      <div class="proof-item"><span class="proof-n">50+</span>&nbsp;Signals Checked</div>
-      <div class="proof-item"><span class="proof-n">3</span>&nbsp;AI Modes</div>
-      <div class="proof-item"><span class="proof-n">PDF</span>&nbsp;+ DOCX Export</div>
+      AuditX
+    </a>
+    <nav class="topnav">
+      <a href="#" class="active">SEO Audit</a>
+      <a href="#">AEO</a>
+      <a href="#">GEO</a>
+      <a href="#">Backlinks</a>
+      <a href="#">Keywords</a>
+    </nav>
+    <div class="nav-right">
+      <button class="btn-sm btn-login">Log in</button>
+      <button class="btn-sm btn-signup">Sign up free</button>
     </div>
   </div>
+</header>
 
-  <div class="modes-sec">
-    <div class="sec-lbl">Intelligence Mode</div>
-    <div class="mode-grid">
-      <div class="mcard on" id="mc-seo" onclick="setMode('seo')">
-        <div class="mcard-bar"></div>
-        <div class="mc-head"><div class="mc-icon sico">🔍</div><div class="mc-badge">50+ checks</div></div>
-        <div class="mc-name">SEO</div>
-        <div class="mc-type">Search Engine Optimization</div>
-        <div class="mc-desc">Technical health, Core Web Vitals, meta tags, backlinks, keyword gaps — complete Google ranking picture.</div>
-      </div>
-      <div class="mcard" id="mc-aeo" onclick="setMode('aeo')">
-        <div class="mcard-bar"></div>
-        <div class="mc-head"><div class="mc-icon aico">💬</div><div class="mc-badge">40+ checks</div></div>
-        <div class="mc-name">AEO</div>
-        <div class="mc-type">Answer Engine Optimization</div>
-        <div class="mc-desc">Voice search, featured snippets, FAQ schema, E-E-A-T signals — be the answer engines choose to show.</div>
-      </div>
-      <div class="mcard" id="mc-geo" onclick="setMode('geo')">
-        <div class="mcard-bar"></div>
-        <div class="mc-head"><div class="mc-icon gico">🤖</div><div class="mc-badge">35+ checks</div></div>
-        <div class="mc-name">GEO</div>
-        <div class="mc-type">Generative Engine Optimization</div>
-        <div class="mc-desc">Get cited by ChatGPT, Gemini & Perplexity. Factual density, authority signals, LLM-ready content.</div>
-      </div>
+<!-- HERO -->
+<div id="page-hero">
+  <div class="hero-inner">
+    <h1>SEO · AEO · GEO Site Audit</h1>
+    <p>Analyze your website for SEO issues, AI Engine Optimization gaps, and Generative Engine visibility. Get a prioritized action plan with 85+ checks — no sign-up required.</p>
+    <div class="search-box">
+      <input type="text" id="url-input" placeholder="Enter domain or URL — e.g. yoursite.com" autocomplete="off">
+      <button class="btn-analyze" id="audit-btn" onclick="startAudit()">Analyze Website</button>
     </div>
+    <div class="hero-note">Free audit · No account required · Results in seconds</div>
   </div>
 
-  <div class="loader" id="loader">
-    <div class="ldr">
-      <div class="ldr-mode" id="ldrMode">SEO — Analysis Engine</div>
-      <div class="ldr-title" id="ldrTitle">Scanning for ranking signals…</div>
-      <div class="ldr-sub" id="ldrSub">AI analysing 50+ SEO factors for your URL</div>
-      <div class="ldr-track"><div class="ldr-bar lb-s" id="pBar"></div></div>
-      <div id="lsteps"></div>
-    </div>
-  </div>
-
-  <div class="results" id="results">
-    <div class="r-header">
-      <div class="score-ring">
-        <svg viewBox="0 0 120 120" width="120" height="120">
-          <circle class="s-bg" cx="60" cy="60" r="54"/>
-          <circle class="s-arc" id="sArc" cx="60" cy="60" r="54" stroke="#a90006"/>
-        </svg>
-        <div class="score-inner">
-          <div class="s-num" id="sNum">--</div>
-          <div class="s-lbl">Score</div>
-          <div class="s-grade" id="sGrade"></div>
-        </div>
+  <!-- How-to steps shown before audit -->
+  <div id="how-steps" style="max-width:800px;margin:0 auto">
+    <div class="howto-steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-title">Enter your domain</div>
+        <div class="step-desc">Type your website URL or domain name in the field above to begin the audit.</div>
       </div>
-      <div class="r-info">
-        <div class="r-pill rp-s" id="rPill">SEO Report</div>
-        <div class="r-dom" id="rDom">–</div>
-        <div class="r-sum" id="rSum">–</div>
-        <div class="stats-row" id="rStats"></div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-title">Click Analyze Website</div>
+        <div class="step-desc">Our engine scans 85+ SEO, AEO, and GEO signals across your homepage and key pages.</div>
       </div>
-    </div>
-
-    <div class="dl-bar">
-      <span class="dl-lbl">Download Report:</span>
-      <button class="dl-btn" onclick="downloadPDF()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-        PDF Report
-      </button>
-    </div>
-
-    <div class="r-tabs" id="rTabs"></div>
-    <div class="pzone"><div id="pContent"></div></div>
-  </div>
-
-  <div class="how-sec" id="howSec">
-    <div class="how-kicker">How It Works</div>
-    <h2 class="how-h">Get answers in three steps</h2>
-    <p class="how-sub">Real AI analysis. No sign-up. Paste a URL and get a full intelligence report instantly.</p>
-    <div class="how-grid">
-      <div class="hcard"><div class="hc-num hn1">01</div><div class="hc-t">Paste your URL</div><div class="hc-d">Drop any URL. Choose SEO, AEO, or GEO — each mode targets a different visibility layer.</div></div>
-      <div class="hcard"><div class="hc-num hn2">02</div><div class="hc-t">AI deep audit</div><div class="hc-d">Gemini AI checks 50+ signals: technical health, content quality, authority, schema, keyword gaps.</div></div>
-      <div class="hcard"><div class="hc-num hn3">03</div><div class="hc-t">Download your report</div><div class="hc-d">Issues ranked by impact. Export as PDF or Word doc. Share with your team and start fixing.</div></div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-title">Fix issues & improve</div>
+        <div class="step-desc">Use the prioritized report to address critical issues first and track your progress.</div>
+      </div>
     </div>
   </div>
 </div>
 
-<footer>
-  <div class="ft-brand"><div class="ft-mark">NR</div><div class="ft-name">NEU<span>ROON</span></div></div>
-  <div class="ft-copy">© 2025 NEUROON — Visibility Intelligence</div>
-  <div class="ft-ai">Powered by AI →</div>
+<!-- LOADING -->
+<div id="loading">
+  <p class="scan-label">Scanning <span class="scan-domain" id="scan-domain-text"></span></p>
+  <div class="scan-steps" id="scan-steps"></div>
+  <div class="prog-wrap">
+    <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+    <div class="prog-pct" id="prog-pct">0%</div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results">
+
+  <!-- breadcrumb -->
+  <div class="breadcrumb">
+    <a href="#" onclick="resetAudit();return false" style="color:#ff642d;text-decoration:none">← New Audit</a>
+    <span class="bc-sep">/</span>
+    <span id="bc-domain">—</span>
+  </div>
+
+  <!-- top bar -->
+  <div class="result-topbar">
+    <div>
+      <div class="result-domain" id="res-domain">—</div>
+      <div class="result-meta" id="res-meta">—</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-sm btn-outline" onclick="resetAudit()">New Audit</button>
+      <button class="btn-sm btn-orange" onclick="downloadPDF()">⬇ Download PDF</button>
+    </div>
+  </div>
+
+  <!-- MODULE TABS -->
+  <div class="module-tabs" id="module-tabs"></div>
+
+  <!-- TAB PANELS -->
+  <div id="tab-panels"></div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="page-footer">
+  <div class="pf-inner">
+    <div class="pf-logo">AuditX</div>
+    <div class="pf-text">SEO · AEO · GEO Analysis Platform — 85+ checks across all dimensions of modern search visibility</div>
+  </div>
 </footer>
 
 <script src="script.js"></script>
+
 </body>
 </html>
