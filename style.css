@@ -1994,3 +1994,139 @@ svg {
   font-size: 11px;
   color: #9ba3af;
 }
+
+
+/* =========================
+   MOBILE RESPONSIVE
+========================= */
+
+@media (max-width: 1024px) {
+
+  .scan-layout{
+    grid-template-columns:1fr;
+  }
+
+  .scan-live-stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .gauges-row{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .stat-cards-row{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .team-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+}
+
+
+/* TABLET */
+@media (max-width:768px){
+
+  .hero-inner h1{
+    font-size:26px;
+  }
+
+  .hero-inner p{
+    font-size:14px;
+  }
+
+  .search-box{
+    flex-direction:column;
+  }
+
+  .btn-analyze{
+    width:100%;
+  }
+
+  .howto-steps{
+    grid-template-columns:1fr;
+  }
+
+  .cover-parts{
+    grid-template-columns:1fr;
+  }
+
+  .cover-stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .sst-header,
+  .sst-row{
+    grid-template-columns:1fr 70px 60px 120px;
+  }
+
+  .exec-summary-grid{
+    grid-template-columns:1fr;
+  }
+
+  .team-grid{
+    grid-template-columns:1fr;
+  }
+
+}
+
+
+/* MOBILE */
+@media (max-width:480px){
+
+  .topbar-inner{
+    padding:0 14px;
+  }
+
+  .logo{
+    font-size:15px;
+  }
+
+  .nav-right{
+    gap:6px;
+  }
+
+  .btn-login,
+  .btn-signup{
+    font-size:12px;
+    padding:5px 10px;
+  }
+
+  #page-hero{
+    padding:30px 16px 40px;
+  }
+
+  .hero-inner h1{
+    font-size:22px;
+  }
+
+  .hero-inner p{
+    font-size:13px;
+  }
+
+  .search-box{
+    max-width:100%;
+  }
+
+  .scan-live-stats{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .gauges-row{
+    grid-template-columns:1fr;
+  }
+
+  .stat-cards-row{
+    grid-template-columns:1fr;
+  }
+
+  .cover-stats{
+    grid-template-columns:1fr;
+  }
+
+  .table-scroll{
+    overflow-x:auto;
+  }
+
+}
