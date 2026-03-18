@@ -604,11 +604,13 @@ svg {
 
 /* MODULE TABS */
 .module-tabs {
+  width: 100%;
   display: flex;
   gap: 0;
   border-bottom: 2px solid #e9ecef;
   margin-bottom: 24px;
-  overflow-x: auto;
+  overflow-x: hidden;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 }
