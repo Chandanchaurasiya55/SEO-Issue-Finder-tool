@@ -47,7 +47,7 @@ svg {
 .logo-sq {
   width: 28px;
   height: 28px;
-  background: #ff642d;
+  background: #a90006;
   border-radius: 6px;
   display: grid;
   place-items: center;
@@ -187,7 +187,7 @@ svg {
   margin-bottom: 14px;
 }
 .step-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: #1a1a2e;
   margin-bottom: 6px;
@@ -604,13 +604,11 @@ svg {
 
 /* MODULE TABS */
 .module-tabs {
-  width: 100%;
   display: flex;
   gap: 0;
   border-bottom: 2px solid #e9ecef;
   margin-bottom: 24px;
-  overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 }
@@ -865,7 +863,7 @@ svg {
 .doc-section-head {
   background: #a90006;
   border-radius: 8px;
-  padding: 14px 20px;
+  padding: 16px 22px;
   margin-bottom: 20px;
   margin-top: 28px;
   display: flex;
@@ -875,10 +873,10 @@ svg {
   gap: 8px;
 }
 .doc-section-head h2 {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 700;
   color: #fff;
-  letter-spacing: -0.2px;
+  letter-spacing: -0.3px;
 }
 .doc-section-head span {
   font-size: 11px;
@@ -1004,7 +1002,7 @@ svg {
   background: #fafbfd;
 }
 .cat-section-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: #1a1a2e;
   display: flex;
