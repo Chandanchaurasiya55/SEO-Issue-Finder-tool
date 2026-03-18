@@ -3264,670 +3264,554 @@ async function downloadPDF() {
     console.error(err);
     alert("PDF error: " + err.message);
   }
-  btn.textContent = "⬇ Download PDF";
+  btn.textContent = "Export PDF";
   btn.disabled = false;
 }
 
 async function generatePDFInline() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
-  // ── PAGE CONSTANTS ────────────────────────────────
   const PW = 210,
-    PH = 297;
-  const ML = 14,
-    MR = 14,
-    MT = 16,
-    MB = 16;
-  const CW = PW - ML - MR; // 182mm content width
-  const BOTTOM = PH - MB - 2;
-
-  // ── COLOR HELPERS ──────────────────────────────────
-  function rgb(r, g, b) {
-    return { r, g, b };
-  }
-  const C = {
-    red: rgb(169, 0, 6),
-    dark: rgb(26, 26, 46),
-    mid: rgb(92, 96, 112),
-    light: rgb(155, 163, 175),
-    border: rgb(226, 229, 237),
-    bg: rgb(248, 249, 252),
-    white: rgb(255, 255, 255),
-    green: rgb(21, 191, 107),
-    grnbg: rgb(220, 252, 231),
-    red2: rgb(239, 68, 68),
-    redbg: rgb(254, 226, 226),
-    amber: rgb(245, 158, 11),
-    ambg: rgb(254, 249, 195),
-    seo: rgb(255, 100, 45),
-    aeo: rgb(16, 185, 129),
-    geo: rgb(139, 92, 246),
-    orange: rgb(255, 100, 45),
+    PH = 297,
+    ML = 12,
+    MR = 12,
+    MT = 13,
+    MB = 14,
+    CW = 186;
+  const SF = (c) => {
+    if (typeof c !== "string") return;
+    const [r, g, b] = h2r(c);
+    doc.setFillColor(r, g, b);
   };
-  function fill(c) {
-    doc.setFillColor(c.r, c.g, c.b);
-  }
-  function draw(c) {
-    doc.setDrawColor(c.r, c.g, c.b);
-  }
-  function text(c) {
-    doc.setTextColor(c.r, c.g, c.b);
-  }
-  function bf(sz) {
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(sz);
-  }
-  function nf(sz) {
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(sz);
-  }
-  function italicf(sz) {
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(sz);
-  }
-
+  const SD = (c) => {
+    if (typeof c !== "string") return;
+    const [r, g, b] = h2r(c);
+    doc.setDrawColor(r, g, b);
+  };
+  const ST = (c) => {
+    if (typeof c !== "string") return;
+    const [r, g, b] = h2r(c);
+    doc.setTextColor(r, g, b);
+  };
+  const OR = "#ff642d",
+    DK = "#1a1a2e",
+    MD = "#5c6070",
+    LT = "#9ba3af";
+  const BD = "#e2e5ed",
+    BG2 = "#f8f9fc";
+  const GR = "#21bf6b",
+    RD = "#ef4444",
+    YL = "#f59e0b";
+  const GRB = "#dcfce7",
+    RDB = "#fee2e2",
+    YLB = "#fff7ed";
+  const WH = "#ffffff";
+  const SEO = "#ff642d",
+    AEO = "#10b981",
+    GEO = "#8b5cf6";
   const d = _data;
-  const dom = _userDomain || "buimbdigital.com";
-  const dateStr = new Date().toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-
+  const BOTTOM = PH - MB - 2;
   let y = 0,
     _part = "";
 
-  // ── HEADER (top red bar, 10mm) ─────────────────────
   function hdr() {
-    fill(C.red);
-    doc.rect(0, 0, PW, 10, "F");
-    bf(11);
-    text(C.white);
-    doc.text("BuimbDigital", ML, 7);
-    nf(6.5);
-    text({ r: 255, g: 220, b: 220 });
-    const title = dom + " — Complete Digital Marketing Strategy & Audit Report";
-    doc.text(title, ML + 33, 7);
-    nf(6.5);
-    text(C.white);
-    doc.text(dateStr, PW - MR, 7, "right");
-    y = MT + 2;
+    const [r169, g0, b6] = [169, 0, 6];
+    doc.setFillColor(r169, g0, b6);
+    doc.rect(0, 0, PW, 9, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    ST(WH);
+    doc.text("BuimbDigital", ML, 6);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    ST(WH);
+    doc.text(
+      (_userDomain || "buimbdigital.com") +
+        " — Complete Digital Marketing Strategy & Audit Report",
+      ML + 30,
+      6,
+    );
+    ST(WH);
+    doc.text(
+      new Date().toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+      PW - MR,
+      6,
+      "right",
+    );
+    y = MT;
   }
-
-  // ── FOOTER (bottom dark bar, 10mm) ────────────────
   function ftr() {
-    const fy = PH - MB + 1;
-    fill(C.dark);
-    doc.rect(0, fy, PW, MB + 1, "F");
-    // BuimbDigital (bold white)
-    bf(7.5);
-    text(C.white);
-    doc.text("BuimbDigital", ML, fy + 6.5);
-    // spacer + email
-    nf(6);
-    text({ r: 180, g: 180, b: 200 });
-    doc.text("  info@BuimbDigital.com", ML + 28, fy + 6.5);
-    // Part label centered
+    const fy = PH - MB + 2;
+    SF(DK);
+    doc.rect(0, fy, PW, MB, "F");
+    // Left: BuimbDigital brand
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    ST(WH);
+    doc.text("BuimbDigital", ML, fy + 5.5);
+    // Email fixed
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6);
+    ST(LT);
+    doc.text("info@BuimbDigital.com", ML + 30, fy + 5.5);
+    // Separator
+    ST("#555");
+    doc.text("|", ML + 76, fy + 5.5);
+    // Audited domain
+    ST("#ffd4c2");
+    doc.text("Audited: " + (_userDomain || ""), ML + 80, fy + 5.5);
+    // Part label center
     if (_part) {
-      text({ r: 255, g: 200, b: 200 });
-      doc.text(_part, PW / 2, fy + 6.5, "center");
+      ST("#ff9999");
+      doc.text(_part, PW / 2, fy + 5.5, "center");
     }
-    // Audited + CONFIDENTIAL right
-    text({ r: 255, g: 200, b: 200 });
-    doc.text("Audited: " + dom, PW - MR - 32, fy + 6.5);
-    bf(6);
-    text(C.white);
-    doc.text("CONFIDENTIAL", PW - MR, fy + 6.5, "right");
+    // CONFIDENTIAL right
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6);
+    ST(WH);
+    doc.text("CONFIDENTIAL", PW - MR, fy + 5.5, "right");
   }
-
-  // ── AUTO PAGE BREAK ────────────────────────────────
-  function needY(h) {
-    if (y + h > BOTTOM) {
+  const needY = (n) => {
+    if (y + n > BOTTOM) {
       ftr();
       doc.addPage();
       hdr();
     }
-  }
-
-  // ── SECTION HEADER (red bar, big bold title) ──────
-  function secHead(title, sub) {
-    needY(12);
-    fill(C.red);
-    doc.rect(ML, y, CW, 10, "F");
-    bf(11);
-    text(C.white);
-    doc.text(title, ML + 4, y + 7);
-    if (sub) {
-      nf(6.5);
-      text({ r: 255, g: 208, b: 208 });
-      doc.text(sub, PW - MR, y + 7, "right");
-    }
-    y += 13;
-  }
-
-  // ── CATEGORY HEADER (dark bg) ─────────────────────
-  // catHead removed - using inline cat rendering
-
-  // ── ROW HELPERS ───────────────────────────────────
-  function statusChip(x, ry, status) {
-    const map = {
-      PASS: { bg: C.grnbg, tc: { r: 21, g: 128, b: 61 } },
-      WARN: { bg: C.ambg, tc: { r: 161, g: 98, b: 7 } },
-      FAIL: { bg: C.redbg, tc: { r: 185, g: 28, b: 28 } },
-    };
-    const s = map[status] || map.FAIL;
-    fill(s.bg);
-    doc.roundedRect(x, ry, 16, 4, 0.8, 0.8, "F");
-    bf(5.5);
-    text(s.tc);
-    doc.text(status, x + 8, ry + 3, "center");
-  }
-
-  function priChip(x, ry, pri) {
-    const map = {
-      CRITICAL: { bg: C.redbg, tc: { r: 185, g: 28, b: 28 } },
-      HIGH: { bg: C.ambg, tc: { r: 161, g: 98, b: 7 } },
-      MEDIUM: { bg: { r: 254, g: 249, b: 195 }, tc: { r: 133, g: 77, b: 14 } },
-      LOW: { bg: C.bg, tc: C.light },
-    };
-    const s = map[pri] || map.LOW;
-    fill(s.bg);
-    doc.roundedRect(
-      x,
-      ry,
-      pri === "CRITICAL" ? 18 : pri === "MEDIUM" ? 16 : pri === "HIGH" ? 12 : 9,
-      4,
-      0.8,
-      0.8,
-      "F",
-    );
-    bf(5);
-    text(s.tc);
-    const w =
-      pri === "CRITICAL" ? 9 : pri === "MEDIUM" ? 8 : pri === "HIGH" ? 6 : 4.5;
-    doc.text(pri, x + w, ry + 3, "center");
-  }
-
-  // Render a text cell that auto-wraps and returns height used
-  function textCell(txt, x, ry, maxW, bold, color, sz) {
-    if (!txt) return 0;
-    if (bold) bf(sz || 6.5);
-    else nf(sz || 6.5);
-    text(color || C.dark);
-    const lines = doc.splitTextToSize(String(txt), maxW);
-    lines.forEach((ln, li) => doc.text(ln, x, ry + 4 + li * 3.8));
-    return lines.length * 3.8;
-  }
-
-  // ── CHECKS TABLE ROW ──────────────────────────────
-  function checksRow(c, alt) {
-    const colW = [38, 18, 50, 20, CW - 38 - 18 - 50 - 20 - 4];
-    const colX = [ML, ML + 38, ML + 56, ML + 106, ML + 126];
-    // Calculate row height
-    const findLines = doc.splitTextToSize(c.finding || "", colW[2] - 2);
-    const actLines = doc.splitTextToSize(c.action || "", colW[4] - 2);
-    const nameLines = doc.splitTextToSize(c.n || "", colW[0] - 2);
-    const rh = Math.max(
-      10,
-      Math.max(nameLines.length, findLines.length, actLines.length) * 3.8 + 4,
-    );
-    needY(rh + 1);
-    // Row bg
-    const bg =
-      c.status === "FAIL"
-        ? { r: 255, g: 245, b: 245 }
-        : c.status === "WARN"
-          ? { r: 255, g: 251, b: 240 }
-          : alt
-            ? C.bg
-            : C.white;
-    fill(bg);
-    doc.rect(ML, y, CW, rh, "F");
-    // Bottom border
-    draw(C.border);
-    doc.setLineWidth(0.08);
-    doc.line(ML, y + rh, ML + CW, y + rh);
-    // Check name (bold)
-    bf(6.5);
-    text(C.dark);
-    const nl = doc.splitTextToSize(c.n || "", colW[0] - 2);
-    nl.forEach((ln, li) => doc.text(ln, colX[0] + 1, y + 4 + li * 3.8));
-    // Status chip
-    statusChip(colX[1] + 1, y + rh / 2 - 2, c.status);
-    // Finding
-    nf(6.3);
-    text(C.mid);
-    findLines.forEach((ln, li) => doc.text(ln, colX[2] + 1, y + 4 + li * 3.8));
-    // Priority chip
-    priChip(colX[3] + 1, y + rh / 2 - 2, c.priority);
-    // Action
-    nf(6.3);
-    text(C.dark);
-    actLines.forEach((ln, li) => doc.text(ln, colX[4] + 1, y + 4 + li * 3.8));
-    y += rh + 0.5;
-  }
-
-  // ── CHECKS TABLE HEADER ────────────────────────────
-  function checksTableHead() {
-    needY(7);
-    fill(C.red);
-    doc.rect(ML, y, CW, 7, "F");
-    const heads = ["Check", "Status", "Finding", "Priority", "Action Required"];
-    const xs = [ML + 1, ML + 39, ML + 57, ML + 107, ML + 127];
-    bf(6.5);
-    text(C.white);
-    heads.forEach((h, i) => doc.text(h, xs[i], y + 5));
-    y += 7.5;
-  }
-
-  // ── CHIP HELPER ────────────────────────────────────
-  function chip(x, cy, txt, bgc, tc, w) {
-    const cw = w || Math.max(doc.getTextWidth(txt) * 1.4 + 4, 10);
-    fill(bgc);
-    doc.roundedRect(x, cy, cw, 4, 0.8, 0.8, "F");
-    bf(5.5);
-    text(tc);
-    doc.text(txt, x + cw / 2, cy + 2.9, "center");
+  };
+  function chip(x, cy, txt, bg, fg, w) {
+    const cw = w || Math.min(doc.getTextWidth(txt) + 6, 40);
+    SF(bg);
+    doc.roundedRect(x, cy, cw, 3.8, 0.8, 0.8, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(5.5);
+    ST(fg);
+    doc.text(txt, x + cw / 2, cy + 2.8, "center");
     return cw;
   }
+  function sectionHead(txt, sub) {
+    needY(9);
+    doc.setFillColor(169, 0, 6);
+    doc.rect(ML, y, CW, 8, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    ST(WH);
+    doc.text(txt, ML + 3, y + 5.5);
+    if (sub) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.5);
+      ST("#ffd0d0");
+      doc.text(sub, PW - MR, y + 5.5, "right");
+    }
+    y += 10;
+  }
 
-  // ═══════════════════════════════════════════════
-  // PAGE 1: COVER
-  // ═══════════════════════════════════════════════
+  // COVER
   _part = "PART 1: SEO/AEO/GEO AUDIT REPORT";
   hdr();
   ftr();
-
-  // 3-Part panel cards
-  const panW = (CW - 6) / 3;
-  const parts = [
+  // 3-panel cover
+  const panW = (CW - 4) / 3;
+  [
     {
       num: "PART 1",
       title: "SEO / AEO / GEO",
       sub: "Audit Report",
-      note: "74/100 Overall · 89 Checks",
-      col: C.seo,
+      note: "74/100 Overall | 89 Checks",
+      col: SEO,
     },
     {
       num: "PART 2",
       title: "Content Calendar",
       sub: "6-Month Plan",
-      note: "29 Pieces · Apr–Oct 2026",
-      col: C.aeo,
+      note: "29 Pieces | Apr–Oct 2026",
+      col: AEO,
     },
     {
       num: "PART 3",
-      title: "SEO Plan, Competitors",
-      sub: "& Keywords",
-      note: "12-Month · 6 Competitors · 62 KWs",
-      col: C.geo,
+      title: "SEO Plan, Competitors & Keywords",
+      sub: "12-Month Plan",
+      note: "6 Competitors | 62 Keywords",
+      col: GEO,
     },
-  ];
-  parts.forEach((p, i) => {
-    const px = ML + i * (panW + 3);
-    fill(p.col);
-    doc.roundedRect(px, y, panW, 30, 2, 2, "F");
-    fill({ r: 0, g: 0, b: 0 });
-    doc.setGState && doc.setGState(doc.GState({ opacity: 0.15 }));
-    doc.setGState && doc.setGState(doc.GState({ opacity: 1 }));
-    bf(7);
-    text(C.white);
-    doc.text(p.num, px + 4, y + 8);
-    bf(9);
-    doc.text(p.title, px + 4, y + 16);
-    nf(7);
-    text({ r: 255, g: 230, b: 230 });
-    doc.text(p.sub, px + 4, y + 22);
-    nf(5.5);
-    text({ r: 255, g: 255, b: 255 });
-    doc.setGState && doc.setGState(doc.GState({ opacity: 0.7 }));
-    doc.text(p.note, px + 4, y + 28);
-    doc.setGState && doc.setGState(doc.GState({ opacity: 1 }));
+  ].forEach((p, i) => {
+    const px = ML + i * (panW + 2);
+    SF(p.col);
+    doc.roundedRect(px, y, panW - 1, 28, 1.5, 1.5, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    ST(WH);
+    doc.text(p.num, px + 3, y + 7);
+    doc.setFontSize(9);
+    doc.text(p.title, px + 3, y + 14);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.text(p.sub, px + 3, y + 20);
+    doc.setFontSize(5.5);
+    ST("#ffffff99");
+    doc.text(p.note, px + 3, y + 26);
   });
-  y += 34;
+  y += 31;
 
-  // Stats bar (4 cards)
-  needY(16);
+  // Stats bar
+  needY(12);
   const sw = (CW - 9) / 4;
-  const stats = [
-    { val: "12", lbl: "ERRORS", bg: C.redbg, tc: { r: 185, g: 28, b: 28 } },
-    { val: "22", lbl: "WARNINGS", bg: C.ambg, tc: { r: 161, g: 98, b: 7 } },
-    { val: "55", lbl: "PASSED", bg: C.grnbg, tc: { r: 21, g: 128, b: 61 } },
-    {
-      val: "89",
-      lbl: "TOTAL CHECKS",
-      bg: { r: 239, g: 246, b: 255 },
-      tc: { r: 29, g: 78, b: 216 },
-    },
-  ];
-  stats.forEach((s, i) => {
+  [
+    { val: "12", lbl: "ERRORS", col: RD, bg: RDB },
+    { val: "22", lbl: "WARNINGS", col: YL, bg: YLB },
+    { val: "55", lbl: "PASSED", col: GR, bg: GRB },
+    { val: "89", lbl: "TOTAL CHECKS", col: "#3b82f6", bg: "#eff6ff" },
+  ].forEach((s, i) => {
     const sx = ML + i * (sw + 3);
-    fill(s.bg);
-    draw(C.border);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(sx, y, sw, 14, 2, 2, "FD");
-    bf(14);
-    text(s.tc);
-    doc.text(s.val, sx + sw / 2, y + 8.5, "center");
-    nf(5.5);
-    text(C.light);
-    doc.text(s.lbl, sx + sw / 2, y + 13, "center");
+    SF(s.bg);
+    SD(BD);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(sx, y, sw, 11, 1.5, 1.5, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    ST(s.col);
+    doc.text(s.val, sx + sw / 2, y + 7, "center");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(5.5);
+    ST(LT);
+    doc.text(s.lbl, sx + sw / 2, y + 10.5, "center");
   });
-  y += 17;
-
-  // Meta bar
-  needY(8);
-  fill(C.bg);
-  draw(C.border);
-  doc.setLineWidth(0.2);
-  doc.roundedRect(ML, y, CW, 7, 1, 1, "FD");
-  nf(6.5);
-  text(C.mid);
+  y += 14;
+  needY(7);
+  SF(BG2);
+  doc.roundedRect(ML, y, CW, 6, 1, 1, "F");
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.5);
+  ST(MD);
   doc.text(
     "Audit Date: " +
-      dateStr +
-      "   |   Audited: " +
-      dom +
-      "   |   CONFIDENTIAL — For Internal Distribution Only",
+      new Date().toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }) +
+      "  |  Audited: " +
+      (_userDomain || "buimbdigital.com") +
+      "  |  CONFIDENTIAL",
     ML + CW / 2,
-    y + 5,
+    y + 4,
     "center",
   );
-  y += 10;
+  y += 8;
 
-  // ═══════════════════════════════════════════════
-  // EXEC SUMMARY — Score table + Gauges on page 1
-  // ═══════════════════════════════════════════════
-  secHead(
+  // Exec Summary
+  sectionHead(
     "SECTION 1: EXECUTIVE SUMMARY",
-    "Score Summary · Key Strengths · Critical Weaknesses",
+    "Score Summary · Key Strengths & Weaknesses",
   );
-
-  // Score summary table
-  needY(36);
-  fill(C.red);
-  doc.rect(ML, y, CW, 7, "F");
-  const scCols = [80, 20, 16, CW - 80 - 20 - 16 - 4];
-  const scX = [ML, ML + 80, ML + 100, ML + 116];
-  bf(7);
-  text(C.white);
-  ["Module", "Score", "Grade", "Status"].forEach((h, i) =>
-    doc.text(h, scX[i] + 2, y + 5),
-  );
-  y += 7;
-  const scores = [
+  // Score table
+  needY(32);
+  const stCols = [70, 18, 15, CW - 70 - 18 - 15 - 6],
+    stX = [ML, ML + 70, ML + 88, ML + 103];
+  doc.setFillColor(169, 0, 6);
+  doc.rect(ML, y, CW, 5.5, "F");
+  ["Module", "Score", "Grade", "Status"].forEach((h, i) => {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text(h, stX[i] + 2, y + 3.8);
+  });
+  y += 5.5;
+  [
     {
       mod: "SEO (Search Engine Optimization)",
       sc: 70,
-      col: C.seo,
+      col: SEO,
       status: "Needs Improvement",
     },
     {
       mod: "AEO (Answer Engine Optimization)",
       sc: 79,
-      col: C.aeo,
+      col: AEO,
       status: "Good — Minor Gaps",
     },
     {
       mod: "GEO (Generative Engine Optimization)",
       sc: 72,
-      col: C.geo,
+      col: GEO,
       status: "Moderate Gaps",
     },
-    {
-      mod: "Overall Score",
-      sc: 74,
-      col: C.orange,
-      status: "Strong Foundation — Fix Critical Issues",
-    },
-  ];
-  scores.forEach((r, i) => {
-    needY(9);
-    const isOv = i === 3;
-    fill(isOv ? C.bg : C.white);
-    doc.rect(ML, y, CW, 8, "F");
-    fill(r.col);
-    doc.rect(ML, y, 3, 8, "F");
-    draw(C.border);
-    doc.setLineWidth(0.08);
-    doc.line(ML, y + 8, ML + CW, y + 8);
-    bf(7);
-    text(C.dark);
-    doc.text(r.mod, ML + 6, y + 5.5);
-    const sc = r.sc >= 65 ? C.green : r.sc >= 45 ? C.amber : C.red2;
-    const sb = r.sc >= 65 ? C.grnbg : r.sc >= 45 ? C.ambg : C.redbg;
-    chip(scX[1] + 1, y + 2, r.sc + "/100", sb, sc, 18);
-    chip(scX[2] + 1, y + 2, pdfGrade(r.sc), sb, sc, 14);
-    nf(7);
-    text(C.mid);
-    doc.text(r.status, scX[3] + 2, y + 5.5);
-    y += 8.5;
+    { mod: "Overall Score", sc: 74, col: OR, status: "Strong Foundation" },
+  ].forEach((r) => {
+    needY(7);
+    const isOv = r.mod === "Overall Score";
+    SF(isOv ? BG2 : WH);
+    doc.rect(ML, y, CW, 6.5, "F");
+    SF(r.col);
+    doc.rect(ML, y, 2.5, 6.5, "F");
+    SD(BD);
+    doc.setLineWidth(0.07);
+    doc.line(ML, y + 6.5, ML + CW, y + 6.5);
+    doc.setFont("helvetica", isOv ? "bold" : "normal");
+    doc.setFontSize(6.8);
+    ST(DK);
+    doc.text(r.mod, ML + 5, y + 4.3);
+    const sc = r.sc >= 65 ? GR : r.sc >= 45 ? YL : RD,
+      sb = r.sc >= 65 ? GRB : r.sc >= 45 ? YLB : RDB;
+    chip(stX[1] + 1, y + 1.3, r.sc + "/100", sb, sc, 15);
+    chip(stX[2] + 1, y + 1.3, pdfGrade(r.sc), sb, sc, 12);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    ST(MD);
+    doc.text(r.status, stX[3] + 2, y + 4.3);
+    y += 6.5;
   });
   y += 4;
 
-  // Gauges row
+  // Gauges
   needY(38);
-  const gauges = [
-    { lbl: "SEO", sc: 70, col: C.seo },
-    { lbl: "AEO", sc: 79, col: C.aeo },
-    { lbl: "GEO", sc: 72, col: C.geo },
-    { lbl: "Overall", sc: 74, col: C.orange },
-  ];
-  gauges.forEach((g, i) => {
-    const gx = ML + 24 + i * 46,
-      gr = 11;
-    draw(C.border);
-    doc.setLineWidth(3.5);
-    doc.circle(gx, y + 14, gr, "S");
-    draw(g.col);
-    doc.setLineWidth(3.5);
-    const steps = Math.round((g.sc / 100) * 52);
+  [
+    { lbl: "SEO", sc: 70, col: SEO },
+    { lbl: "AEO", sc: 79, col: AEO },
+    { lbl: "GEO", sc: 72, col: GEO },
+    { lbl: "Overall", sc: 74, col: OR },
+  ].forEach((g, i) => {
+    const gx = ML + 22 + i * 45,
+      r2 = 10,
+      circ = 2 * Math.PI * r2;
+    const offset = circ - (g.sc / 100) * circ;
+    SD(BD);
+    doc.setLineWidth(3);
+    doc.circle(gx, y + 13, r2, "S");
+    SD(g.col);
+    doc.setLineWidth(3);
+    const steps = Math.round((g.sc / 100) * 48);
     for (let k = 0; k < steps; k++) {
-      const a1 = -Math.PI / 2 + (k / 52) * 2 * Math.PI,
-        a2 = -Math.PI / 2 + ((k + 1) / 52) * 2 * Math.PI;
+      const a1 = -Math.PI / 2 + (k / 48) * 2 * Math.PI,
+        a2 = -Math.PI / 2 + ((k + 1) / 48) * 2 * Math.PI;
       doc.line(
-        gx + gr * Math.cos(a1),
-        y + 14 + gr * Math.sin(a1),
-        gx + gr * Math.cos(a2),
-        y + 14 + gr * Math.sin(a2),
+        gx + r2 * Math.cos(a1),
+        y + 13 + r2 * Math.sin(a1),
+        gx + r2 * Math.cos(a2),
+        y + 13 + r2 * Math.sin(a2),
       );
     }
-    bf(12);
-    text(C.dark);
-    doc.text(String(g.sc), gx, y + 15.5, "center");
-    nf(5.5);
-    text(C.light);
-    doc.text("/100", gx, y + 19.5, "center");
-    bf(7);
-    text(C.dark);
-    doc.text(g.lbl, gx, y + 29, "center");
-    const gc = g.sc >= 65 ? C.green : g.sc >= 45 ? C.amber : C.red2;
-    const gb = g.sc >= 65 ? C.grnbg : g.sc >= 45 ? C.ambg : C.redbg;
-    chip(gx - 7, y + 31, pdfGrade(g.sc), gb, gc, 14);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    ST(DK);
+    doc.text(String(g.sc), gx, y + 15, "center");
+    doc.setFontSize(5.5);
+    ST(LT);
+    doc.text("/100", gx, y + 19, "center");
+    doc.setFont("popins", "bold");
+    doc.setFontSize(6.5);
+    ST(DK);
+    doc.text(g.lbl, gx, y + 27, "center");
+    const gc = g.sc >= 65 ? GR : g.sc >= 45 ? YL : RD,
+      gb = g.sc >= 65 ? GRB : g.sc >= 45 ? YLB : RDB;
+    chip(gx - 5, y + 29, pdfGrade(g.sc), gb, gc, 10);
   });
-  y += 40;
+  y += 38;
 
-  // ═══════════════════════════════════════════════
-  // PAGE 2: KEY STRENGTHS & CRITICAL WEAKNESSES
-  // ═══════════════════════════════════════════════
+  // Force new page for Exec Summary content so it doesn't get crammed
   ftr();
   doc.addPage();
   hdr();
-
-  secHead(
+  sectionHead(
     "SECTION 1 (continued): KEY STRENGTHS & CRITICAL WEAKNESSES",
-    "What's working, what needs immediate attention",
+    "Executive Summary — Full Analysis      ",
   );
 
-  // What this audit covers box
-  needY(18);
-  fill({ r: 255, g: 245, b: 245 });
-  draw(C.red);
-  doc.setLineWidth(0.4);
-  doc.roundedRect(ML, y, CW, 16, 2, 2, "FD");
-  fill(C.red);
-  doc.roundedRect(ML, y, 4, 16, 1, 1, "F");
-  bf(8.5);
-  text(C.red);
-  doc.text("What This Audit Covers", ML + 7, y + 7);
-  nf(7);
-  text(C.dark);
-  const ovTxt =
-    "This audit evaluated " +
-    dom +
-    " across 89 checks in 3 disciplines: SEO (traditional search rankings), AEO (AI answer engines & featured snippets), and GEO (visibility in ChatGPT, Perplexity & Google AI Overview). Overall score: 74/100 — Grade B+. Strong technical foundation but critical mobile and metadata gaps are actively suppressing rankings.";
-  const ovL = doc.splitTextToSize(ovTxt, CW - 10);
-  ovL.forEach((ln, li) => doc.text(ln, ML + 7, y + 12 + li * 3.8));
-  y += 18 + ovL.length * 0.8 + 3;
+  // What is happening overview box
+  needY(14);
+  SF("#fff0eb");
+  SD("#a90006");
+  SF("margin-right:6px");
 
-  // KEY STRENGTHS
+  doc.setLineWidth(0.3);
+  doc.roundedRect(ML, y, CW, 12, 2, 2, "FD");
+  doc.setFont("popins", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(169, 0, 6);
+  doc.setFont("helvetica", "normal");
+
+  // Key Strengths — with visible green header bar
   needY(10);
-  fill({ r: 21, g: 128, b: 61 });
-  doc.rect(ML, y, CW, 9, "F");
-  bf(10);
-  text(C.white);
-  doc.text("✓   KEY STRENGTHS — Areas Performing Well", ML + 4, y + 6.5);
-  y += 11;
-  const strengths = [
+  doc.setFillColor(21, 127, 74);
+  doc.rect(ML, y, CW, 7, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  ST(WH);
+  doc.text("✓  KEY STRENGTHS — Areas Performing Well", ML + 4, y + 5);
+  y += 9;
+  const strengthItems = [
     "Voice Search Optimization — PERFECT 100/100. Conversational keywords, long-tail questions, and local signals all well-implemented.",
     "NLP & Semantic SEO — 90/100. Well-structured, semantically rich content aligned with how search engines process natural language.",
     "LLM-Ready Content and AI Topical Coverage — both 90/100. Site is well-structured for AI tools to parse and cite.",
     "Backlinks & Off-Page SEO — 90/100. Strong domain authority and quality external link signals.",
-    "Technical SEO fundamentals (SSL, XML sitemap, robots.txt, redirect hygiene) largely in order at 83/100.",
+    "Technical SEO fundamentals (SSL, XML sitemap, robots.txt, redirect hygiene) — largely in order at 83/100.",
   ];
-  strengths.forEach((s, i) => {
+  strengthItems.forEach((s) => {
     const lines = doc.splitTextToSize(s, CW - 12);
-    const rh = lines.length * 4 + 6;
+    const rh = Math.max(7, lines.length * 3.6 + 2);
     needY(rh + 1);
-    fill(i % 2 === 0 ? C.grnbg : { r: 240, g: 253, b: 244 });
-    doc.roundedRect(ML, y, CW, rh, 1.5, 1.5, "F");
-    fill({ r: 21, g: 128, b: 61 });
-    doc.roundedRect(ML, y, 4, rh, 0.5, 0.5, "F");
-    bf(6.5);
-    text({ r: 20, g: 83, b: 45 });
-    doc.text("✓", ML + 7, y + rh / 2 + 1.5, "center");
-    nf(7);
-    text(C.dark);
-    lines.forEach((ln, li) => doc.text(ln, ML + 12, y + 4.5 + li * 4));
-    y += rh + 2;
+    SF(GRB);
+    doc.roundedRect(ML, y, CW, rh, 1.2, 1.2, "F");
+    doc.setFillColor(21, 191, 107);
+    doc.roundedRect(ML, y, 4, rh, 0, 0, "F");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(20, 83, 45);
+    lines.forEach((ln, li) => doc.text(ln, ML + 7, y + 3 + li * 3.6));
+    y += rh + 1.5;
   });
   y += 3;
 
-  // CRITICAL WEAKNESSES
+  // Critical Weaknesses — with visible red header bar
   needY(10);
-  fill({ r: 185, g: 28, b: 28 });
-  doc.rect(ML, y, CW, 9, "F");
-  bf(10);
-  text(C.white);
-  doc.text("✕   CRITICAL WEAKNESSES — Fix Immediately", ML + 4, y + 6.5);
-  y += 11;
-  const weaknesses = [
+  doc.setFillColor(185, 28, 28);
+  doc.rect(ML, y, CW, 7, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  ST(WH);
+  doc.text("✕  CRITICAL WEAKNESSES — Fix Immediately", ML + 4, y + 5);
+  y += 9;
+  const weakItems = [
     "Page Load Speed — CRITICAL FAILURE. Slow load times directly reduce Google rankings, increase bounce rates, and hurt mobile conversions.",
     "Mobile Responsiveness — 38/100, THE LOWEST SCORE in the entire audit. With 60%+ of web traffic on mobile, this is a major revenue-impacting issue requiring immediate developer action.",
     "HTTPS Security (GEO) — CRITICAL ERROR. AI systems and security-conscious search algorithms may deprioritize or distrust the site. Fix in Week 1.",
-    "E-E-A-T — 60/100. Missing trust badges, publication dates, and expanded author credentials — all key signals for Google quality assessment.",
+    "E-E-A-T — 60/100. Missing trust badges, publication dates, and expanded author credentials — all key signals for Google's quality assessment.",
     "Machine-Readable Metadata — 50/100, the lowest category score. Organization Schema missing, Open Graph tags incomplete — limiting how AI systems represent the site.",
   ];
-  weaknesses.forEach((s, i) => {
+  weakItems.forEach((s) => {
     const lines = doc.splitTextToSize(s, CW - 12);
-    const rh = lines.length * 4 + 6;
+    const rh = Math.max(7, lines.length * 3.6 + 2);
     needY(rh + 1);
-    fill(i % 2 === 0 ? C.redbg : { r: 255, g: 241, b: 242 });
-    doc.roundedRect(ML, y, CW, rh, 1.5, 1.5, "F");
-    fill({ r: 185, g: 28, b: 28 });
-    doc.roundedRect(ML, y, 4, rh, 0.5, 0.5, "F");
-    bf(6.5);
-    text({ r: 127, g: 29, b: 29 });
-    doc.text("✕", ML + 7, y + rh / 2 + 1.5, "center");
-    nf(7);
-    text(C.dark);
-    lines.forEach((ln, li) => doc.text(ln, ML + 12, y + 4.5 + li * 4));
-    y += rh + 2;
+    SF(RDB);
+    doc.roundedRect(ML, y, CW, rh, 1.2, 1.2, "F");
+    doc.setFillColor(220, 38, 38);
+    doc.roundedRect(ML, y, 4, rh, 0, 0, "F");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(127, 29, 29);
+    lines.forEach((ln, li) => doc.text(ln, ML + 7, y + 3 + li * 3.6));
+    y += rh + 1.5;
   });
-  y += 4;
+  y += 2;
 
-  // ═══════════════════════════════════════════════
-  // SEO / AEO / GEO ANALYSIS SECTIONS
-  // ═══════════════════════════════════════════════
-  const modInfo = {
-    seo: { sec: "2", label: "SEO" },
-    aeo: { sec: "3", label: "AEO" },
-    geo: { sec: "4", label: "GEO" },
-  };
-
+  // SEO/AEO/GEO detail pages
+  const modColMap = { seo: SEO, aeo: AEO, geo: GEO };
+  const modSecMap = { seo: "SECTION 2", aeo: "SECTION 3", geo: "SECTION 4" };
   ["seo", "aeo", "geo"].forEach((mk) => {
     ftr();
     doc.addPage();
     hdr();
     _part = "PART 1: " + mk.toUpperCase() + " ANALYSIS";
     const mod = d.mods[mk];
-    const mi = modInfo[mk];
-    secHead(
-      "SECTION " + mi.sec + ": " + mod.label + " ANALYSIS — Detailed Findings",
-      "Score: " +
-        mod.score +
-        "/100 · Grade: " +
-        pdfGrade(mod.score) +
-        " · " +
-        mod.categories.length +
-        " categories",
+    sectionHead(
+      `${modSecMap[mk]}: ${mod.label} ANALYSIS — Detailed Findings`,
+      `Score: ${mod.score}/100`,
     );
-
     mod.categories.forEach((cat) => {
-      const cp = cat.checks.filter((c) => c.status === "PASS").length;
-      const cw = cat.checks.filter((c) => c.status === "WARN").length;
-      const cf = cat.checks.filter((c) => c.status === "FAIL").length;
-      const sc = cat.score;
-
       needY(12);
-      // Category header
-      fill(C.dark);
-      doc.rect(ML, y, CW, 9, "F");
-      fill(sc >= 65 ? C.green : sc >= 45 ? C.amber : C.red2);
-      doc.rect(ML, y, 4, 9, "F");
-      bf(8.5);
-      text(C.white);
+      SF(BG2);
+      SD(BD);
+      doc.setLineWidth(0.15);
+      doc.rect(ML, y, CW, 7.5, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      ST(DK);
       doc.text(
-        cat.sectionNum + " " + cat.name + (cat.note ? " " + cat.note : ""),
-        ML + 7,
-        y + 6.3,
+        `${cat.sectionNum} ${cat.name}${cat.note ? " " + cat.note : ""}`,
+        ML + 3,
+        y + 5.2,
       );
-      // Score chip right
-      const scC = sc >= 65 ? C.grnbg : sc >= 45 ? C.ambg : C.redbg;
-      const scT =
-        sc >= 65
-          ? { r: 21, g: 128, b: 61 }
-          : sc >= 45
-            ? { r: 161, g: 98, b: 7 }
-            : { r: 185, g: 28, b: 28 };
-      chip(PW - MR - 40, y + 2.5, sc + "/100 " + pdfGrade(sc), scC, scT, 22);
-      // Stats
-      nf(6);
-      text({ r: 150, g: 220, b: 170 });
-      doc.text("✓" + cp, PW - MR - 60, y + 6.3);
-      text({ r: 255, g: 220, b: 120 });
-      doc.text("⚠" + cw, PW - MR - 52, y + 6.3);
-      text({ r: 255, g: 150, b: 150 });
-      doc.text("✕" + cf, PW - MR - 44, y + 6.3);
-      y += 11;
-
+      const cp = cat.checks.filter((c) => c.status === "PASS").length,
+        cw = cat.checks.filter((c) => c.status === "WARN").length,
+        cf = cat.checks.filter((c) => c.status === "FAIL").length;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6);
+      ST(LT);
+      doc.text(
+        `Passed:${cp}  Warnings:${cw}  Errors:${cf}`,
+        ML + CW - 14,
+        y + 5.2,
+        "right",
+      );
+      const sc = cat.score,
+        sc2 = sc >= 65 ? GR : sc >= 45 ? YL : RD,
+        sb = sc >= 65 ? GRB : sc >= 45 ? YLB : RDB;
+      chip(ML + CW - 12, y + 1.8, `${sc} ${pdfGrade(sc)}`, sb, sc2, 12);
+      y += 9.5;
       // Table header
-      checksTableHead();
-      // Table rows
-      cat.checks.forEach((c, ci) => checksRow(c, ci % 2 === 0));
-      y += 4;
+      const cols = [35, 22, 50, 22, CW - 35 - 22 - 50 - 22 - 5],
+        colX = [ML, ML + 35, ML + 57, ML + 107, ML + 129];
+      needY(5.5);
+      doc.setFillColor(169, 0, 6);
+      doc.rect(ML, y, CW, 5, "F");
+      ["Check", "Status", "Finding", "Priority", "Action Required"].forEach(
+        (h, i) => {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(6);
+          doc.setTextColor(255, 255, 255);
+          doc.text(h, colX[i] + 1, y + 3.5);
+        },
+      );
+      y += 5;
+      cat.checks.forEach((c) => {
+        const descL = doc.splitTextToSize(c.finding, cols[2] - 3);
+        const actL = doc.splitTextToSize(c.action, cols[4] - 3);
+        const rh = Math.max(8, Math.max(descL.length, actL.length) * 3.2 + 2.5);
+        needY(rh + 0.5);
+        const rb =
+          c.status === "FAIL"
+            ? "#fff5f5"
+            : c.status === "WARN"
+              ? "#fffbf0"
+              : WH;
+        SF(rb);
+        doc.rect(ML, y, CW, rh, "F");
+        SD(BD);
+        doc.setLineWidth(0.07);
+        doc.line(ML, y + rh, ML + CW, y + rh);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(6.5);
+        ST(DK);
+        doc.text(c.n, colX[0] + 1, y + 4);
+        const stC = c.status === "PASS" ? GR : c.status === "WARN" ? YL : RD,
+          stB = c.status === "PASS" ? GRB : c.status === "WARN" ? YLB : RDB;
+        chip(colX[1] + 1, y + rh / 2 - 2, c.status, stB, stC, 20);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(5.8);
+        ST(MD);
+        descL.forEach((ln, li) =>
+          doc.text(ln, colX[2] + 1, y + 3.5 + li * 3.2),
+        );
+        const pm = {
+          CRITICAL: { bg: RDB, fg: RD },
+          HIGH: { bg: YLB, fg: "#c2410c" },
+          MEDIUM: { bg: "#fef9c3", fg: "#a16207" },
+          LOW: { bg: BG2, fg: LT },
+        };
+        const p = pm[c.priority] || pm.LOW;
+        chip(colX[3] + 1, y + rh / 2 - 2, c.priority, p.bg, p.fg, 20);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(5.8);
+        ST(DK);
+        actL.forEach((ln, li) => doc.text(ln, colX[4] + 1, y + 3.5 + li * 3.2));
+        y += rh + 0.5;
+      });
+      y += 3;
     });
   });
 
-  // ═══════════════════════════════════════════════
-  // SECTION 5: ACTION PLAN
-  // ═══════════════════════════════════════════════
+  // Action Plan page
   ftr();
   doc.addPage();
   hdr();
   _part = "PART 1: ACTION PLAN";
-
+  sectionHead(
+    "SECTION 5: PRIORITIZED ACTION PLAN",
+    "Critical (2 weeks) · High (30 days) · Medium (60-90 days)",
+  );
   const allIss = [];
   ["seo", "aeo", "geo"].forEach((k) =>
     d.mods[k].categories.forEach((cat) =>
@@ -3941,137 +3825,123 @@ async function generatePDFInline() {
       ["CRITICAL", "HIGH", "MEDIUM", "LOW"].indexOf(a.priority) -
       ["CRITICAL", "HIGH", "MEDIUM", "LOW"].indexOf(b.priority),
   );
-
-  secHead(
-    "SECTION 5: PRIORITIZED ACTION PLAN — All " + allIss.length + " Actions",
-    "Critical (2 weeks) · High (30 days) · Medium (60-90 days) · Low",
-  );
-
-  const priGroups = [
+  const priCfg = [
     {
       k: "CRITICAL",
       lbl: "Critical Priority — Fix Within 2 Weeks",
-      bg: C.redbg,
-      hbg: { r: 185, g: 28, b: 28 },
-      tc: { r: 185, g: 28, b: 28 },
+      col: RD,
+      bg: RDB,
+      fg: "#dc2626",
     },
     {
       k: "HIGH",
       lbl: "High Priority — Fix Within 30 Days",
-      bg: C.ambg,
-      hbg: { r: 161, g: 98, b: 7 },
-      tc: { r: 161, g: 98, b: 7 },
+      col: YL,
+      bg: YLB,
+      fg: "#c2410c",
     },
     {
       k: "MEDIUM",
       lbl: "Medium Priority — Fix Within 60-90 Days",
-      bg: { r: 254, g: 252, b: 232 },
-      hbg: { r: 133, g: 77, b: 14 },
-      tc: { r: 133, g: 77, b: 14 },
+      col: "#d97706",
+      bg: "#fef9c3",
+      fg: "#a16207",
     },
-    {
-      k: "LOW",
-      lbl: "Low Priority — Fix When Capacity Allows",
-      bg: C.bg,
-      hbg: C.dark,
-      tc: C.light,
-    },
+    { k: "LOW", lbl: "Low Priority", col: LT, bg: BG2, fg: LT },
   ];
-  let actNum = 1;
-  priGroups.forEach((pg) => {
+  let actN = 1;
+  priCfg.forEach((pg) => {
     const items = allIss.filter((c) => c.priority === pg.k);
     if (!items.length) return;
-
-    needY(10);
-    fill(pg.hbg);
-    doc.rect(ML, y, CW, 8, "F");
-    bf(8.5);
-    text(C.white);
-    doc.text(pg.lbl, ML + 4, y + 5.8);
-    nf(6.5);
-    text({ r: 220, g: 220, b: 220 });
+    needY(8);
+    SF(pg.bg);
+    SD(pg.col);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(ML, y, CW, 6, 1, 1, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    ST(pg.fg);
+    doc.text(pg.lbl, ML + 4, y + 4);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    ST(LT);
     doc.text(
-      "(" + items.length + " issues)",
-      ML + 4 + doc.getTextWidth(pg.lbl) + 4,
-      y + 5.8,
+      `(${items.length} issues)`,
+      ML + 4 + doc.getTextWidth(pg.lbl) + 3,
+      y + 4,
     );
-    y += 10;
-
-    // Table header
-    needY(7);
-    fill(C.red);
-    doc.rect(ML, y, CW, 7, "F");
-    const ah = ["#", "Issue", "Module", "Priority", "Recommended Fix"];
-    const ax = [ML + 1, ML + 11, ML + 60, ML + 78, ML + 98];
-    bf(6.5);
-    text(C.white);
-    ah.forEach((h, i) => doc.text(h, ax[i], y + 5));
-    y += 7.5;
-
-    items.forEach((item) => {
-      const fixL = doc.splitTextToSize(item.action || "", CW - 98 - 4);
-      const nameL = doc.splitTextToSize(item.n || "", 47);
-      const rh = Math.max(10, Math.max(nameL.length, fixL.length) * 3.8 + 4);
-      needY(rh + 0.5);
-      fill(pg.bg);
-      doc.rect(ML, y, CW, rh, "F");
-      draw(C.border);
-      doc.setLineWidth(0.08);
-      doc.line(ML, y + rh, ML + CW, y + rh);
-      // Number
-      bf(7.5);
-      text(pg.tc);
-      doc.text(String(actNum++), ax[0] + 2, y + rh / 2 + 1.5, "center");
-      // Issue name + finding
-      bf(7);
-      text(C.dark);
-      nameL.forEach((ln, li) => doc.text(ln, ax[1], y + 4 + li * 3.8));
-      nf(6);
-      text(C.mid);
-      const fL2 = doc.splitTextToSize(item.finding || "", 47);
-      fL2
-        .slice(0, 1)
-        .forEach((ln, li) =>
-          doc.text(ln, ax[1], y + 4 + nameL.length * 3.8 + li * 3.5),
-        );
-      // Module chip
-      const mC =
-        { SEO: C.seo, AEO: C.aeo, GEO: C.geo }[item.module] || C.orange;
-      const mB =
-        {
-          SEO: { r: 255, g: 240, b: 235 },
-          AEO: { r: 240, g: 253, b: 244 },
-          GEO: { r: 245, g: 243, b: 255 },
-        }[item.module] || C.bg;
-      chip(ax[2], y + rh / 2 - 2, item.module, mB, mC, 15);
-      // Priority chip
-      priChip(ax[3], y + rh / 2 - 2, pg.k);
-      // Fix text
-      nf(6.3);
-      text(C.dark);
-      fixL.forEach((ln, li) => doc.text(ln, ax[4], y + 4 + li * 3.8));
-      y += rh + 0.5;
+    y += 8;
+    const cX = [ML, ML + 7, ML + 55, ML + 70, ML + 86];
+    const cW = [7, 48, 15, 16, CW - 86 - 3];
+    needY(5);
+    doc.setFillColor(169, 0, 6);
+    doc.rect(ML, y, CW, 5, "F");
+    ["#", "Issue", "Module", "Priority", "Recommended Fix"].forEach((h, i) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6);
+      doc.setTextColor(255, 255, 255);
+      doc.text(h, cX[i] + 1, y + 3.5);
     });
     y += 5;
+    items.forEach((item) => {
+      const rLines = doc.splitTextToSize(item.action, cW[4] - 3);
+      const rh = Math.max(7, rLines.length * 3.2 + 2.5);
+      needY(rh + 0.5);
+      const rb = item.status === "FAIL" ? RDB : YLB;
+      SF(rb);
+      doc.rect(ML, y, CW, rh, "F");
+      SD(BD);
+      doc.setLineWidth(0.07);
+      doc.line(ML, y + rh, ML + CW, y + rh);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
+      ST(pg.fg);
+      doc.text(String(actN++), cX[0] + 3, y + rh / 2 + 1.5, "center");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
+      ST(DK);
+      doc.text(item.n, cX[1] + 1, y + 4);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(5.5);
+      ST(MD);
+      const fl = doc.splitTextToSize(item.finding, cW[1] - 3);
+      fl.slice(0, 1).forEach((ln, li) => doc.text(ln, cX[1] + 1, y + 7.5));
+      const mC = { SEO: SEO, AEO: AEO, GEO: GEO }[item.module] || OR,
+        mB =
+          { SEO: "#fff0eb", AEO: "#f0fdf4", GEO: "#f5f3ff" }[item.module] ||
+          "#fff0eb";
+      chip(cX[2] + 1, y + rh / 2 - 2, item.module, mB, mC, 13);
+      const pm = {
+        CRITICAL: { bg: RDB, fg: RD },
+        HIGH: { bg: YLB, fg: "#c2410c" },
+        MEDIUM: { bg: "#fef9c3", fg: "#a16207" },
+        LOW: { bg: BG2, fg: LT },
+      };
+      const p = pm[pg.k] || pm.LOW;
+      chip(cX[3] + 1, y + rh / 2 - 2, pg.k, p.bg, p.fg, 15);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(5.8);
+      ST(DK);
+      rLines.forEach((ln, li) => doc.text(ln, cX[4] + 1, y + 3.5 + li * 3.2));
+      y += rh + 0.5;
+    });
+    y += 4;
   });
 
-  // ═══════════════════════════════════════════════
-  // SECTION 6: TEAM RESPONSIBILITIES
-  // ═══════════════════════════════════════════════
+  // Team section
   ftr();
   doc.addPage();
   hdr();
-  _part = "PART 1: TEAM & TIMELINE";
-  secHead(
+  _part = "PART 1: TEAM & FINAL NOTES";
+  sectionHead(
     "SECTION 6: TEAM RESPONSIBILITIES & TIMELINE",
     "30/60-day targets by team",
   );
-
-  const teams = [
+  const teams2 = [
     {
       name: "Developer / Technical Team",
-      col: { r: 29, g: 78, b: 216 },
-      bg: { r: 239, g: 246, b: 255 },
+      col: "#3b82f6",
+      bg: "#1e3a5f",
       tasks: [
         "Fix HTTPS / mixed content warnings — Week 1",
         "Add viewport meta tag to all pages — Week 1",
@@ -4087,8 +3957,8 @@ async function generatePDFInline() {
     },
     {
       name: "Content / SEO Team",
-      col: C.red,
-      bg: { r: 255, g: 245, b: 245 },
+      col: SEO,
+      bg: "#7c2d12",
       tasks: [
         "Audit and rewrite all title tags — Week 1–2",
         "Write unique meta descriptions for all pages — Week 1–2",
@@ -4102,8 +3972,8 @@ async function generatePDFInline() {
     },
     {
       name: "Marketing / Brand Team",
-      col: { r: 21, g: 128, b: 61 },
-      bg: { r: 240, g: 253, b: 244 },
+      col: AEO,
+      bg: "#064e3b",
       tasks: [
         "Audit brand name consistency across all pages — Week 1",
         "Collect and add trust badges, certifications, partner logos — Week 2–3",
@@ -4115,272 +3985,270 @@ async function generatePDFInline() {
       ],
     },
   ];
-  teams.forEach((team) => {
+  teams2.forEach((t) => {
     needY(12);
-    fill(team.col);
-    doc.rect(ML, y, CW, 9, "F");
-    bf(9.5);
-    text(C.white);
-    doc.text(team.name, ML + 5, y + 6.5);
-    y += 11;
-    team.tasks.forEach((task, ti) => {
-      const lines = doc.splitTextToSize(task, CW - 12);
-      const rh = lines.length * 4 + 5;
+    SF(t.bg);
+    doc.roundedRect(ML, y, CW, 7, 1, 1, "F");
+    SF(t.col);
+    doc.rect(ML, y, 3, 7, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    ST(WH);
+    doc.text(t.name, ML + 6, y + 5);
+    y += 9;
+    t.tasks.forEach((task) => {
+      const lines = doc.splitTextToSize(task, CW - 9);
+      const rh = Math.max(5.5, lines.length * 3.4 + 0.5);
       needY(rh + 0.5);
-      fill(ti % 2 === 0 ? team.bg : C.white);
-      doc.rect(ML, y, CW, rh, "F");
-      fill(team.col);
-      doc.circle(ML + 5, y + rh / 2, 1.5, "F");
-      nf(7);
-      text(C.dark);
-      lines.forEach((ln, li) => doc.text(ln, ML + 10, y + 4 + li * 4));
-      draw(C.border);
-      doc.setLineWidth(0.07);
+      SD(BD);
+      doc.setLineWidth(0.06);
       doc.line(ML, y + rh, ML + CW, y + rh);
+      SF(t.col);
+      doc.circle(ML + 3.5, y + rh / 2, 1.2, "F");
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.5);
+      ST(DK);
+      lines.forEach((ln, li) => doc.text(ln, ML + 8, y + 2.5 + li * 3.4));
       y += rh + 0.5;
     });
-    y += 6;
+    y += 4;
   });
 
-  // 30/60-Day Score Milestones
-  needY(36);
-  bf(9);
-  text(C.dark);
-  doc.text("30/60-Day Score Milestone Targets", ML, y + 6);
-  y += 9;
-  fill(C.red);
-  doc.rect(ML, y, CW, 7, "F");
-  const milX = [ML, ML + 55, ML + 100, ML + 145];
-  bf(7);
-  text(C.white);
+  // 30/60 day targets
+  needY(28);
+  sectionHead("30/60-Day Score Milestone Targets");
+  const mX = [ML, ML + 50, ML + 90, ML + 130];
+  doc.setFillColor(169, 0, 6);
+  doc.rect(ML, y, CW, 5.5, "F");
   ["Module", "Current Score", "30-Day Target", "60-Day Target"].forEach(
-    (h, i) => doc.text(h, milX[i] + 2, y + 5),
+    (h, i) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text(h, mX[i] + 2, y + 3.8);
+    },
   );
-  y += 7.5;
-  const mils = [
-    { m: "SEO Overall", now: 70, d30: 80, d60: 87 },
-    { m: "AEO Overall", now: 79, d30: 86, d60: 91 },
-    { m: "GEO Overall", now: 72, d30: 82, d60: 88 },
-    { m: "Overall Score", now: 74, d30: 83, d60: 89 },
-  ];
-  mils.forEach((m, i) => {
-    needY(9);
-    fill(i === 3 ? C.bg : C.white);
-    doc.rect(ML, y, CW, 8, "F");
-    draw(C.border);
-    doc.setLineWidth(0.08);
-    doc.line(ML, y + 8, ML + CW, y + 8);
-    bf(7);
-    text(C.dark);
-    doc.text(m.m, milX[0] + 2, y + 5.5);
-    [[m.now], [m.d30], [m.d60]].forEach(([v], ci) => {
-      const sc = v >= 80 ? C.grnbg : v >= 70 ? C.ambg : C.redbg;
-      const tc =
-        v >= 80
-          ? { r: 21, g: 128, b: 61 }
-          : v >= 70
-            ? { r: 161, g: 98, b: 7 }
-            : { r: 185, g: 28, b: 28 };
-      chip(milX[ci + 1] + 2, y + 2, v + "/100", sc, tc, 20);
+  y += 5.5;
+  [
+    { mod: "SEO Overall", now: 70, d30: 80, d60: 87 },
+    { mod: "AEO Overall", now: 79, d30: 86, d60: 91 },
+    { mod: "GEO Overall", now: 72, d30: 82, d60: 88 },
+    { mod: "Overall Score", now: 74, d30: 83, d60: 89 },
+  ].forEach((m) => {
+    needY(7);
+    const isOv = m.mod === "Overall Score";
+    SF(isOv ? BG2 : WH);
+    doc.rect(ML, y, CW, 6.5, "F");
+    SD(BD);
+    doc.setLineWidth(0.07);
+    doc.line(ML, y + 6.5, ML + CW, y + 6.5);
+    doc.setFont("helvetica", isOv ? "bold" : "normal");
+    doc.setFontSize(6.8);
+    ST(DK);
+    doc.text(m.mod, mX[0] + 2, y + 4.3);
+    [m.now, m.d30, m.d60].forEach((v, i) => {
+      const bg = v >= 80 ? GRB : v >= 70 ? YLB : RDB,
+        fg = v >= 80 ? GR : v >= 70 ? YL : RD;
+      chip(mX[i + 1] + 2, y + 1.3, v + "/100", bg, fg, 18);
     });
-    y += 8.5;
+    y += 6.5;
   });
-  y += 6;
+  y += 4;
 
-  // Section 7: Final Notes
-  needY(10);
-  secHead(
+  // Section 7
+  sectionHead(
     "SECTION 7: FINAL NOTES & EXECUTIVE RECOMMENDATIONS",
-    "Summary for leadership · 4 immediate actions",
+    "Summary for leadership and 4 immediate actions",
   );
-
-  needY(20);
-  fill({ r: 255, g: 245, b: 245 });
-  draw(C.red);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(ML, y, CW, 18, 2, 2, "FD");
-  fill(C.red);
-  doc.roundedRect(ML, y, 4, 18, 1, 1, "F");
-  const sumTxt =
-    dom +
-    " is performing at a B+ level across all three dimensions of modern search visibility. Core strengths — strong backlinks, perfect voice search optimization, and well-structured AI-ready content — provide a solid foundation. The two most revenue-impactful issues are mobile responsiveness (38/100) and page load speed (CRITICAL). Fixing these two items alone could produce measurable ranking improvements within 30-60 days.";
-  const sumL = doc.splitTextToSize(sumTxt, CW - 10);
-  nf(7);
-  text(C.dark);
-  sumL.forEach((ln, li) => doc.text(ln, ML + 7, y + 5.5 + li * 4));
-  y += sumL.length * 4 + 6;
-
-  const actions4 = [
-    "Assign a developer sprint in the next 5–7 days focused exclusively on the 8 critical technical items.",
+  const sumText =
+    (_userDomain || "buimbdigital.com") +
+    " is performing at a B+ level across all three dimensions of modern search visibility. Core strengths — strong backlinks, perfect voice search optimization, and well-structured AI-ready content — provide a competitive foundation that many agencies lack. The two most revenue-impactful issues are mobile responsiveness (38/100) and page load speed (CRITICAL failure). Fixing these two items alone could produce measurable ranking improvements within 30-60 days.";
+  const sumLines = doc.splitTextToSize(sumText, CW - 8);
+  needY(sumLines.length * 3.8 + 6);
+  SF(BG2);
+  doc.roundedRect(ML, y, CW, sumLines.length * 3.8 + 4, 1.5, 1.5, "F");
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.8);
+  ST(DK);
+  sumLines.forEach((ln, li) => doc.text(ln, ML + 4, y + 4 + li * 3.8));
+  y += sumLines.length * 3.8 + 6;
+  [
+    "Assign a developer sprint in the next 5-7 days focused exclusively on the 8 critical technical items.",
     "Schedule a content audit meeting where the SEO/content team reviews all pages missing FAQs, definitions, and trust signals.",
     "Begin collecting client testimonials and case study approvals from existing clients this week.",
     "Set a re-audit date 30 days from today to measure progress against the baseline scores in this report.",
-  ];
-  actions4.forEach((a, i) => {
-    const lines = doc.splitTextToSize(a, CW - 18);
-    const rh = lines.length * 4 + 7;
+  ].forEach((a, i) => {
+    const lines = doc.splitTextToSize(a, CW - 15);
+    const rh = Math.max(8, lines.length * 3.5 + 3);
     needY(rh + 1);
-    fill(C.bg);
-    draw(C.border);
-    doc.setLineWidth(0.2);
-    doc.roundedRect(ML, y, CW, rh, 1.5, 1.5, "FD");
-    fill(C.red);
-    doc.roundedRect(ML + 1, y + 1, 8, 8, 1, 1, "F");
-    bf(8);
-    text(C.white);
-    doc.text(String(i + 1), ML + 5, y + 6.5, "center");
-    nf(7);
-    text(C.dark);
-    lines.forEach((ln, li) => doc.text(ln, ML + 13, y + 5 + li * 4));
+    SF(BG2);
+    doc.roundedRect(ML, y, CW, rh, 1.5, 1.5, "F");
+    SF(OR);
+    doc.roundedRect(ML + 2, y + rh / 2 - 3.5, 7, 7, 1, 1, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    ST(WH);
+    doc.text(String(i + 1), ML + 5.5, y + rh / 2 + 1, "center");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.8);
+    ST(DK);
+    lines.forEach((ln, li) => doc.text(ln, ML + 12, y + 4 + li * 3.5));
     y += rh + 2;
   });
 
-  // ═══════════════════════════════════════════════
-  // PART 2: CONTENT CALENDAR
-  // ═══════════════════════════════════════════════
+  // PART 2 banner
   ftr();
   doc.addPage();
   hdr();
   _part = "PART 2: CONTENT CALENDAR";
-
-  // Part 2 banner
-  fill(C.aeo);
-  doc.rect(ML, y, CW, 30, "F");
-  bf(9);
-  text({ r: 200, g: 255, b: 230 });
-  doc.text("PART 2", ML + 5, y + 9);
-  bf(16);
-  text(C.white);
-  doc.text("6-MONTH CONTENT CALENDAR", ML + 5, y + 19);
-  nf(7.5);
-  text({ r: 200, g: 255, b: 230 });
+  SF(AEO);
+  doc.rect(ML, y, CW, 28, "F");
+  SF("#06b6d4");
+  doc.rect(PW - MR - 20, y, 20, 28, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  ST("#d1fae5");
+  doc.text("PART 2", ML + 5, y + 8);
+  doc.setFontSize(16);
+  ST(WH);
+  doc.text("6-MONTH CONTENT CALENDAR", ML + 5, y + 17);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  ST("#d1fae5");
   doc.text(
-    "April – October 2026  ·  29 Content Pieces  ·  Weekly Breakdown",
+    "April – October 2026  |  29 Content Pieces  |  Weekly Breakdown",
     ML + 5,
-    y + 26,
+    y + 24,
   );
-  y += 34;
+  y += 31;
 
-  secHead(
+  sectionHead(
+    "SECTION 8: CONTENT CALENDAR — Strategy & Overview",
+    "Content mix, audit gap mapping, content type legend",
+  );
+  sectionHead(
     "SECTION 9: 6-MONTH WEEKLY CALENDAR",
-    "Week-by-week topics, types, keywords, goals, and owners",
+    "Week-by-week topics, types, keywords, CTAs, and owner assignments",
   );
 
-  const CALENDAR2 = typeof CALENDAR !== "undefined" ? CALENDAR : [];
-  CALENDAR2.forEach((month) => {
-    needY(12);
-    fill(C.dark);
-    doc.rect(ML, y, CW, 9, "F");
-    fill(C.aeo);
-    doc.rect(ML, y, 4, 9, "F");
-    bf(8.5);
-    text(C.white);
-    doc.text(month.month, ML + 7, y + 6.3);
-    italicf(6.5);
-    text({ r: 160, g: 220, b: 200 });
-    doc.text("Theme: " + month.theme, PW - MR, y + 6.3, "right");
-    y += 11;
-
-    // Cal table header
-    needY(7);
-    fill(C.red);
-    doc.rect(ML, y, CW, 7, "F");
-    const cx = [ML + 1, ML + 10, ML + 30, ML + 82, ML + 130, ML + CW - 8];
-    bf(6.5);
-    text(C.white);
+  CALENDAR.forEach((month) => {
+    needY(10);
+    SF(DK);
+    doc.roundedRect(ML, y, CW, 7.5, 1, 1, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    ST(AEO);
+    doc.text(month.month, ML + 4, y + 5);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(6.5);
+    ST(LT);
+    doc.text("Theme: " + month.theme, PW - MR, y + 5, "right");
+    y += 9.5;
+    const cX2 = [ML, ML + 9, ML + 29, ML + 80, ML + 130, ML + CW - 9];
+    doc.setFillColor(169, 0, 6);
+    doc.rect(ML, y, CW, 5, "F");
     ["Wk", "Type", "Title / Topic", "Target Keywords", "Goal", "Owner"].forEach(
-      (h, i) => doc.text(h, cx[i], y + 5),
+      (h, i) => {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(5.8);
+        doc.setTextColor(255, 255, 255);
+        doc.text(h, cX2[i] + 1, y + 3.5);
+      },
     );
-    y += 7.5;
-
-    const typeColors = {
-      "Blog Post": {
-        bg: { r: 219, g: 234, b: 254 },
-        tc: { r: 29, g: 78, b: 216 },
-      },
-      "Service Page": { bg: { r: 255, g: 240, b: 235 }, tc: C.seo },
-      "Case Study": {
-        bg: { r: 240, g: 253, b: 244 },
-        tc: { r: 21, g: 128, b: 61 },
-      },
-      "Social Post": {
-        bg: { r: 236, g: 253, b: 245 },
-        tc: { r: 6, g: 182, b: 212 },
-      },
-      "FAQ Page": {
-        bg: { r: 255, g: 247, b: 237 },
-        tc: { r: 161, g: 98, b: 7 },
-      },
-      "Use Case Page": {
-        bg: { r: 245, g: 243, b: 255 },
-        tc: { r: 124, g: 58, b: 237 },
-      },
-      "Definition Page": {
-        bg: { r: 236, g: 254, b: 255 },
-        tc: { r: 14, g: 116, b: 144 },
-      },
-    };
-    const ownerC = {
-      SEO: { bg: { r: 255, g: 240, b: 235 }, tc: C.seo },
-      Content: {
-        bg: { r: 245, g: 243, b: 255 },
-        tc: { r: 124, g: 58, b: 237 },
-      },
-      Marketing: {
-        bg: { r: 240, g: 253, b: 244 },
-        tc: { r: 21, g: 128, b: 61 },
-      },
-    };
-
+    y += 5;
     month.items.forEach((item, ii) => {
-      const tL = doc.splitTextToSize(item.title, 49);
-      const kL = doc.splitTextToSize(item.keywords, 46);
-      const gL = doc.splitTextToSize(item.goal, 46);
+      const tLines = doc.splitTextToSize(item.title, 50);
+      const kwLines = doc.splitTextToSize(item.keywords, 49);
+      const gLines = doc.splitTextToSize(item.goal, 49);
       const rh = Math.max(
-        11,
-        Math.max(tL.length, kL.length, gL.length) * 3.8 + 4,
+        7,
+        Math.max(tLines.length, kwLines.length, gLines.length) * 3.2 + 2,
       );
       needY(rh + 0.5);
-      fill(ii % 2 === 0 ? C.white : C.bg);
+      SF(ii % 2 === 0 ? WH : BG2);
       doc.rect(ML, y, CW, rh, "F");
-      draw(C.border);
+      SD(BD);
       doc.setLineWidth(0.07);
       doc.line(ML, y + rh, ML + CW, y + rh);
-      bf(7);
-      text(C.aeo);
-      doc.text(item.week, cx[0] + 1, y + rh / 2 + 1.5);
-      const tc2 = typeColors[item.type] || typeColors["Blog Post"];
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6);
+      ST(AEO);
+      doc.text(item.week, cX2[0] + 1, y + rh / 2 + 1.5, "center");
+      const tC =
+        {
+          "Blog Post": "#3b82f6",
+          "Service Page": SEO,
+          "Case Study": GEO,
+          "Social Post": AEO,
+          "FAQ Page": "#f59e0b",
+          "Use Case Page": "#8b5cf6",
+          "Definition Page": "#06b6d4",
+        }[item.type] || DK;
+      const tB =
+        {
+          "Blog Post": "#dbeafe",
+          "Service Page": "#fff0eb",
+          "Case Study": "#f0fdf4",
+          "Social Post": "#ecfdf5",
+          "FAQ Page": "#fff7ed",
+          "Use Case Page": "#f5f3ff",
+          "Definition Page": "#ecfeff",
+        }[item.type] || BG2;
       chip(
-        cx[1],
+        cX2[1] + 1,
         y + rh / 2 - 2,
-        item.type.length > 12 ? item.type.slice(0, 11) + ".." : item.type,
-        tc2.bg,
-        tc2.tc,
+        item.type.slice(0, 10) + (item.type.length > 10 ? ".." : ""),
+        tB,
+        tC,
         18,
       );
-      bf(7);
-      text(C.dark);
-      tL.forEach((ln, li) => doc.text(ln, cx[2], y + 4 + li * 3.8));
-      nf(6.3);
-      text(C.mid);
-      kL.forEach((ln, li) => doc.text(ln, cx[3], y + 4 + li * 3.8));
-      nf(6.3);
-      text(C.dark);
-      gL.forEach((ln, li) => doc.text(ln, cx[4], y + 4 + li * 3.8));
-      const oc2 = ownerC[item.owner] || ownerC["SEO"];
-      chip(cx[5], y + rh / 2 - 2, item.owner, oc2.bg, oc2.tc, 10);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.2);
+      ST(DK);
+      tLines.forEach((ln, li) => doc.text(ln, cX2[2] + 1, y + 3.5 + li * 3.2));
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(5.8);
+      ST(MD);
+      kwLines.forEach((ln, li) => doc.text(ln, cX2[3] + 1, y + 3.5 + li * 3.2));
+      doc.setFontSize(5.8);
+      ST(DK);
+      gLines.forEach((ln, li) => doc.text(ln, cX2[4] + 1, y + 3.5 + li * 3.2));
+      const oC = { SEO: SEO, Content: GEO, Marketing: AEO }[item.owner] || DK;
+      const oB =
+        { SEO: "#fff0eb", Content: "#f5f3ff", Marketing: "#f0fdf4" }[
+          item.owner
+        ] || BG2;
+      chip(cX2[5] + 1, y + rh / 2 - 2, item.owner, oB, oC, 9);
       y += rh + 0.5;
     });
-    y += 5;
+    y += 4;
   });
 
-  // KPIs section
-  needY(10);
-  secHead(
+  // Section 10 KPIs
+  ftr();
+  doc.addPage();
+  hdr();
+  sectionHead(
     "SECTION 10: CONTENT KPIs & SUCCESS METRICS",
-    "Track monthly using Looker Studio + GA4 + Search Console",
+    "Track these 8 KPIs monthly using Looker Studio + GA4 + Search Console",
   );
-  const kpis = [
+  const kX = [ML, ML + 35, ML + 80, ML + 125, ML + 140];
+  doc.setFillColor(169, 0, 6);
+  doc.rect(ML, y, CW, 5, "F");
+  [
+    "KPI Metric",
+    "Starting Point",
+    "Tracking Tool",
+    "Frequency",
+    "6-Month Target",
+  ].forEach((h, i) => {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6);
+    doc.setTextColor(255, 255, 255);
+    doc.text(h, kX[i] + 1, y + 3.5);
+  });
+  y += 5;
+  [
     [
       "Organic Traffic",
       "Baseline (Month 0)",
@@ -4407,10 +4275,10 @@ async function generatePDFInline() {
       "0 currently",
       "CRM / Form tracking",
       "Monthly",
-      "3+ leads by Month 4",
+      "3+ leads from case studies by Month 4",
     ],
     [
-      "Social Engagement",
+      "Social Engagement Rate",
       "Baseline this week",
       "LinkedIn / Meta Analytics",
       "Weekly",
@@ -4437,161 +4305,147 @@ async function generatePDFInline() {
       "Monthly",
       "10+ new referring domains by Month 6",
     ],
-  ];
-  needY(7);
-  fill(C.red);
-  doc.rect(ML, y, CW, 7, "F");
-  const kx = [ML + 1, ML + 36, ML + 78, ML + 118, ML + 136];
-  bf(6.5);
-  text(C.white);
-  [
-    "KPI Metric",
-    "Starting Point",
-    "Tracking Tool",
-    "Frequency",
-    "6-Month Target",
-  ].forEach((h, i) => doc.text(h, kx[i], y + 5));
-  y += 7.5;
-  kpis.forEach((r, i) => {
-    const tL = doc.splitTextToSize(r[4], CW - 136 - 4);
-    const rh = Math.max(9, tL.length * 3.8 + 4);
+  ].forEach((r, ii) => {
+    const tL = doc.splitTextToSize(r[4], CW - 140 - 3);
+    const rh = Math.max(7, tL.length * 3.2 + 2);
     needY(rh + 0.5);
-    fill(i % 2 === 0 ? C.white : C.bg);
+    SF(ii % 2 === 0 ? WH : BG2);
     doc.rect(ML, y, CW, rh, "F");
-    draw(C.border);
+    SD(BD);
     doc.setLineWidth(0.07);
     doc.line(ML, y + rh, ML + CW, y + rh);
-    bf(7);
-    text(C.dark);
-    doc.text(r[0], kx[0], y + rh / 2 + 1.5);
-    nf(6.5);
-    text(C.mid);
-    doc.text(r[1], kx[1], y + rh / 2 + 1.5);
-    doc.text(r[2], kx[2], y + rh / 2 + 1.5);
-    chip(
-      kx[3],
-      y + rh / 2 - 2,
-      r[3],
-      { r: 239, g: 246, b: 255 },
-      { r: 29, g: 78, b: 216 },
-      16,
-    );
-    nf(6.5);
-    text({ r: 21, g: 128, b: 61 });
-    tL.forEach((ln, li) => doc.text(ln, kx[4], y + 4 + li * 3.8));
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    ST(DK);
+    doc.text(r[0], kX[0] + 1, y + rh / 2 + 1.5);
+    [r[1], r[2]].forEach((v, i) => {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6);
+      ST(MD);
+      doc.text(v, kX[i + 1] + 1, y + rh / 2 + 1.5);
+    });
+    chip(kX[3] + 1, y + rh / 2 - 2, r[3], AEO + "22", AEO, 14);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6);
+    ST(GR);
+    tL.forEach((ln, li) => doc.text(ln, kX[4] + 1, y + 3.5 + li * 3.2));
     y += rh + 0.5;
   });
-  y += 5;
+  y += 4;
 
-  // ═══════════════════════════════════════════════
-  // PART 3: SEO STRATEGY + COMPETITORS + KEYWORDS
-  // ═══════════════════════════════════════════════
+  // PART 3 banner
   ftr();
   doc.addPage();
   hdr();
   _part = "PART 3: SEO STRATEGY & KEYWORDS";
-
-  fill(C.geo);
-  doc.rect(ML, y, CW, 30, "F");
-  bf(9);
-  text({ r: 220, g: 210, b: 255 });
-  doc.text("PART 3", ML + 5, y + 9);
-  bf(15);
-  text(C.white);
-  doc.text("SEO STRATEGY · COMPETITORS · KEYWORDS", ML + 5, y + 19);
-  nf(7.5);
-  text({ r: 220, g: 210, b: 255 });
+  SF(GEO);
+  doc.rect(ML, y, CW, 28, "F");
+  SF("#7c3aed");
+  doc.rect(PW - MR - 20, y, 20, 28, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  ST("#ede9fe");
+  doc.text("PART 3", ML + 5, y + 8);
+  doc.setFontSize(14);
+  ST(WH);
+  doc.text("SEO STRATEGY · COMPETITORS · KEYWORDS", ML + 5, y + 17);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  ST("#ede9fe");
   doc.text(
-    "12-Month Plan  ·  6 Competitor Profiles  ·  62 Keyword Recommendations",
+    "12-Month Plan  |  6 Competitor Profiles  |  62 Keyword Recommendations",
     ML + 5,
-    y + 26,
+    y + 24,
   );
-  y += 34;
+  y += 31;
 
-  secHead(
+  // Section 11: 12-Month Strategy — directly on same page (no new page)
+  sectionHead(
     "SECTION 11: 12-MONTH SEO STRATEGY PLAN",
-    "Strategic Objectives & 4-Phase Execution",
+    "Strategic Objectives & 4-Phase Execution Plan",
   );
-
-  // Objectives grid
-  const objs = [
+  // Strategic Objectives compact
+  const objectives = [
     {
       n: 1,
-      t: "Top 3 rankings for 10 primary keywords",
-      tgt: "10 keywords in Top 3 by Month 12",
-      col: C.geo,
+      obj: "Top 3 rankings for 10 primary keywords",
+      target: "10 keywords in Top 3 by Month 12",
+      col: GEO,
     },
     {
       n: 2,
-      t: "Fix all Critical and High Priority audit issues",
-      tgt: "Overall audit score ≥ 90/100 by Month 6",
-      col: C.red2,
+      obj: "Fix all Critical and High Priority audit issues",
+      target: "Overall audit score ≥ 90/100 by Month 6",
+      col: RD,
     },
     {
       n: 3,
-      t: "Grow organic traffic by 150%",
-      tgt: "+150% sessions from organic by Month 12",
-      col: C.green,
+      obj: "Grow organic traffic by 150%",
+      target: "+150% sessions from organic by Month 12",
+      col: GR,
     },
     {
       n: 4,
-      t: "Establish AEO & GEO authority in niche",
-      tgt: "Brand cited in 10+ AI queries by Month 9",
-      col: C.aeo,
+      obj: "Establish AEO & GEO authority in niche",
+      target: "Brand cited in 10+ AI queries by Month 9",
+      col: AEO,
     },
     {
       n: 5,
-      t: "Local SEO dominance in Agra + pan-India",
-      tgt: "GBP in Top 3 Local Pack for 5 keywords by Month 6",
-      col: { r: 245, g: 158, b: 11 },
+      obj: "Local SEO dominance in Agra + pan-India",
+      target: "GBP in Top 3 Local Pack for 5 keywords by Month 6",
+      col: "#f59e0b",
     },
     {
       n: 6,
-      t: "Generate 20+ organic leads per month",
-      tgt: "20+ monthly organic leads tracked in CRM by Month 12",
-      col: C.seo,
+      obj: "Generate 20+ organic leads per month",
+      target: "20+ monthly organic leads tracked in CRM by Month 12",
+      col: SEO,
     },
   ];
-  const oW = (CW - 4) / 3;
-  for (let i = 0; i < 6; i += 3) {
-    needY(16);
+  const objW = (CW - 4) / 3;
+  for (let i = 0; i < objectives.length; i += 3) {
+    needY(14);
     for (let j = 0; j < 3; j++) {
-      const o = objs[i + j];
+      const o = objectives[i + j];
       if (!o) break;
-      const ox = ML + j * (oW + 2);
-      fill(C.bg);
-      draw(C.border);
-      doc.setLineWidth(0.2);
-      doc.roundedRect(ox, y, oW - 1, 14, 1.5, 1.5, "FD");
-      fill(o.col);
-      doc.roundedRect(ox + 1, y + 1, 6, 6, 1, 1, "F");
-      bf(7.5);
-      text(C.white);
-      doc.text(String(o.n), ox + 4, y + 5.5, "center");
-      bf(6.5);
-      text(C.dark);
-      const tl = doc.splitTextToSize(o.t, oW - 11);
-      tl.forEach((ln, li) => doc.text(ln, ox + 9, y + 5 + li * 3.8));
-      nf(6);
-      text(o.col);
-      doc.text("→ " + o.tgt, ox + 3, y + 12);
+      const ox = ML + j * (objW + 2);
+      SF(WH);
+      SD(BD);
+      doc.setLineWidth(0.15);
+      doc.roundedRect(ox, y, objW - 1, 12, 1.5, 1.5, "FD");
+      SF(o.col);
+      doc.roundedRect(ox + 1, y + 1, 5, 5, 1, 1, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7);
+      ST(WH);
+      doc.text(String(o.n), ox + 3.5, y + 4.8, "center");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.2);
+      ST(DK);
+      doc.text(o.obj, ox + 8, y + 4.2);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(5.5);
+      ST(GR);
+      doc.text("→ " + o.target, ox + 8, y + 8);
     }
-    y += 16;
+    y += 14;
   }
-  y += 3;
+  y += 2;
 
-  // 4 Phases
-  const phases2 = [
+  // 4 Phases as compact tables
+  const phases4 = [
     {
       name: "Phase 1 — Months 1-3: Fix the Foundation",
-      focus: "Technical fixes, on-page corrections, schema, local SEO",
-      col: { r: 185, g: 28, b: 28 },
+      focus: "Technical fixes, on-page corrections, schema, local SEO setup",
+      col: RD,
+      bg: "#fff5f5",
       items: [
         [
-          "Viewport meta tag + responsive CSS",
+          "Viewport meta tag + responsive CSS fix",
           "Developer",
           "Week 1",
-          "Mobile→75",
+          "Mobile 38→75",
           "+15% rankings",
         ],
         [
@@ -4616,21 +4470,21 @@ async function generatePDFInline() {
           "+20% CTR",
         ],
         [
-          "Page speed: GZIP, CDN, WebP",
+          "Page speed: GZIP, CDN, WebP images",
           "Developer",
           "Weeks 1-2",
           "CWV fix",
           "+Core Vitals",
         ],
         [
-          "Organization + FAQPage + BreadcrumbList schema",
+          "Org + FAQPage + BreadcrumbList schema",
           "Developer",
           "Week 2",
           "GEO schema",
           "Rich results",
         ],
         [
-          "Claim + optimise Google Business Profile",
+          "Claim + fully optimise Google Business Profile",
           "Marketing",
           "Week 1-2",
           "Local SEO",
@@ -4655,7 +4509,8 @@ async function generatePDFInline() {
     {
       name: "Phase 2 — Months 4-6: Authority & Content Build",
       focus: "Content clusters, E-E-A-T trust signals, link acquisition",
-      col: { r: 161, g: 98, b: 7 },
+      col: YL,
+      bg: "#fffbf0",
       items: [
         [
           "Publish 6-month content calendar",
@@ -4665,17 +4520,17 @@ async function generatePDFInline() {
           "Featured snippets",
         ],
         [
-          "Launch 3 use case pages for niche verticals",
-          "SEO+Content",
+          "Launch 3 use case pages",
+          "SEO + Content",
           "Month 4-5",
           "GEO fix",
           "Niche traffic",
         ],
         [
-          "Publish 2 case studies with measurable results",
+          "Publish 2 case studies with results",
           "Marketing",
           "Month 4-5",
-          "E-E-A-T",
+          "E-E-A-T fix",
           "Trust signals",
         ],
         [
@@ -4683,20 +4538,20 @@ async function generatePDFInline() {
           "SEO",
           "Month 4-6",
           "Authority",
-          "+Domain Auth",
+          "+Domain Authority",
         ],
         [
           "Submit to Clutch, GoodFirms, DesignRush",
           "Marketing",
           "Month 4",
           "GEO fix",
-          "Directory cites",
+          "Directory citations",
         ],
         [
           "10+ client testimonials + trust badges",
           "Marketing",
           "Month 4-5",
-          "E-E-A-T",
+          "E-E-A-T fix",
           "Social proof",
         ],
         [
@@ -4711,11 +4566,12 @@ async function generatePDFInline() {
     {
       name: "Phase 3 — Months 7-9: Scale & Brand Authority",
       focus: "International targeting, PR outreach, AI citation building",
-      col: { r: 21, g: 128, b: 61 },
+      col: AEO,
+      bg: "#f0fdf4",
       items: [
         [
-          "International landing pages (white-label etc)",
-          "SEO+Dev",
+          "International landing pages (white-label, outsource)",
+          "SEO + Dev",
           "Month 7",
           "Global kws",
           "Intl leads",
@@ -4724,7 +4580,7 @@ async function generatePDFInline() {
           "3 more case studies for E-E-A-T depth",
           "Marketing",
           "Month 7-8",
-          "E-E-A-T",
+          "E-E-A-T fix",
           "Trust authority",
         ],
         [
@@ -4735,7 +4591,7 @@ async function generatePDFInline() {
           "Rich results",
         ],
         [
-          "Link building: target DA60+ referral domains",
+          "Link building: target DA60+ domains",
           "SEO",
           "Month 7-9",
           "Authority",
@@ -4753,7 +4609,8 @@ async function generatePDFInline() {
     {
       name: "Phase 4 — Months 10-12: Dominate & Sustain",
       focus: "Top 3 keyword push, 2027 AI search preparation",
-      col: { r: 124, g: 58, b: 237 },
+      col: GEO,
+      bg: "#f5f3ff",
       items: [
         [
           "Refresh all 2026 blog posts for 2027",
@@ -4765,19 +4622,19 @@ async function generatePDFInline() {
         [
           "Push top 10 keywords toward Top 3",
           "SEO",
-          "Months 10-12",
+          "Month 10-12",
           "Revenue kws",
           "5+ in Top 3",
         ],
         [
           "Expand to 2 new niche verticals",
-          "SEO+Content",
+          "SEO + Content",
           "Month 10",
           "Vertical auth",
           "2 new pages",
         ],
         [
-          "Full re-audit: target 93/100 overall score",
+          "Full re-audit: target 93/100 score",
           "SEO Lead",
           "Month 12",
           "Benchmark",
@@ -4785,7 +4642,7 @@ async function generatePDFInline() {
         ],
         [
           "2027 SEO predictions + strategy update",
-          "Content+SEO",
+          "Content + SEO",
           "Month 11-12",
           "Thought lead",
           "2027 keywords",
@@ -4794,203 +4651,195 @@ async function generatePDFInline() {
     },
   ];
 
-  phases2.forEach((phase) => {
+  phases4.forEach((phase) => {
     needY(12);
-    fill(phase.col);
-    doc.rect(ML, y, CW, 9, "F");
-    fill(C.white);
-    doc.roundedRect(ML, y, 4, 9, 0, 0, "F");
-    fill(phase.col);
-    doc.rect(ML, y, 4, 9, "F");
-    bf(9);
-    text(C.white);
-    doc.text(phase.name, ML + 6, y + 6.3);
-    italicf(6.5);
-    text({ r: 220, g: 220, b: 220 });
-    doc.text(phase.focus, PW - MR, y + 6.3, "right");
-    y += 11;
-
-    needY(7);
-    fill(C.red);
-    doc.rect(ML, y, CW, 7, "F");
-    const px2 = [ML + 1, ML + 56, ML + 74, ML + 90, ML + 107];
-    bf(6.5);
-    text(C.white);
+    SF(phase.bg);
+    SD(phase.col);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(ML, y, CW, 7, 1, 1, "FD");
+    SF(phase.col);
+    doc.rect(ML, y, 3, 7, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    ST(DK);
+    doc.text(phase.name, ML + 6, y + 4.5);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(6);
+    ST(MD);
+    doc.text(phase.focus, PW - MR, y + 4.5, "right");
+    y += 9;
+    const pCX = [ML, ML + 52, ML + 70, ML + 84, ML + 102];
+    doc.setFillColor(169, 0, 6);
+    doc.rect(ML, y, CW, 4.5, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(5.5);
+    doc.setTextColor(255, 255, 255);
     ["Deliverable", "Owner", "Timeline", "Audit Fix", "Impact"].forEach(
-      (h, i) => doc.text(h, px2[i], y + 5),
+      (h, i) => {
+        doc.text(h, pCX[i] + 1, y + 3.2);
+      },
     );
-    y += 7.5;
-
+    y += 4.5;
     phase.items.forEach((item, ii) => {
-      const dlL = doc.splitTextToSize(item[0], 54);
-      const rh = Math.max(9, dlL.length * 3.8 + 4);
-      needY(rh + 0.5);
-      fill(ii % 2 === 0 ? C.white : C.bg);
+      const rh = 7;
+      needY(rh + 0.3);
+      SF(ii % 2 === 0 ? WH : BG2);
       doc.rect(ML, y, CW, rh, "F");
-      draw(C.border);
-      doc.setLineWidth(0.07);
+      SD(BD);
+      doc.setLineWidth(0.06);
       doc.line(ML, y + rh, ML + CW, y + rh);
-      nf(7);
-      text(C.dark);
-      dlL.forEach((ln, li) => doc.text(ln, px2[0], y + 4 + li * 3.8));
-      nf(6.5);
-      text(C.mid);
-      doc.text(item[1], px2[1], y + rh / 2 + 1.5);
-      doc.text(item[2], px2[2], y + rh / 2 + 1.5);
-      fill({ r: 255, g: 245, b: 245 });
-      doc.roundedRect(px2[3], y + rh / 2 - 2, 16, 4, 0.8, 0.8, "F");
-      bf(5.5);
-      text(C.red);
-      doc.text(item[3], px2[3] + 8, y + rh / 2 + 1.5, "center");
-      nf(6.5);
-      text({ r: 21, g: 128, b: 61 });
-      doc.text(item[4], px2[4], y + rh / 2 + 1.5);
-      y += rh + 0.5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6);
+      ST(DK);
+      doc.text(item[0], pCX[0] + 1, y + 4.3);
+      doc.setFontSize(6);
+      ST(MD);
+      doc.text(item[1], pCX[1] + 1, y + 4.3);
+      doc.text(item[2], pCX[2] + 1, y + 4.3);
+      chip(pCX[3] + 1, y + 1.8, item[3], phase.bg, phase.col);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6);
+      ST(GR);
+      doc.text(item[4], pCX[4] + 1, y + 4.3);
+      y += rh + 0.3;
     });
-    y += 5;
+    y += 4;
   });
 
   // 12-Month Score Projection
-  needY(36);
-  bf(9);
-  text(C.dark);
-  doc.text("12-Month Score Projection", ML, y + 6);
-  y += 9;
-  fill(C.red);
-  doc.rect(ML, y, CW, 7, "F");
-  const prjX = [ML, ML + 40, ML + 82, ML + 116, ML + 150];
-  bf(7);
-  text(C.white);
+  needY(30);
+  sectionHead("12-Month Score Projection");
+  const prjX = [ML, ML + 44, ML + 84, ML + 114, ML + 144];
+  doc.setFillColor(169, 0, 6);
+  doc.rect(ML, y, CW, 5.5, "F");
   ["Module", "Now (Mar 26)", "Month 6", "Month 9", "Month 12 Target"].forEach(
-    (h, i) => doc.text(h, prjX[i] + 2, y + 5),
+    (h, i) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text(h, prjX[i] + 2, y + 3.8);
+    },
   );
-  y += 7.5;
+  y += 5.5;
   [
-    { mod: "SEO", now: 70, m6: 84, m9: 88, t: "92/100 (A)" },
-    { mod: "AEO", now: 79, m6: 89, m9: 92, t: "95/100 (A+)" },
-    { mod: "GEO", now: 72, m6: 85, m9: 89, t: "92/100 (A)" },
-    { mod: "OVERALL", now: 74, m6: 86, m9: 90, t: "93/100 (A+)" },
-  ].forEach((r, i) => {
-    needY(9);
-    fill(i === 3 ? C.bg : C.white);
-    doc.rect(ML, y, CW, 8, "F");
-    draw(C.border);
+    { mod: "SEO", now: 70, m6: 84, m9: 88, m12: "92/100 (A)" },
+    { mod: "AEO", now: 79, m6: 89, m9: 92, m12: "95/100 (A+)" },
+    { mod: "GEO", now: 72, m6: 85, m9: 89, m12: "92/100 (A)" },
+    { mod: "OVERALL", now: 74, m6: 86, m9: 90, m12: "93/100 (A+)" },
+  ].forEach((r) => {
+    needY(7);
+    const isOv = r.mod === "OVERALL";
+    SF(isOv ? BG2 : WH);
+    doc.rect(ML, y, CW, 6.5, "F");
+    SD(BD);
     doc.setLineWidth(0.07);
-    doc.line(ML, y + 8, ML + CW, y + 8);
-    bf(7.5);
-    text(C.dark);
-    doc.text(r.mod, prjX[0] + 2, y + 5.5);
-    [r.now, r.m6, r.m9].forEach((v, ci) => {
-      const sc = v >= 80 ? C.grnbg : v >= 70 ? C.ambg : C.redbg;
-      const tc =
-        v >= 80
-          ? { r: 21, g: 128, b: 61 }
-          : v >= 70
-            ? { r: 161, g: 98, b: 7 }
-            : { r: 185, g: 28, b: 28 };
-      chip(prjX[ci + 1] + 2, y + 2, v + "/100", sc, tc, 19);
+    doc.line(ML, y + 6.5, ML + CW, y + 6.5);
+    doc.setFont("helvetica", isOv ? "bold" : "normal");
+    doc.setFontSize(7);
+    ST(DK);
+    doc.text(r.mod, prjX[0] + 2, y + 4.3);
+    [r.now, r.m6, r.m9].forEach((v, i) => {
+      const bg = v >= 80 ? GRB : v >= 70 ? YLB : RDB,
+        fg = v >= 80 ? GR : v >= 70 ? YL : RD;
+      chip(prjX[i + 1] + 2, y + 1.3, v + "/100", bg, fg, 18);
     });
-    fill(C.dark);
-    doc.roundedRect(prjX[4] + 2, y + 2, 24, 4, 1, 1, "F");
-    bf(6);
-    text(C.white);
-    doc.text(r.t, prjX[4] + 14, y + 5, "center");
-    y += 8.5;
+    SF(DK);
+    doc.roundedRect(prjX[4] + 2, y + 1.3, 22, 4, 1, 1, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    ST(WH);
+    doc.text(r.m12, prjX[4] + 13, y + 4.3, "center");
+    y += 6.5;
   });
-  y += 6;
-
-  // ═══════════════════════════════════════════════
-  // SECTION 12: COMPETITORS
-  // ═══════════════════════════════════════════════
-  ftr();
-  doc.addPage();
-  hdr();
-  secHead(
+  y += 5;
+  sectionHead(
     "SECTION 12: COMPETITOR ANALYSIS",
     "6 key competitors — India + Global digital marketing agency landscape",
   );
-
-  // Competitor overview table
-  needY(7);
-  fill(C.red);
-  doc.rect(ML, y, CW, 7, "F");
   const compX = [
-    ML + 1,
-    ML + 32,
-    ML + 44,
-    ML + 55,
-    ML + 82,
-    ML + 96,
-    ML + 110,
-    ML + 125,
+    ML,
+    ML + 30,
+    ML + 42,
+    ML + 52,
+    ML + 78,
+    ML + 93,
+    ML + 108,
+    ML + 123,
   ];
-  bf(6.5);
-  text(C.white);
-  ["Agency", "Est.", "Team", "HQ", "SEO", "AEO", "GEO", "Pricing/mo"].forEach(
-    (h, i) => doc.text(h, compX[i], y + 5),
+  doc.setFillColor(169, 0, 6);
+  doc.rect(ML, y, CW, 5, "F");
+  ["Agency", "Est.", "Team", "HQ", "SEO", "AEO", "GEO", "Pricing"].forEach(
+    (h, i) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(5.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text(h, compX[i] + 1, y + 3.5);
+    },
   );
-  y += 7.5;
-
-  const COMP2 = typeof COMPETITORS !== "undefined" ? COMPETITORS : [];
-  COMP2.forEach((c, i) => {
-    needY(9);
-    fill(i % 2 === 0 ? C.white : C.bg);
-    doc.rect(ML, y, CW, 8.5, "F");
-    draw(C.border);
+  y += 5;
+  COMPETITORS.forEach((c, ii) => {
+    needY(7);
+    SF(ii % 2 === 0 ? WH : BG2);
+    doc.rect(ML, y, CW, 7, "F");
+    SD(BD);
     doc.setLineWidth(0.07);
-    doc.line(ML, y + 8.5, ML + CW, y + 8.5);
-    bf(7);
-    text(C.dark);
-    doc.text(c.name, compX[0], y + 5.5);
-    nf(6.5);
-    text(C.mid);
-    doc.text(String(c.est), compX[1], y + 5.5);
-    doc.text(c.team, compX[2], y + 5.5);
-    const hqL = doc.splitTextToSize(c.hq, 26);
-    hqL.forEach((ln, li) => doc.text(ln, compX[3], y + 3 + li * 3.5));
+    doc.line(ML, y + 7, ML + CW, y + 7);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    ST(DK);
+    doc.text(c.name, compX[0] + 1, y + 4.5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6);
+    ST(MD);
+    [String(c.est), c.team].forEach((v, i) =>
+      doc.text(v, compX[i + 1] + 1, y + 4.5),
+    );
+    const hqL = doc.splitTextToSize(c.hq, 24);
+    hqL.forEach((ln, li) => doc.text(ln, compX[3] + 1, y + 2.5 + li * 3));
     [
-      [c.seo, C.seo],
-      [c.aeo, C.aeo],
-      [c.geo, C.geo],
-    ].forEach(([n, col], ci) => {
-      text(col);
-      doc.text("●".repeat(n) + "○".repeat(5 - n), compX[4 + ci], y + 5.5);
+      [c.seo, SEO],
+      [c.aeo, AEO],
+      [c.geo, GEO],
+    ].forEach(([n, col], i) => {
+      doc.setFontSize(5.5);
+      ST(col);
+      doc.text("●".repeat(n) + "○".repeat(5 - n), compX[4 + i] + 1, y + 4.5);
     });
-    nf(6.5);
-    text(C.dark);
-    doc.text(c.pricing, compX[7], y + 5.5);
-    y += 9;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6);
+    ST(DK);
+    doc.text(c.pricing, compX[7] + 1, y + 4.5);
+    y += 7;
   });
-  nf(5.8);
-  text(C.light);
+  y += 3;
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(5.8);
+  ST(LT);
   doc.text(
     "●●●●● = Industry-leading  ●●●●○ = Strong  ●●●○○ = Moderate  ●●○○○ = Weak  ●○○○○ = Minimal",
     ML,
     y + 4,
   );
-  y += 8;
+  y += 7;
 
-  // Competitor profiles
-  bf(9);
-  text(C.dark);
-  doc.text("Detailed Competitor Profiles", ML, y + 6);
-  y += 9;
-  COMP2.forEach((c, ci) => {
-    needY(36);
-    fill(C.red);
-    doc.rect(ML, y, CW, 8, "F");
-    bf(8.5);
-    text(C.white);
-    doc.text(ci + 1 + ". " + c.name + " (" + c.domain + ")", ML + 4, y + 5.5);
-    nf(6.5);
-    text({ r: 255, g: 200, b: 200 });
+  COMPETITORS.forEach((c, ci) => {
+    needY(34);
+    SF(DK);
+    doc.roundedRect(ML, y, CW, 7.5, 1, 1, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    ST(WH);
+    doc.text(`${ci + 1}. ${c.name} (${c.domain})`, ML + 4, y + 5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    ST(LT);
     doc.text(
-      "Clutch: " + c.clutch + " · Est. " + c.est + " · Team: " + c.team,
+      `Clutch: ${c.clutch} · Est. ${c.est} · Team: ${c.team}`,
       PW - MR,
-      y + 5.5,
+      y + 5,
       "right",
     );
-    y += 10;
+    y += 9.5;
     [
       [
         "HQ / Market",
@@ -5001,85 +4850,79 @@ async function generatePDFInline() {
       ["Weaknesses", c.weaknesses],
       ["Our Opportunity", c.opp],
     ].forEach(([lbl, val]) => {
-      const valL = doc.splitTextToSize(val, CW - 38);
-      const rh = Math.max(9, valL.length * 3.8 + 4);
+      const vL = doc.splitTextToSize(val, CW - 35 - 3);
+      const rh = Math.max(7, vL.length * 3.2 + 2.5);
       needY(rh + 0.5);
-      fill(C.bg);
-      doc.rect(ML, y, 36, rh, "F");
-      fill(C.white);
-      doc.rect(ML + 36, y, CW - 36, rh, "F");
-      draw(C.border);
+      SF(BG2);
+      doc.rect(ML, y, 35, rh, "F");
+      SF(WH);
+      doc.rect(ML + 35, y, CW - 35, rh, "F");
+      SD(BD);
       doc.setLineWidth(0.1);
       doc.line(ML, y + rh, ML + CW, y + rh);
-      doc.line(ML + 36, y, ML + 36, y + rh);
-      bf(6.5);
-      text(C.dark);
+      doc.line(ML + 35, y, ML + 35, y + rh);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.2);
+      ST(DK);
       doc.text(lbl, ML + 2, y + rh / 2 + 1.5);
-      nf(7);
-      text(lbl === "Our Opportunity" ? C.red : C.dark);
-      valL.forEach((ln, li) => doc.text(ln, ML + 38, y + 4 + li * 3.8));
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.2);
+      ST(DK);
+      vL.forEach((ln, li) => doc.text(ln, ML + 37, y + 3.5 + li * 3.2));
       y += rh + 0.5;
     });
-    y += 5;
+    y += 4;
   });
 
-  // ═══════════════════════════════════════════════
-  // SECTION 13: KEYWORDS
-  // ═══════════════════════════════════════════════
+  // Keywords
   ftr();
   doc.addPage();
   hdr();
-  secHead(
+  sectionHead(
     "SECTION 13: KEYWORD RECOMMENDATIONS — 62 Keywords",
-    "Primary Commercial · Long-Tail · Local SEO · Global/International",
+    "Primary Commercial · Long-Tail · Local SEO · Global",
   );
 
-  const KW2 =
-    typeof KW !== "undefined"
-      ? KW
-      : { primary: [], longtail: [], local: [], global: [] };
   const kwSections = [
     [
       "C.1 — Primary Commercial Keywords (10 Keywords)",
-      "Highest-value keywords for driving qualified leads. High competition — requires strong domain authority and consistent link building over 12 months.",
-      KW2.primary,
+      "Highest-value keywords for driving qualified leads. High competition — target over 12 months.",
+      KW.primary,
     ],
     [
       "C.2 — Long-Tail Informational Keywords (15 Keywords)",
-      "Lower competition keywords targeting AEO/GEO gaps. Drive featured snippets, AI citations, and awareness-stage traffic that converts over time.",
-      KW2.longtail,
+      "Lower competition keywords targeting AEO/GEO gaps — drive featured snippets and AI citations.",
+      KW.longtail,
     ],
     [
       "C.3 — Local SEO Keywords — Agra & Near Me (8 Keywords)",
-      "Critical for driving nearby business enquiries. Very low competition and high commercial intent — fastest ROI opportunity in the entire keyword set.",
-      KW2.local,
+      "Critical for driving nearby business enquiries — fastest ROI opportunity in the keyword set.",
+      KW.local,
     ],
     [
       "C.4 — Global & International Keywords (8 Keywords)",
-      "Target international clients looking to outsource digital marketing from India. High-value B2B leads with strong conversion potential.",
-      KW2.global,
+      "Target international clients looking to outsource digital marketing from India.",
+      KW.global,
     ],
   ];
 
   kwSections.forEach(([title, desc, kwList]) => {
-    needY(14);
-    bf(9);
-    text(C.dark);
-    doc.text(title, ML, y + 6);
-    y += 8;
-    const descL = doc.splitTextToSize(desc, CW);
-    needY(descL.length * 3.8 + 4);
-    nf(7);
-    text(C.mid);
-    descL.forEach((ln, li) => doc.text(ln, ML, y + 4 + li * 3.8));
-    y += descL.length * 3.8 + 6;
-    // KW table header
-    needY(7);
-    fill(C.red);
-    doc.rect(ML, y, CW, 7, "F");
-    const kwX = [ML + 1, ML + 68, ML + 84, ML + 100, ML + 118, ML + 136];
-    bf(6.5);
-    text(C.white);
+    needY(10);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    ST(DK);
+    doc.text(title, ML, y + 5);
+    y += 7;
+    const dL = doc.splitTextToSize(desc, CW);
+    needY(dL.length * 3.5 + 2);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    ST(MD);
+    dL.forEach((ln, li) => doc.text(ln, ML, y + 4 + li * 3.5));
+    y += dL.length * 3.5 + 4;
+    const kwX2 = [ML, ML + 65, ML + 82, ML + 97, ML + 116, ML + 131];
+    doc.setFillColor(169, 0, 6);
+    doc.rect(ML, y, CW, 5, "F");
     [
       "Keyword",
       "Volume/mo",
@@ -5087,83 +4930,95 @@ async function generatePDFInline() {
       "Intent",
       "Priority",
       "Target Page",
-    ].forEach((h, i) => doc.text(h, kwX[i], y + 5));
-    y += 7.5;
-    (kwList || []).forEach((kw, ii) => {
-      const pgL = doc.splitTextToSize(kw.page, CW - 136 - 4);
-      const rh = Math.max(9, pgL.length * 3.8 + 4);
+    ].forEach((h, i) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(5.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text(h, kwX2[i] + 1, y + 3.5);
+    });
+    y += 5;
+    kwList.forEach((kw, ii) => {
+      const pgL = doc.splitTextToSize(kw.page, CW - 131 - 3);
+      const rh = Math.max(7, pgL.length * 3.2 + 2);
       needY(rh + 0.5);
-      fill(ii % 2 === 0 ? C.white : C.bg);
+      SF(ii % 2 === 0 ? WH : BG2);
       doc.rect(ML, y, CW, rh, "F");
-      draw(C.border);
+      SD(BD);
       doc.setLineWidth(0.07);
       doc.line(ML, y + rh, ML + CW, y + rh);
-      nf(7);
-      text(C.dark);
-      doc.text(kw.kw || "", kwX[0], y + rh / 2 + 1.5);
-      nf(6.5);
-      text(C.mid);
-      doc.text(kw.vol || "", kwX[1], y + rh / 2 + 1.5);
-      const dc =
-        kw.diff === "HIGH" ? C.red2 : kw.diff === "MEDIUM" ? C.amber : C.green;
-      const db =
-        kw.diff === "HIGH" ? C.redbg : kw.diff === "MEDIUM" ? C.ambg : C.grnbg;
-      chip(kwX[2], y + rh / 2 - 2, kw.diff || "", db, dc, 14);
-      nf(6.5);
-      text(C.mid);
-      doc.text(kw.intent || "", kwX[3], y + rh / 2 + 1.5);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.2);
+      ST(DK);
+      doc.text(kw.kw, kwX2[0] + 1, y + rh / 2 + 1.5);
+      doc.text(kw.vol, kwX2[1] + 1, y + rh / 2 + 1.5);
+      const dc = kw.diff === "HIGH" ? RD : kw.diff === "MEDIUM" ? YL : GR,
+        db = kw.diff === "HIGH" ? RDB : kw.diff === "MEDIUM" ? YLB : GRB;
+      chip(kwX2[2] + 1, y + rh / 2 - 2, kw.diff, db, dc, 14);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6);
+      ST(MD);
+      doc.text(kw.intent, kwX2[3] + 1, y + rh / 2 + 1.5);
       const pm = {
-        CRITICAL: { bg: C.redbg, tc: C.red2 },
-        HIGH: { bg: C.ambg, tc: { r: 161, g: 98, b: 7 } },
-        MEDIUM: {
-          bg: { r: 254, g: 252, b: 232 },
-          tc: { r: 133, g: 77, b: 14 },
-        },
-        LOW: { bg: C.bg, tc: C.light },
+        CRITICAL: { bg: RDB, fg: RD },
+        HIGH: { bg: YLB, fg: "#c2410c" },
+        MEDIUM: { bg: "#fef9c3", fg: "#a16207" },
+        LOW: { bg: BG2, fg: LT },
       };
-      const p2 = pm[kw.pri] || pm.LOW;
-      chip(kwX[4], y + rh / 2 - 2, kw.pri || "", p2.bg, p2.tc, 15);
-      nf(6.5);
-      text(C.geo);
-      pgL.forEach((ln, li) => doc.text(ln, kwX[5], y + 4 + li * 3.8));
+      const p = pm[kw.pri] || pm.LOW;
+      chip(kwX2[4] + 1, y + rh / 2 - 2, kw.pri, p.bg, p.fg, 15);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(5.8);
+      ST(GEO);
+      pgL.forEach((ln, li) => doc.text(ln, kwX2[5] + 1, y + 3.5 + li * 3.2));
       y += rh + 0.5;
     });
-    y += 6;
+    y += 5;
   });
 
-  // FINAL BACK PAGE
-  needY(20);
-  fill(C.dark);
-  doc.roundedRect(ML, y, CW, 18, 2, 2, "F");
-  bf(9.5);
-  text(C.red);
+  // Final back page
+  needY(18);
+  SF(DK);
+  doc.roundedRect(ML, y, CW, 16, 2, 2, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  ST(OR);
   doc.text(
-    dom + " — Complete Digital Marketing Strategy & Audit Report",
+    (_userDomain || "buimbdigital.com") +
+      " — Complete Digital Marketing Strategy & Audit Report",
     ML + CW / 2,
-    y + 8,
+    y + 7,
     "center",
   );
-  nf(7);
-  text(C.white);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  ST(WH);
   doc.text(
-    "Prepared by BuimbDigital  ·  info@BuimbDigital.com  ·  " + dateStr,
+    "Audited site: " +
+      (_userDomain || "buimbdigital.com") +
+      "  |  " +
+      new Date().toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }) +
+      "  |  CONFIDENTIAL",
     ML + CW / 2,
-    y + 13.5,
+    y + 12,
     "center",
   );
-  italicf(6);
-  text(C.light);
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(6);
+  ST(LT);
   doc.text(
     "CONFIDENTIAL — For Internal Distribution Only. Do Not Distribute Without Authorization.",
     ML + CW / 2,
-    y + 17,
+    y + 15.5,
     "center",
   );
 
   ftr();
   doc.save(
-    dom.replace(/[^a-zA-Z0-9]/g, "-") +
-      "-Audit-Report-" +
+    "BuimbDigital-Complete-Report-" +
       new Date().toISOString().slice(0, 10) +
       ".pdf",
   );
