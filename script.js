@@ -1,688 +1,1591 @@
 // ══════════════════════════════════════════════════════
-//  DATA
+//  DATA — buimbdigital.com (17 March 2026)
 // ══════════════════════════════════════════════════════
-const MODULES = {
-  seo: {
-    label: "SEO",
-    icon: "🔍",
-    color: "#ff642d",
-    categories: [
-      {
-        name: "On-Page SEO",
-        icon: "📄",
-        bg: "#fff0eb",
-        checks: [
-          {
-            n: "Title Tag",
-            p: "critical",
-            g: "Unique 50–60 char title with primary keyword",
-            b: "Title tag missing or too generic — add a targeted title",
-          },
-          {
-            n: "Meta Description",
-            p: "high",
-            g: "Compelling 150–160 char description with CTA",
-            b: "Meta description missing — add one with a call-to-action",
-          },
-          {
-            n: "H1 Heading",
-            p: "high",
-            g: "Single H1 with target keyword found",
-            b: "H1 missing or multiple H1s — use exactly one per page",
-          },
-          {
-            n: "H2/H3 Hierarchy",
-            p: "medium",
-            g: "Proper heading hierarchy aids readability",
-            b: "Broken heading structure — fix H2/H3 order",
-          },
-          {
-            n: "Keyword in First 100 Words",
-            p: "high",
-            g: "Target keyword in opening paragraph",
-            b: "Keyword not in first 100 words — place it early",
-          },
-          {
-            n: "Image Alt Attributes",
-            p: "medium",
-            g: "All images have descriptive alt text",
-            b: "Images missing alt text — add keyword-rich descriptions",
-          },
-          {
-            n: "Canonical Tag",
-            p: "high",
-            g: "Canonical tag set to preferred URL",
-            b: "Canonical missing — may cause duplicate content issues",
-          },
-          {
-            n: "Internal Linking",
-            p: "medium",
-            g: "Good internal link structure found",
-            b: "Few internal links — add contextual links to key pages",
-          },
-          {
-            n: "Content Word Count",
-            p: "medium",
-            g: "Comprehensive content — 1000+ words",
-            b: "Thin content — expand with in-depth coverage",
-          },
-        ],
-      },
-      {
-        name: "Technical SEO",
-        icon: "⚙️",
-        bg: "#eff6ff",
-        checks: [
-          {
-            n: "HTTPS / SSL",
-            p: "critical",
-            g: "Site served over HTTPS — secure and trusted",
-            b: "No HTTPS — critical security and ranking penalty",
-          },
-          {
-            n: "robots.txt",
-            p: "high",
-            g: "robots.txt accessible and correctly configured",
-            b: "robots.txt missing or blocking important content",
-          },
-          {
-            n: "XML Sitemap",
-            p: "high",
-            g: "Sitemap found and submitted",
-            b: "Sitemap not found — search engines may miss pages",
-          },
-          {
-            n: "Noindex Tags",
-            p: "critical",
-            g: "No accidental noindex on key pages",
-            b: "Noindex on important pages — remove to allow indexing",
-          },
-          {
-            n: "Structured Data",
-            p: "high",
-            g: "Schema markup detected — eligible for rich results",
-            b: "No schema found — add JSON-LD for rich results",
-          },
-          {
-            n: "404 Error Page",
-            p: "high",
-            g: "Custom 404 page configured",
-            b: "No custom 404 — poor UX on broken links",
-          },
-          {
-            n: "URL Structure",
-            p: "medium",
-            g: "Clean readable URLs with keywords",
-            b: "Messy URLs — simplify with keywords only",
-          },
-          {
-            n: "Redirect Chains",
-            p: "high",
-            g: "No redirect chains detected",
-            b: "Multiple redirect hops — fix for crawl efficiency",
-          },
-          {
-            n: "Hreflang Tags",
-            p: "medium",
-            g: "Hreflang correctly set for language targeting",
-            b: "Hreflang missing or misconfigured",
-          },
-        ],
-      },
-      {
-        name: "Core Web Vitals",
-        icon: "⚡",
-        bg: "#fefce8",
-        checks: [
-          {
-            n: "Page Load Speed",
-            p: "critical",
-            g: "Page loads under 3 seconds",
-            b: "Slow load time — optimize assets and server",
-          },
-          {
-            n: "LCP — Largest Contentful Paint",
-            p: "critical",
-            g: "LCP under 2.5s — excellent score",
-            b: "LCP over 4s — major performance issue",
-          },
-          {
-            n: "CLS — Cumulative Layout Shift",
-            p: "high",
-            g: "CLS below 0.1 — stable layout",
-            b: "High CLS — elements shift on load",
-          },
-          {
-            n: "INP — Interaction to Next Paint",
-            p: "high",
-            g: "INP under 200ms — responsive",
-            b: "High INP — page feels sluggish",
-          },
-          {
-            n: "TTFB",
-            p: "high",
-            g: "TTFB under 200ms — fast server",
-            b: "Slow TTFB — use CDN and server-side caching",
-          },
-          {
-            n: "Image Optimization",
-            p: "medium",
-            g: "Images in WebP/AVIF format",
-            b: "Uncompressed images — convert to WebP/AVIF",
-          },
-          {
-            n: "Render-Blocking Resources",
-            p: "high",
-            g: "Minimal render-blocking scripts",
-            b: "Render-blocking JS/CSS — defer them",
-          },
-          {
-            n: "Browser Caching",
-            p: "medium",
-            g: "Cache headers configured",
-            b: "No caching headers — repeat visitors reload all",
-          },
-        ],
-      },
-      {
-        name: "Mobile & UX",
-        icon: "📱",
-        bg: "#f0fdf4",
-        checks: [
-          {
-            n: "Mobile Responsiveness",
-            p: "critical",
-            g: "Passes Google Mobile-Friendly test",
-            b: "Not mobile-friendly — critical in mobile-first indexing",
-          },
-          {
-            n: "Viewport Meta Tag",
-            p: "high",
-            g: "Correct viewport tag present",
-            b: "Viewport missing — mobile display broken",
-          },
-          {
-            n: "Touch Target Size",
-            p: "medium",
-            g: "Tap targets at least 44×44px",
-            b: "Touch elements too small — bad mobile UX",
-          },
-          {
-            n: "Font Size on Mobile",
-            p: "medium",
-            g: "Base font ≥16px on mobile",
-            b: "Small fonts — users must pinch-zoom",
-          },
-        ],
-      },
-      {
-        name: "Backlinks & Off-Page",
-        icon: "🔗",
-        bg: "#fdf4ff",
-        checks: [
-          {
-            n: "Domain Authority",
-            p: "high",
-            g: "Healthy authority — strong link profile",
-            b: "Low authority — earn quality backlinks",
-          },
-          {
-            n: "Total Backlinks",
-            p: "medium",
-            g: "Good backlink volume from diverse sources",
-            b: "Very few backlinks — build a link strategy",
-          },
-          {
-            n: "Referring Domains",
-            p: "high",
-            g: "Good unique referring domain count",
-            b: "Low referring domains — diversify sources",
-          },
-          {
-            n: "Toxic Backlinks",
-            p: "high",
-            g: "No toxic links detected",
-            b: "Spammy links found — disavow via Search Console",
-          },
-          {
-            n: "Social Profiles Linked",
-            p: "low",
-            g: "Key social profiles linked from site",
-            b: "Social profiles not linked",
-          },
-        ],
-      },
-      {
-        name: "Local SEO",
-        icon: "📍",
-        bg: "#fef3c7",
-        checks: [
-          {
-            n: "Google Business Profile",
-            p: "high",
-            g: "GBP verified and complete",
-            b: "No GBP — missing local visibility",
-          },
-          {
-            n: "NAP Consistency",
-            p: "high",
-            g: "Name, address, phone consistent",
-            b: "NAP inconsistencies — fix across directories",
-          },
-          {
-            n: "Local Business Schema",
-            p: "medium",
-            g: "LocalBusiness schema implemented",
-            b: "Missing local schema — add for local SERP features",
-          },
-          {
-            n: "Local Citations",
-            p: "medium",
-            g: "Listed in key local directories",
-            b: "Missing from major directories",
-          },
-        ],
-      },
-    ],
-  },
-  aeo: {
-    label: "AEO",
-    icon: "🎯",
-    color: "#10b981",
-    categories: [
-      {
-        name: "Featured Snippet Optimization",
-        icon: "⭐",
-        bg: "#f0fdf4",
-        checks: [
-          {
-            n: "Question-Based Headings",
-            p: "critical",
-            g: "Headings as questions — great for snippets",
-            b: "No question headings — use How/What/Why format",
-          },
-          {
-            n: "Direct Answer Paragraphs",
-            p: "critical",
-            g: "40–60 word concise answer paragraphs",
-            b: "Answers buried — restructure for snippet capture",
-          },
-          {
-            n: "Definition Sections",
-            p: "high",
-            g: "Clear definitions — eligible for definition snippets",
-            b: "No definitions — add 'X is...' explanations",
-          },
-          {
-            n: "Ordered Lists for Steps",
-            p: "high",
-            g: "Steps in numbered lists — snippet-ready",
-            b: "Steps not in lists — restructure as ordered lists",
-          },
-          {
-            n: "Comparison Tables",
-            p: "medium",
-            g: "Tables found — eligible for table snippets",
-            b: "No tables — add for table snippet opportunity",
-          },
-          {
-            n: "FAQ Section",
-            p: "high",
-            g: "FAQ section found — PAA box eligible",
-            b: "No FAQ section — add for People Also Ask",
-          },
-        ],
-      },
-      {
-        name: "Voice Search",
-        icon: "🎙️",
-        bg: "#eff6ff",
-        checks: [
-          {
-            n: "Conversational Keywords",
-            p: "high",
-            g: "Natural language voice-query phrases found",
-            b: "Too formal — add conversational long-tail phrases",
-          },
-          {
-            n: "Long-Tail Questions",
-            p: "high",
-            g: "Full question phrases targeted",
-            b: "Only short keywords — target full questions",
-          },
-          {
-            n: "Local Voice Signals",
-            p: "medium",
-            g: "'Near me' and local signals present",
-            b: "No local voice signals — add location content",
-          },
-          {
-            n: "Speakable Schema",
-            p: "medium",
-            g: "Speakable schema marks audio content",
-            b: "No speakable schema — assistants won't read aloud",
-          },
-        ],
-      },
-      {
-        name: "Answer Engine Schema",
-        icon: "🗂️",
-        bg: "#fdf4ff",
-        checks: [
-          {
-            n: "FAQPage Schema",
-            p: "critical",
-            g: "FAQPage schema — FAQ SERP expansion enabled",
-            b: "Missing FAQPage schema — high-value opportunity missed",
-          },
-          {
-            n: "HowTo Schema",
-            p: "high",
-            g: "HowTo schema — step-by-step results eligible",
-            b: "HowTo schema missing — add for tutorial rich results",
-          },
-          {
-            n: "QAPage Schema",
-            p: "high",
-            g: "QAPage schema implemented",
-            b: "No QAPage schema — add for Q&A content",
-          },
-          {
-            n: "Review / Rating Schema",
-            p: "medium",
-            g: "Review schema with ratings found",
-            b: "Missing review schema — add for SERP star ratings",
-          },
-          {
-            n: "Event Schema",
-            p: "medium",
-            g: "Event schema found",
-            b: "No event schema — add for events in search",
-          },
-        ],
-      },
-      {
-        name: "E-E-A-T Signals",
-        icon: "🏆",
-        bg: "#fff7ed",
-        checks: [
-          {
-            n: "Author Bio & Credentials",
-            p: "critical",
-            g: "Author credentials clearly displayed",
-            b: "No author bio — critical E-E-A-T signal missing",
-          },
-          {
-            n: "About Page Quality",
-            p: "high",
-            g: "Detailed About page found",
-            b: "About page thin — key E-E-A-T trust signal",
-          },
-          {
-            n: "External Citations",
-            p: "high",
-            g: "Authoritative sources cited",
-            b: "No citations — add source references",
-          },
-          {
-            n: "Trust Badges & Reviews",
-            p: "high",
-            g: "Trust badges and reviews visible",
-            b: "No trust signals — add certifications and reviews",
-          },
-          {
-            n: "Last Updated Date",
-            p: "medium",
-            g: "Content dates visible",
-            b: "No dates — add publication/update dates",
-          },
-        ],
-      },
-      {
-        name: "NLP & Semantic",
-        icon: "🧠",
-        bg: "#fefce8",
-        checks: [
-          {
-            n: "Clear Topic Sentences",
-            p: "high",
-            g: "Clear topic sentences per section",
-            b: "Unclear topic sentences — restructure opening sentences",
-          },
-          {
-            n: "Entity Linking",
-            p: "high",
-            g: "Key entities properly linked",
-            b: "Entities not linked — add contextual links",
-          },
-          {
-            n: "Semantic Keyword Coverage",
-            p: "high",
-            g: "LSI and semantic keywords throughout",
-            b: "Limited semantic coverage — expand vocabulary",
-          },
-          {
-            n: "Readability Score",
-            p: "medium",
-            g: "Flesch score above 60 — accessible",
-            b: "Low readability — simplify language",
-          },
-          {
-            n: "Topical Depth",
-            p: "high",
-            g: "Comprehensive topic coverage",
-            b: "Shallow content — expand for topical authority",
-          },
-        ],
-      },
-    ],
-  },
-  geo: {
-    label: "GEO",
-    icon: "🌐",
-    color: "#8b5cf6",
-    categories: [
-      {
-        name: "LLM-Ready Content",
-        icon: "🤖",
-        bg: "#f5f3ff",
-        checks: [
-          {
-            n: "Clear Page Summaries",
-            p: "critical",
-            g: "Intro clearly summarizes page for AI parsing",
-            b: "No clear summary — AI may misread page purpose",
-          },
-          {
-            n: "Factual Data with Sources",
-            p: "critical",
-            g: "Statistics backed with citations",
-            b: "Unsourced claims — AI systems prefer verified data",
-          },
-          {
-            n: "Unique Research / Data",
-            p: "high",
-            g: "Original research or data present",
-            b: "No unique data — add original surveys or studies",
-          },
-          {
-            n: "AI Crawler Permissions",
-            p: "high",
-            g: "AI crawlers addressed in robots.txt",
-            b: "robots.txt lacks AI bot rules — define permissions",
-          },
-          {
-            n: "Structured for Extraction",
-            p: "medium",
-            g: "Headers and lists for easy AI parsing",
-            b: "Dense prose — restructure with headers and bullets",
-          },
-        ],
-      },
-      {
-        name: "Brand Citability",
-        icon: "📣",
-        bg: "#fff7ed",
-        checks: [
-          {
-            n: "Consistent Brand Name",
-            p: "critical",
-            g: "Brand name consistent across all pages",
-            b: "Inconsistent brand mentions — may confuse AI",
-          },
-          {
-            n: "Wikipedia / Wikidata",
-            p: "high",
-            g: "Brand in Wikipedia or Wikidata",
-            b: "No Wikipedia presence — pursue digital PR",
-          },
-          {
-            n: "Industry Directories",
-            p: "high",
-            g: "Listed in industry directories",
-            b: "Missing from directories — build citations",
-          },
-          {
-            n: "News & Press Mentions",
-            p: "high",
-            g: "Brand in news and press articles",
-            b: "No press coverage — pursue PR outreach",
-          },
-          {
-            n: "Niche Term Co-occurrence",
-            p: "high",
-            g: "Brand co-occurs with niche keywords",
-            b: "Brand not co-occurring externally with target terms",
-          },
-        ],
-      },
-      {
-        name: "AI Topical Coverage",
-        icon: "🗺️",
-        bg: "#f0fdf4",
-        checks: [
-          {
-            n: "Pillar + Cluster Content",
-            p: "critical",
-            g: "Content hub with pillar and cluster pages",
-            b: "No cluster strategy — build topic authority hubs",
-          },
-          {
-            n: "Definition Pages",
-            p: "high",
-            g: "Definition and explainer pages present",
-            b: "No definition pages — AI values definitional content",
-          },
-          {
-            n: "Comparison Pages",
-            p: "medium",
-            g: "Competitor comparison pages found",
-            b: "No comparison content — add vs-competitor pages",
-          },
-          {
-            n: "Use Case Content",
-            p: "high",
-            g: "Use case and how-to content found",
-            b: "Limited use-case content — expand for AI citation",
-          },
-          {
-            n: "Glossary / Terminology",
-            p: "medium",
-            g: "Glossary demonstrates domain expertise",
-            b: "No glossary — add to signal expertise",
-          },
-        ],
-      },
-      {
-        name: "AI Trust & Credibility",
-        icon: "🛡️",
-        bg: "#eff6ff",
-        checks: [
-          {
-            n: "HTTPS Security",
-            p: "critical",
-            g: "Secure HTTPS — trusted by AI systems",
-            b: "HTTP only — AI systems prefer secure sources",
-          },
-          {
-            n: "Contact & Ownership",
-            p: "high",
-            g: "Contact and ownership clearly displayed",
-            b: "Contact info hidden — reduces AI trust",
-          },
-          {
-            n: "Legal Pages",
-            p: "high",
-            g: "Privacy policy and T&C present",
-            b: "Legal pages missing — critical for AI trust eval",
-          },
-          {
-            n: "Content Freshness",
-            p: "high",
-            g: "Content regularly updated",
-            b: "Stale content — update regularly for AI preference",
-          },
-          {
-            n: "Social Proof",
-            p: "medium",
-            g: "Testimonials and social proof visible",
-            b: "No testimonials — add for credibility signals",
-          },
-        ],
-      },
-      {
-        name: "Machine-Readable Metadata",
-        icon: "📡",
-        bg: "#fdf4ff",
-        checks: [
-          {
-            n: "Organization Schema",
-            p: "critical",
-            g: "Organization schema with logo and contacts",
-            b: "No Organization schema — AI can't identify business",
-          },
-          {
-            n: "Author / Person Schema",
-            p: "high",
-            g: "Person schema on content pages",
-            b: "No Person schema — missed author authority",
-          },
-          {
-            n: "BreadcrumbList Schema",
-            p: "medium",
-            g: "Breadcrumb schema for site structure",
-            b: "Missing breadcrumb schema — add for clarity",
-          },
-          {
-            n: "Open Graph Tags",
-            p: "medium",
-            g: "Complete OG and Twitter Card tags",
-            b: "Social meta tags incomplete — won't preview well",
-          },
-          {
-            n: "SiteLinksSearchBox",
-            p: "medium",
-            g: "Sitelinks SearchBox schema found",
-            b: "No sitelinks schema — missed SERP feature",
-          },
-        ],
-      },
-    ],
+const D = {
+  domain: "buimbdigital.com",
+  overall: 74,
+  mods: {
+    seo: {
+      label: "SEO",
+      score: 70,
+      color: "#ff642d",
+      categories: [
+        {
+          name: "On-Page SEO",
+          sectionNum: "2.1",
+          score: 78,
+          checks: [
+            {
+              n: "Title Tag",
+              status: "WARN",
+              finding: "Title missing or too generic on some pages",
+              priority: "CRITICAL",
+              action:
+                "Add unique 50-60 char title per page with primary keyword",
+            },
+            {
+              n: "Meta Description",
+              status: "WARN",
+              finding: "Needs compelling 150-160 char description with CTA",
+              priority: "HIGH",
+              action:
+                "Write unique meta descriptions with a clear call to action",
+            },
+            {
+              n: "H1 Heading",
+              status: "PASS",
+              finding: "Single H1 with target keyword found",
+              priority: "HIGH",
+              action: "Maintain — keep keyword in H1",
+            },
+            {
+              n: "H2/H3 Hierarchy",
+              status: "PASS",
+              finding: "Proper heading hierarchy aids readability",
+              priority: "MEDIUM",
+              action: "Maintain heading structure across all pages",
+            },
+            {
+              n: "Keyword in First 100 Words",
+              status: "WARN",
+              finding: "Keyword not present in opening paragraph",
+              priority: "HIGH",
+              action: "Naturally include target keyword in first 100 words",
+            },
+            {
+              n: "Image Alt Attributes",
+              status: "PASS",
+              finding: "All images have descriptive alt text",
+              priority: "MEDIUM",
+              action: "Maintain — continue on new images",
+            },
+            {
+              n: "Canonical Tag",
+              status: "WARN",
+              finding: "Canonical tag missing — duplicate content risk",
+              priority: "HIGH",
+              action: "Add self-referencing canonical to every page",
+            },
+            {
+              n: "Internal Linking",
+              status: "PASS",
+              finding: "Good internal link structure found",
+              priority: "MEDIUM",
+              action: "Expand internal links to new content",
+            },
+            {
+              n: "Content Word Count",
+              status: "WARN",
+              finding: "Thin content detected on key pages",
+              priority: "MEDIUM",
+              action: "Expand to 800-1200 words per key page",
+            },
+          ],
+        },
+        {
+          name: "Technical SEO",
+          sectionNum: "2.2",
+          score: 83,
+          checks: [
+            {
+              n: "HTTPS / SSL",
+              status: "PASS",
+              finding: "Site served over HTTPS — secure",
+              priority: "CRITICAL",
+              action: "Maintain — monitor certificate expiry",
+            },
+            {
+              n: "robots.txt",
+              status: "PASS",
+              finding: "Accessible and correctly configured",
+              priority: "HIGH",
+              action: "Maintain — review when adding new sections",
+            },
+            {
+              n: "XML Sitemap",
+              status: "PASS",
+              finding: "Sitemap found and submitted",
+              priority: "HIGH",
+              action: "Ensure all new pages are added automatically",
+            },
+            {
+              n: "Noindex Tags",
+              status: "WARN",
+              finding: "Noindex found on important pages",
+              priority: "CRITICAL",
+              action: "Audit meta robots tags — remove noindex from key pages",
+            },
+            {
+              n: "Structured Data",
+              status: "PASS",
+              finding: "Schema markup detected",
+              priority: "HIGH",
+              action: "Expand schema to cover more page types",
+            },
+            {
+              n: "404 Error Page",
+              status: "WARN",
+              finding: "No custom 404 page exists",
+              priority: "HIGH",
+              action: "Create a branded 404 with navigation & search",
+            },
+            {
+              n: "URL Structure",
+              status: "PASS",
+              finding: "Clean, readable URLs with keywords",
+              priority: "MEDIUM",
+              action: "Maintain — do not change existing URL structures",
+            },
+            {
+              n: "Redirect Chains",
+              status: "PASS",
+              finding: "No redirect chains detected",
+              priority: "HIGH",
+              action: "Maintain — audit quarterly",
+            },
+            {
+              n: "Hreflang Tags",
+              status: "WARN",
+              finding: "Missing or misconfigured hreflang",
+              priority: "MEDIUM",
+              action: "Implement if targeting multiple language markets",
+            },
+          ],
+        },
+        {
+          name: "Core Web Vitals",
+          sectionNum: "2.3",
+          score: 69,
+          checks: [
+            {
+              n: "Page Load Speed",
+              status: "FAIL",
+              finding: "Slow overall load time detected",
+              priority: "CRITICAL",
+              action: "Minify CSS/JS, enable GZIP, use CDN, target < 3s",
+            },
+            {
+              n: "LCP (Largest Contentful Paint)",
+              status: "PASS",
+              finding: "LCP under 2.5s — excellent",
+              priority: "CRITICAL",
+              action: "Maintain — monitor as site grows",
+            },
+            {
+              n: "CLS (Cumulative Layout Shift)",
+              status: "PASS",
+              finding: "CLS below 0.1 — stable layout",
+              priority: "HIGH",
+              action: "Maintain — avoid late-loading images without dimensions",
+            },
+            {
+              n: "INP (Interaction to Next Paint)",
+              status: "PASS",
+              finding: "INP under 200ms — responsive",
+              priority: "HIGH",
+              action: "Maintain — minimize heavy JS interactions",
+            },
+            {
+              n: "TTFB (Time to First Byte)",
+              status: "FAIL",
+              finding: "TTFB too high — slow server response",
+              priority: "HIGH",
+              action: "Enable server caching, use CDN, optimize hosting",
+            },
+            {
+              n: "Image Optimization",
+              status: "PASS",
+              finding: "Images optimized in modern format",
+              priority: "MEDIUM",
+              action: "Continue using WebP/AVIF for all new images",
+            },
+            {
+              n: "Render-Blocking Resources",
+              status: "PASS",
+              finding: "Minimal render-blocking scripts",
+              priority: "HIGH",
+              action: "Maintain — audit when adding new scripts",
+            },
+            {
+              n: "Browser Caching",
+              status: "PASS",
+              finding: "Cache headers configured",
+              priority: "MEDIUM",
+              action: "Maintain — use versioned filenames for cache-busting",
+            },
+          ],
+        },
+        {
+          name: "Mobile & UX",
+          sectionNum: "2.4",
+          score: 38,
+          note: "★ LOWEST SCORE — CRITICAL",
+          checks: [
+            {
+              n: "Mobile Responsiveness",
+              status: "FAIL",
+              finding: "Site not fully responsive on mobile",
+              priority: "CRITICAL",
+              action:
+                "Implement responsive CSS — test on Google Mobile-Friendly Test",
+            },
+            {
+              n: "Viewport Meta Tag",
+              status: "FAIL",
+              finding: "Viewport meta tag missing from pages",
+              priority: "HIGH",
+              action: "Add <meta name='viewport'> to all page <head> sections",
+            },
+            {
+              n: "Touch Targets",
+              status: "WARN",
+              finding: "Some buttons/links may be too small",
+              priority: "MEDIUM",
+              action: "Ensure all tap targets are at least 44×44px",
+            },
+            {
+              n: "Font Size on Mobile",
+              status: "WARN",
+              finding: "Font size too small on mobile screens",
+              priority: "MEDIUM",
+              action: "Set base font to 16px minimum, use rem units",
+            },
+          ],
+        },
+        {
+          name: "Backlinks & Off-Page SEO",
+          sectionNum: "2.5",
+          score: 90,
+          checks: [
+            {
+              n: "Domain Authority",
+              status: "PASS",
+              finding: "Healthy domain authority — strong link profile",
+              priority: "HIGH",
+              action:
+                "Continue earning links through original research and thought leadership",
+            },
+            {
+              n: "Total Backlinks",
+              status: "PASS",
+              finding: "Good backlink volume from diverse sources",
+              priority: "MEDIUM",
+              action: "Maintain consistent link acquisition strategy",
+            },
+            {
+              n: "Referring Domains",
+              status: "PASS",
+              finding: "Good unique referring domain count",
+              priority: "HIGH",
+              action:
+                "Focus on earning links from diverse, high-authority domains",
+            },
+            {
+              n: "Toxic Backlinks",
+              status: "PASS",
+              finding: "No toxic links detected",
+              priority: "HIGH",
+              action: "Monitor monthly — use Search Console disavow if needed",
+            },
+            {
+              n: "Social Profiles Linked",
+              status: "WARN",
+              finding: "Social profiles not fully linked from site",
+              priority: "LOW",
+              action:
+                "Add links to all active social profiles in footer/About page",
+            },
+          ],
+        },
+        {
+          name: "Local SEO",
+          sectionNum: "2.6",
+          score: 63,
+          checks: [
+            {
+              n: "Google Business Profile",
+              status: "WARN",
+              finding: "GBP not fully optimized",
+              priority: "HIGH",
+              action:
+                "Claim GBP, add photos, hours, categories, respond to reviews",
+            },
+            {
+              n: "NAP Consistency",
+              status: "WARN",
+              finding: "Name/Address/Phone may be inconsistent",
+              priority: "HIGH",
+              action: "Audit all directory listings for NAP uniformity",
+            },
+            {
+              n: "Local Citations",
+              status: "WARN",
+              finding: "Insufficient local directory presence",
+              priority: "MEDIUM",
+              action: "List on Google, Bing Places, Apple Maps, Yelp",
+            },
+            {
+              n: "Local Structured Data",
+              status: "PASS",
+              finding: "Local schema detected",
+              priority: "HIGH",
+              action:
+                "Expand LocalBusiness schema with all available properties",
+            },
+            {
+              n: "Social Profiles Linked",
+              status: "WARN",
+              finding: "Social profiles not linked from site",
+              priority: "LOW",
+              action:
+                "Add links to all active social platforms in footer/About page",
+            },
+          ],
+        },
+      ],
+    },
+    aeo: {
+      label: "AEO",
+      score: 79,
+      color: "#10b981",
+      categories: [
+        {
+          name: "Featured Snippet Optimization",
+          sectionNum: "3.1",
+          score: 75,
+          checks: [
+            {
+              n: "Question-Based Headings",
+              status: "PASS",
+              finding: "Headings formatted as questions — good for snippets",
+              priority: "CRITICAL",
+              action: "Continue — expand to all content pages",
+            },
+            {
+              n: "Direct Answer Paragraphs",
+              status: "PASS",
+              finding: "40-60 word answer paragraphs found",
+              priority: "CRITICAL",
+              action: "Ensure every key question has a 40-60 word answer block",
+            },
+            {
+              n: "Definition Sections",
+              status: "FAIL",
+              finding: "No 'X is...' definition blocks found",
+              priority: "HIGH",
+              action: "Add definition sections to every service and topic page",
+            },
+            {
+              n: "Ordered Lists for Steps",
+              status: "PASS",
+              finding: "Numbered lists found — snippet-ready",
+              priority: "HIGH",
+              action: "Maintain and expand for all how-to content",
+            },
+            {
+              n: "Comparison Tables",
+              status: "PASS",
+              finding: "Tables eligible for table snippets",
+              priority: "MEDIUM",
+              action: "Add more comparison tables for service/tool comparisons",
+            },
+            {
+              n: "FAQ Section",
+              status: "WARN",
+              finding: "No FAQ section on pages",
+              priority: "HIGH",
+              action: "Add FAQ with 5-10 Q&A pairs at bottom of each page",
+            },
+          ],
+        },
+        {
+          name: "Voice Search",
+          sectionNum: "3.2",
+          score: 100,
+          checks: [
+            {
+              n: "Conversational Keywords",
+              status: "PASS",
+              finding: "Natural language voice-query phrases found",
+              priority: "HIGH",
+              action: "Continue — maintain across all new content published",
+            },
+            {
+              n: "Long-Tail Questions",
+              status: "PASS",
+              finding: "Full question phrases targeted",
+              priority: "HIGH",
+              action: "Continue — target full questions not just keywords",
+            },
+            {
+              n: "Local Voice Signals",
+              status: "PASS",
+              finding: "'Near me' and local signals present",
+              priority: "MEDIUM",
+              action: "Continue — add location content for each service area",
+            },
+            {
+              n: "Speakable Schema",
+              status: "PASS",
+              finding: "Speakable schema implemented",
+              priority: "MEDIUM",
+              action: "Maintain — expand to all key intro paragraphs",
+            },
+          ],
+        },
+        {
+          name: "Answer Engine Schema",
+          sectionNum: "3.3",
+          score: 70,
+          checks: [
+            {
+              n: "FAQPage Schema",
+              status: "PASS",
+              finding: "FAQPage schema implemented",
+              priority: "CRITICAL",
+              action: "Expand to all pages with FAQ sections",
+            },
+            {
+              n: "HowTo Schema",
+              status: "FAIL",
+              finding: "HowTo schema missing",
+              priority: "HIGH",
+              action: "Add HowTo JSON-LD to all tutorial/process pages",
+            },
+            {
+              n: "QAPage Schema",
+              status: "FAIL",
+              finding: "No QAPage schema found",
+              priority: "HIGH",
+              action: "Add QAPage schema to Q&A content",
+            },
+            {
+              n: "Review/Rating Schema",
+              status: "PASS",
+              finding: "Review schema with ratings found",
+              priority: "MEDIUM",
+              action: "Increase review count and diversity",
+            },
+            {
+              n: "Event Schema",
+              status: "PASS",
+              finding: "Event schema found",
+              priority: "MEDIUM",
+              action: "Ensure all future events use Event schema",
+            },
+          ],
+        },
+        {
+          name: "E-E-A-T Signals",
+          sectionNum: "3.4",
+          score: 60,
+          checks: [
+            {
+              n: "Author Bio & Credentials",
+              status: "PASS",
+              finding: "Author credentials displayed",
+              priority: "CRITICAL",
+              action: "Add Person schema and LinkedIn links to author bios",
+            },
+            {
+              n: "About Page Quality",
+              status: "PASS",
+              finding: "Detailed About page found",
+              priority: "HIGH",
+              action:
+                "Enhance with team photos, credentials, and company history",
+            },
+            {
+              n: "External Citations",
+              status: "PASS",
+              finding: "Authoritative sources cited",
+              priority: "HIGH",
+              action: "Continue linking to high-authority external sources",
+            },
+            {
+              n: "Trust Badges & Reviews",
+              status: "FAIL",
+              finding: "No trust signals on key pages",
+              priority: "HIGH",
+              action:
+                "Add certifications, partner logos, and genuine client reviews",
+            },
+            {
+              n: "Last Updated Date",
+              status: "FAIL",
+              finding: "No publication/update dates on content",
+              priority: "MEDIUM",
+              action: "Add 'Last Updated: [date]' to all articles and pages",
+            },
+          ],
+        },
+        {
+          name: "NLP & Semantic SEO",
+          sectionNum: "3.5",
+          score: 90,
+          checks: [
+            {
+              n: "Clear Topic Sentences",
+              status: "PASS",
+              finding: "Clear topic sentences found",
+              priority: "HIGH",
+              action:
+                "Continue — begin each section with a clear topic sentence",
+            },
+            {
+              n: "Entity Linking",
+              status: "WARN",
+              finding: "Partially linked — first mentions need external links",
+              priority: "HIGH",
+              action:
+                "Link first mentions of key entities to authoritative sources",
+            },
+            {
+              n: "Semantic Keyword Coverage",
+              status: "PASS",
+              finding: "Semantically rich content found",
+              priority: "HIGH",
+              action: "Continue using LSI keywords and semantic variants",
+            },
+            {
+              n: "Readability Score",
+              status: "PASS",
+              finding: "Flesch score above 60 — accessible",
+              priority: "MEDIUM",
+              action: "Maintain — simplify where needed, use active voice",
+            },
+            {
+              n: "Topical Depth",
+              status: "PASS",
+              finding: "Comprehensive topic coverage found",
+              priority: "HIGH",
+              action: "Continue — expand for all new service topics",
+            },
+          ],
+        },
+      ],
+    },
+    geo: {
+      label: "GEO",
+      score: 72,
+      color: "#8b5cf6",
+      categories: [
+        {
+          name: "LLM-Ready Content",
+          sectionNum: "4.1",
+          score: 90,
+          checks: [
+            {
+              n: "Clear Page Summaries",
+              status: "PASS",
+              finding: "Content well-structured for AI parsing",
+              priority: "CRITICAL",
+              action: "Start every page with a 2-3 sentence summary paragraph",
+            },
+            {
+              n: "Factual Data with Sources",
+              status: "PASS",
+              finding: "Statistics backed with citations",
+              priority: "CRITICAL",
+              action: "Continue — back every statistic with a citation link",
+            },
+            {
+              n: "Unique Research / Data",
+              status: "PASS",
+              finding: "Original research/data present",
+              priority: "HIGH",
+              action:
+                "Continue — LLMs and journalists cite original data more frequently",
+            },
+            {
+              n: "AI Crawler Permissions",
+              status: "PASS",
+              finding: "AI crawlers addressed in robots.txt",
+              priority: "HIGH",
+              action:
+                "Update robots.txt to explicitly address GPTBot, ClaudeBot, Google-Extended",
+            },
+            {
+              n: "Structured for Extraction",
+              status: "WARN",
+              finding: "Some dense sections need restructuring",
+              priority: "MEDIUM",
+              action: "Start every page with a 2-3 sentence summary paragraph",
+            },
+          ],
+        },
+        {
+          name: "Brand Citability",
+          sectionNum: "4.2",
+          score: 70,
+          checks: [
+            {
+              n: "Consistent Brand Name",
+              status: "FAIL",
+              finding: "Inconsistent brand mentions across pages",
+              priority: "CRITICAL",
+              action: "Standardize brand name across all pages and metadata",
+            },
+            {
+              n: "Wikipedia / Wikidata",
+              status: "PASS",
+              finding: "Brand present on Wikidata",
+              priority: "HIGH",
+              action: "Keep Wikidata entry updated with latest information",
+            },
+            {
+              n: "Industry Directories",
+              status: "WARN",
+              finding: "Missing from some key directories",
+              priority: "HIGH",
+              action:
+                "Submit to Clutch, GoodFirms, DesignRush, and niche directories",
+            },
+            {
+              n: "News & Press Mentions",
+              status: "PASS",
+              finding: "Brand appears in press/news articles",
+              priority: "HIGH",
+              action:
+                "Pursue additional PR — guest posts, interviews, case studies",
+            },
+            {
+              n: "Niche Term Co-occurrence",
+              status: "PASS",
+              finding: "Brand co-occurs with niche keywords",
+              priority: "HIGH",
+              action: "Expand content clusters to increase topic associations",
+            },
+          ],
+        },
+        {
+          name: "AI Topical Coverage",
+          sectionNum: "4.3",
+          score: 90,
+          checks: [
+            {
+              n: "Pillar + Cluster Content",
+              status: "PASS",
+              finding: "Content hub with pillar and cluster pages",
+              priority: "CRITICAL",
+              action: "Continue — expand cluster strategy with new verticals",
+            },
+            {
+              n: "Definition Pages",
+              status: "PASS",
+              finding: "Definition and explainer pages present",
+              priority: "HIGH",
+              action: "Create 'What is [Term]?' pages for all key niche terms",
+            },
+            {
+              n: "Comparison Pages",
+              status: "PASS",
+              finding: "Competitor comparison pages found",
+              priority: "MEDIUM",
+              action:
+                "Add more vs-competitor pages for key service comparisons",
+            },
+            {
+              n: "Use Case Content",
+              status: "PASS",
+              finding: "Use case and how-to content found",
+              priority: "HIGH",
+              action:
+                "Create dedicated pages for each use case (e.g. SEO for E-commerce)",
+            },
+            {
+              n: "Glossary / Terminology",
+              status: "WARN",
+              finding: "Partial glossary found",
+              priority: "MEDIUM",
+              action:
+                "Expand terminology coverage — build a comprehensive glossary",
+            },
+          ],
+        },
+        {
+          name: "AI Trust & Credibility",
+          sectionNum: "4.4",
+          score: 60,
+          checks: [
+            {
+              n: "HTTPS Security",
+              status: "FAIL",
+              finding: "HTTP only flagged — mixed content issue",
+              priority: "CRITICAL",
+              action: "Enforce HTTPS sitewide, fix all mixed content warnings",
+            },
+            {
+              n: "Contact & Ownership",
+              status: "PASS",
+              finding: "Contact info and ownership displayed",
+              priority: "HIGH",
+              action: "Ensure contact details are in schema markup too",
+            },
+            {
+              n: "Legal Pages",
+              status: "PASS",
+              finding: "Privacy policy and T&C present",
+              priority: "HIGH",
+              action:
+                "Keep legal pages updated — essential for AI trust signals",
+            },
+            {
+              n: "Content Freshness",
+              status: "PASS",
+              finding: "Content regularly updated",
+              priority: "HIGH",
+              action: "Publish at least 2-4 new pieces of content per month",
+            },
+            {
+              n: "Social Proof / Testimonials",
+              status: "FAIL",
+              finding: "No testimonials or case studies",
+              priority: "MEDIUM",
+              action:
+                "Add 3-5 case studies and 10+ client testimonials sitewide",
+            },
+          ],
+        },
+        {
+          name: "Machine-Readable Metadata",
+          sectionNum: "4.5",
+          score: 50,
+          note: "★ LOWEST CATEGORY",
+          checks: [
+            {
+              n: "Organization Schema",
+              status: "FAIL",
+              finding: "Organization JSON-LD missing",
+              priority: "CRITICAL",
+              action:
+                "Add Organization schema with legalName, logo, sameAs, contact",
+            },
+            {
+              n: "Open Graph Tags",
+              status: "WARN",
+              finding: "OG tags missing or incomplete",
+              priority: "MEDIUM",
+              action:
+                "Add og:title, og:description, og:image, og:url to all pages",
+            },
+            {
+              n: "Twitter Card Tags",
+              status: "WARN",
+              finding: "Twitter/X card meta tags missing",
+              priority: "MEDIUM",
+              action:
+                "Add twitter:card, twitter:title, twitter:image to all pages",
+            },
+            {
+              n: "BreadcrumbList Schema",
+              status: "WARN",
+              finding: "Breadcrumb schema missing",
+              priority: "MEDIUM",
+              action: "Add BreadcrumbList JSON-LD to all pages",
+            },
+            {
+              n: "Author/Person Schema",
+              status: "PASS",
+              finding: "Author schema partially implemented",
+              priority: "HIGH",
+              action: "Expand with sameAs, knowsAbout, and jobTitle properties",
+            },
+          ],
+        },
+      ],
+    },
   },
 };
 
-// ══════════════════════════════════════════════════════
-//  GENERATE
-// ══════════════════════════════════════════════════════
-function rng(a, b) {
-  return Math.floor(Math.random() * (b - a + 1)) + a;
+// Content Calendar
+const CALENDAR = [
+  {
+    month: "Month 1: April 2026",
+    theme: "SEO Foundations + Service Page Expansion",
+    items: [
+      {
+        week: "W1",
+        dates: "Apr 1–5",
+        type: "Service Page",
+        title: "What is SEO? A Complete Guide for Businesses in 2026",
+        goal: "Definition page — Featured Snippet + E-E-A-T",
+        keywords: "what is seo, seo explained, seo for business",
+        cta: "Free Audit",
+        owner: "SEO",
+      },
+      {
+        week: "W2",
+        dates: "Apr 7–12",
+        type: "Blog Post",
+        title: "Why Your Website is Invisible on Google (And How to Fix It)",
+        goal: "Awareness — informational search intent",
+        keywords: "website not showing on google, improve seo ranking",
+        cta: "Contact Us",
+        owner: "Content",
+      },
+      {
+        week: "W3",
+        dates: "Apr 14–19",
+        type: "Service Page",
+        title: "SEO Services by BuimbDigital — Packages & Pricing",
+        goal: "Service page — commercial intent keywords",
+        keywords: "seo services, seo agency, seo packages pricing",
+        cta: "Get a Quote",
+        owner: "SEO",
+      },
+      {
+        week: "W4",
+        dates: "Apr 21–26",
+        type: "Social Post",
+        title: "5 Quick SEO Wins Any Business Can Do This Week [Carousel]",
+        goal: "Brand awareness + engagement",
+        keywords: "quick seo tips, easy seo wins",
+        cta: "Share/Save",
+        owner: "Marketing",
+      },
+    ],
+  },
+  {
+    month: "Month 2: Late April / May 2026",
+    theme: "AEO Content Push + First Case Study",
+    items: [
+      {
+        week: "W5",
+        dates: "Apr 28–May 3",
+        type: "Blog Post",
+        title: "What is AEO? How to Optimize for AI Answer Engines in 2026",
+        goal: "Definition page — AEO awareness, featured snippet",
+        keywords: "answer engine optimization, what is AEO, AEO guide",
+        cta: "Free Audit",
+        owner: "Content",
+      },
+      {
+        week: "W6",
+        dates: "May 5–10",
+        type: "Service Page",
+        title: "Digital Marketing Services — Full-Funnel Strategy",
+        goal: "Core service page — expand thin content to 1200w",
+        keywords: "digital marketing agency, full funnel marketing",
+        cta: "Get a Quote",
+        owner: "SEO",
+      },
+      {
+        week: "W7",
+        dates: "May 12–17",
+        type: "Case Study",
+        title: "How We Grew Organic Traffic 140% for [Client A] in 6 Months",
+        goal: "E-E-A-T + trust signal — results-based proof",
+        keywords: "seo case study, agency results, traffic growth",
+        cta: "View Work",
+        owner: "Marketing",
+      },
+      {
+        week: "W8",
+        dates: "May 19–24",
+        type: "Social Post",
+        title: "What Does a Digital Agency Actually Do? [Explainer Thread]",
+        goal: "Thought leadership + brand citability",
+        keywords: "digital agency explained, what does an agency do",
+        cta: "Follow Us",
+        owner: "Marketing",
+      },
+      {
+        week: "W9",
+        dates: "May 26–31",
+        type: "FAQ Page",
+        title: "FAQ: Digital Marketing & SEO — 15 Questions Answered",
+        goal: "People Also Ask — AEO snippet capture",
+        keywords: "digital marketing faq, seo questions answered",
+        cta: "Free Audit",
+        owner: "Content",
+      },
+    ],
+  },
+  {
+    month: "Month 3: June 2026",
+    theme: "GEO Awareness + Niche Vertical Pages",
+    items: [
+      {
+        week: "W10",
+        dates: "Jun 2–7",
+        type: "Blog Post",
+        title: "GEO: What is Generative Engine Optimization and Why It Matters",
+        goal: "GEO awareness — LLM citation + featured snippet",
+        keywords: "generative engine optimization, GEO SEO, AI search",
+        cta: "Free Audit",
+        owner: "Content",
+      },
+      {
+        week: "W11",
+        dates: "Jun 9–14",
+        type: "Use Case Page",
+        title: "SEO for E-Commerce Businesses — Strategy & Results",
+        goal: "Use case page — niche commercial intent",
+        keywords: "ecommerce seo, online store seo, product page seo",
+        cta: "Get a Quote",
+        owner: "SEO",
+      },
+      {
+        week: "W12",
+        dates: "Jun 16–21",
+        type: "Case Study",
+        title: "How BuimbDigital Helped [Client B] Rank #1 for Local Search",
+        goal: "Local SEO proof + E-E-A-T trust signals",
+        keywords: "local seo results, rank on google maps, local business",
+        cta: "View Work",
+        owner: "Marketing",
+      },
+      {
+        week: "W13",
+        dates: "Jun 23–28",
+        type: "Social Post",
+        title: "SEO vs AEO vs GEO — What's the Difference? [Infographic]",
+        goal: "Educational content — shares + brand recall",
+        keywords: "seo vs aeo, seo vs geo, modern seo 2026",
+        cta: "Share",
+        owner: "Marketing",
+      },
+    ],
+  },
+  {
+    month: "Month 4: July / Early August 2026",
+    theme: "Thought Leadership + Conversion Content",
+    items: [
+      {
+        week: "W14",
+        dates: "Jun 30–Jul 5",
+        type: "Blog Post",
+        title: "How to Write Content That AI Tools Will Actually Cite",
+        goal: "GEO — LLM citability + thought leadership",
+        keywords: "AI content optimization, llm seo, ai citation tips",
+        cta: "Free Audit",
+        owner: "Content",
+      },
+      {
+        week: "W15",
+        dates: "Jul 7–12",
+        type: "Use Case Page",
+        title: "Digital Marketing for Law Firms — What Actually Works",
+        goal: "Niche use case — long-tail commercial intent",
+        keywords: "law firm digital marketing, seo for lawyers",
+        cta: "Get a Quote",
+        owner: "SEO",
+      },
+      {
+        week: "W16",
+        dates: "Jul 14–19",
+        type: "Service Page",
+        title: "Content Marketing Services — Strategy, Writing & Distribution",
+        goal: "Thin service page expansion — 1000+ words",
+        keywords: "content marketing agency, content strategy service",
+        cta: "Get a Quote",
+        owner: "SEO",
+      },
+      {
+        week: "W17",
+        dates: "Jul 21–26",
+        type: "Blog Post",
+        title: "Core Web Vitals 2026: What Businesses Need to Know",
+        goal: "Technical SEO awareness + internal authority link",
+        keywords: "core web vitals 2026, page speed seo, cwv explained",
+        cta: "Free Audit",
+        owner: "Content",
+      },
+      {
+        week: "W18",
+        dates: "Jul 28–Aug 2",
+        type: "Social Post",
+        title: "Client Win Wednesday: [Result of the Month] [Story Card]",
+        goal: "Social proof + brand trust signal",
+        keywords: "client results, digital marketing wins",
+        cta: "Contact Us",
+        owner: "Marketing",
+      },
+    ],
+  },
+  {
+    month: "Month 5: August / September 2026",
+    theme: "Local SEO Reinforcement + Brand Trust",
+    items: [
+      {
+        week: "W19",
+        dates: "Aug 4–9",
+        type: "Blog Post",
+        title: "How to Optimize Your Google Business Profile in 2026",
+        goal: "Local SEO — GBP guide + featured snippet target",
+        keywords: "google business profile 2026, gbp optimization",
+        cta: "Free Audit",
+        owner: "Content",
+      },
+      {
+        week: "W20",
+        dates: "Aug 11–16",
+        type: "Case Study",
+        title: "3x ROI in 90 Days: [Client C]'s Paid + Organic Strategy",
+        goal: "Full-funnel case study — E-E-A-T + conversion proof",
+        keywords: "digital marketing roi, agency case study, ppc + seo",
+        cta: "View Work",
+        owner: "Marketing",
+      },
+      {
+        week: "W21",
+        dates: "Aug 18–23",
+        type: "Use Case Page",
+        title: "SEO for SaaS Companies — Scaling Organic Growth",
+        goal: "Niche vertical — high-value B2B intent",
+        keywords: "saas seo, seo for software company, b2b seo agency",
+        cta: "Get a Quote",
+        owner: "SEO",
+      },
+      {
+        week: "W22",
+        dates: "Aug 25–30",
+        type: "Social Post",
+        title: "The Real Reason Your Competitors Outrank You [Thread]",
+        goal: "Engagement-first — brand awareness",
+        keywords: "outrank competitors, seo strategy, competitor seo",
+        cta: "Share",
+        owner: "Marketing",
+      },
+      {
+        week: "W23",
+        dates: "Sep 1–6",
+        type: "FAQ Page",
+        title: "FAQ: How Long Does SEO Take? (And Other Hard Questions)",
+        goal: "People Also Ask — AEO capture + long-tail FAQ",
+        keywords: "how long does seo take, seo timeline, seo expectations",
+        cta: "Free Audit",
+        owner: "Content",
+      },
+    ],
+  },
+  {
+    month: "Month 6: September / October 2026",
+    theme: "Authority Consolidation + 2027 Positioning",
+    items: [
+      {
+        week: "W24",
+        dates: "Sep 8–13",
+        type: "Blog Post",
+        title: "Voice Search Optimization: How to Rank for Spoken Queries",
+        goal: "AEO / Voice — maintain 100 score + thought leadership",
+        keywords: "voice search optimization, voice seo 2026, speakable",
+        cta: "Free Audit",
+        owner: "Content",
+      },
+      {
+        week: "W25",
+        dates: "Sep 15–20",
+        type: "Definition Page",
+        title: "What is Schema Markup? A Plain-English Guide with Examples",
+        goal: "Definition + featured snippet — AEO schema awareness",
+        keywords: "schema markup explained, structured data seo",
+        cta: "Contact Us",
+        owner: "Content",
+      },
+      {
+        week: "W26",
+        dates: "Sep 22–27",
+        type: "Use Case Page",
+        title: "Digital Marketing for Restaurants & Hospitality Businesses",
+        goal: "New niche vertical — local + AI search visibility",
+        keywords: "restaurant digital marketing, hospitality seo agency",
+        cta: "Get a Quote",
+        owner: "SEO",
+      },
+      {
+        week: "W27",
+        dates: "Sep 29–Oct 4",
+        type: "Case Study",
+        title: "From 0 to 5,000 Monthly Visits: [Client D]'s SEO Journey",
+        goal: "6-month results story — trust + proof + conversions",
+        keywords: "seo results 6 months, organic traffic growth, agency",
+        cta: "View Work",
+        owner: "Marketing",
+      },
+      {
+        week: "W28",
+        dates: "Oct 6–11",
+        type: "Social Post",
+        title: "6-Month Content Recap: What Worked, What Didn't [Data Post]",
+        goal: "Transparency + authority — brand citability signal",
+        keywords: "content marketing results, what works in seo 2026",
+        cta: "Follow Us",
+        owner: "Marketing",
+      },
+      {
+        week: "W29",
+        dates: "Oct 13–18",
+        type: "Blog Post",
+        title: "2027 SEO Predictions: What's Coming & How to Prepare Now",
+        goal: "Evergreen authority — forward-looking thought leadership",
+        keywords: "seo 2027, future of seo, ai search trends",
+        cta: "Free Audit",
+        owner: "Content",
+      },
+    ],
+  },
+];
+
+// Competitors
+const COMPETITORS = [
+  {
+    name: "PageTraffic",
+    domain: "pagetraffic.in",
+    est: 2002,
+    team: "200+",
+    hq: "Delhi, India",
+    market: "India + Global",
+    pricing: "₹30K–₹1.5L/mo",
+    clutch: "4.8/5",
+    seo: 5,
+    aeo: 3,
+    geo: 3,
+    strengths:
+      "24 years experience, large client portfolio, Google Premier Partner, strong backlink authority, extensive case study library",
+    weaknesses:
+      "Higher pricing, slower to adopt AEO/GEO trends, less agile for SMEs, templated reporting",
+    opp: "BuimbDigital competes on AEO/GEO expertise, faster turnaround, and personalised service for SMEs",
+  },
+  {
+    name: "Techmagnate",
+    domain: "techmagnate.com",
+    est: 2006,
+    team: "300+",
+    hq: "Delhi, India",
+    market: "India + Global",
+    pricing: "₹50K–₹2L/mo",
+    clutch: "4.9/5",
+    seo: 5,
+    aeo: 3,
+    geo: 3,
+    strengths:
+      "Google Premier Partner, enterprise-scale campaigns, strong technical SEO, analytics-driven, high Clutch rating",
+    weaknesses:
+      "Expensive, not suitable for startups or SMEs, limited GEO/AI offerings, long onboarding cycles",
+    opp: "BuimbDigital wins on cost-effectiveness, GEO/AI optimisation, and accessibility for growing businesses",
+  },
+  {
+    name: "EZ Rankings",
+    domain: "ezrankings.com",
+    est: 2010,
+    team: "150+",
+    hq: "Noida, India",
+    market: "India + Global",
+    pricing: "₹15K–₹80K/mo",
+    clutch: "4.7/5",
+    seo: 4,
+    aeo: 3,
+    geo: 4,
+    strengths:
+      "Affordable pricing, broad service range, good client communication, strong e-commerce SEO track record",
+    weaknesses:
+      "Less strong on AEO schema strategy, content quality inconsistent, limited international presence",
+    opp: "BuimbDigital differentiates through AEO+GEO integration and higher-quality content strategy",
+  },
+  {
+    name: "WebSpero Solutions",
+    domain: "webspero.com",
+    est: 2014,
+    team: "100+",
+    hq: "Mohali, India",
+    market: "India + USA",
+    pricing: "₹20K–₹1L/mo",
+    clutch: "4.8/5",
+    seo: 4,
+    aeo: 3,
+    geo: 3,
+    strengths:
+      "Strong technical SEO, AI-powered tools, good US market presence, award-winning agency, growing brand authority",
+    weaknesses:
+      "Limited social media and PPC depth, GEO strategy not prominently marketed, limited case study visibility",
+    opp: "BuimbDigital's full-service model (SEO+SMM+PPC+Web) offers more complete coverage for clients",
+  },
+  {
+    name: "Social Beat",
+    domain: "socialbeat.in",
+    est: 2012,
+    team: "200+",
+    hq: "Bengaluru, India",
+    market: "India",
+    pricing: "₹40K–₹2L/mo",
+    clutch: "4.6/5",
+    seo: 3,
+    aeo: 2,
+    geo: 2,
+    strengths:
+      "Outstanding social media and influencer marketing, strong creative execution, D2C expertise, well-known brand",
+    weaknesses:
+      "Weaker SEO/technical capability, almost no AEO or GEO focus, limited global reach, India-only",
+    opp: "BuimbDigital wins on SEO+AEO+GEO depth and serves global markets — clear differentiation",
+  },
+  {
+    name: "Conversion Perk",
+    domain: "conversionperk.com",
+    est: 2016,
+    team: "80+",
+    hq: "Delhi, India",
+    market: "India + Global",
+    pricing: "₹10K–₹60K/mo",
+    clutch: "4.7/5",
+    seo: 4,
+    aeo: 2,
+    geo: 2,
+    strengths:
+      "Strong PPC and performance marketing, affordable, quick execution, good client retention",
+    weaknesses:
+      "Limited content/AEO strategy, no GEO positioning, weaker brand authority vs older agencies",
+    opp: "BuimbDigital's AEO+GEO+content depth is a clear differentiator in the SME market segment",
+  },
+];
+
+// Keywords
+const KW = {
+  primary: [
+    {
+      kw: "digital marketing agency India",
+      vol: "22,000",
+      diff: "HIGH",
+      intent: "Commercial",
+      pri: "CRITICAL",
+      page: "Homepage",
+    },
+    {
+      kw: "SEO services India",
+      vol: "18,000",
+      diff: "HIGH",
+      intent: "Commercial",
+      pri: "CRITICAL",
+      page: "SEO Service Page",
+    },
+    {
+      kw: "best SEO company India",
+      vol: "12,000",
+      diff: "HIGH",
+      intent: "Commercial",
+      pri: "CRITICAL",
+      page: "SEO Service Page",
+    },
+    {
+      kw: "digital marketing company India",
+      vol: "14,000",
+      diff: "HIGH",
+      intent: "Commercial",
+      pri: "CRITICAL",
+      page: "Homepage",
+    },
+    {
+      kw: "social media marketing agency India",
+      vol: "8,000",
+      diff: "MEDIUM",
+      intent: "Commercial",
+      pri: "HIGH",
+      page: "SMM Service Page",
+    },
+    {
+      kw: "PPC agency India",
+      vol: "5,500",
+      diff: "MEDIUM",
+      intent: "Commercial",
+      pri: "HIGH",
+      page: "PPC Service Page",
+    },
+    {
+      kw: "web design company India",
+      vol: "9,000",
+      diff: "HIGH",
+      intent: "Commercial",
+      pri: "HIGH",
+      page: "Web Design Page",
+    },
+    {
+      kw: "affordable SEO services India",
+      vol: "4,400",
+      diff: "MEDIUM",
+      intent: "Commercial",
+      pri: "HIGH",
+      page: "SEO Service Page",
+    },
+    {
+      kw: "digital marketing agency for small business",
+      vol: "3,600",
+      diff: "MEDIUM",
+      intent: "Commercial",
+      pri: "HIGH",
+      page: "Homepage / Blog",
+    },
+    {
+      kw: "SEO agency India pricing",
+      vol: "2,900",
+      diff: "LOW",
+      intent: "Commercial",
+      pri: "HIGH",
+      page: "Pricing Page",
+    },
+  ],
+  longtail: [
+    {
+      kw: "what is SEO and how does it work 2026",
+      vol: "6,600",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "HIGH",
+      page: "Blog / Definition Page",
+    },
+    {
+      kw: "how to rank on Google in India",
+      vol: "3,200",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "HIGH",
+      page: "Blog Post",
+    },
+    {
+      kw: "best digital marketing strategies for startups",
+      vol: "2,800",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "HIGH",
+      page: "Blog Post",
+    },
+    {
+      kw: "how long does SEO take to show results",
+      vol: "4,100",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "HIGH",
+      page: "FAQ / Blog Post",
+    },
+    {
+      kw: "what is answer engine optimization",
+      vol: "1,900",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "HIGH",
+      page: "AEO Blog / Definition",
+    },
+    {
+      kw: "what is generative engine optimization",
+      vol: "1,400",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "HIGH",
+      page: "GEO Blog / Definition",
+    },
+    {
+      kw: "how to optimize for Google AI Overview",
+      vol: "2,200",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "HIGH",
+      page: "Blog Post",
+    },
+    {
+      kw: "digital marketing ROI for small business",
+      vol: "1,800",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "MEDIUM",
+      page: "Blog Post",
+    },
+    {
+      kw: "SEO vs paid ads which is better",
+      vol: "3,300",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "MEDIUM",
+      page: "Blog / Comparison Page",
+    },
+    {
+      kw: "how to improve website ranking India",
+      vol: "2,700",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "MEDIUM",
+      page: "Blog Post",
+    },
+    {
+      kw: "social media marketing tips for business India",
+      vol: "2,100",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "MEDIUM",
+      page: "Blog Post",
+    },
+    {
+      kw: "core web vitals explained 2026",
+      vol: "1,600",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "MEDIUM",
+      page: "Blog Post",
+    },
+    {
+      kw: "what is schema markup and how to use it",
+      vol: "2,400",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "MEDIUM",
+      page: "Blog / Definition Page",
+    },
+    {
+      kw: "voice search optimization guide",
+      vol: "1,200",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "MEDIUM",
+      page: "Blog Post",
+    },
+    {
+      kw: "digital marketing case study India",
+      vol: "1,000",
+      diff: "LOW",
+      intent: "Informational",
+      pri: "MEDIUM",
+      page: "Case Study Page",
+    },
+  ],
+  local: [
+    {
+      kw: "digital marketing agency Agra",
+      vol: "320",
+      diff: "LOW",
+      intent: "Local",
+      pri: "CRITICAL",
+      page: "Location Page / GBP",
+    },
+    {
+      kw: "SEO services Agra",
+      vol: "260",
+      diff: "LOW",
+      intent: "Local",
+      pri: "CRITICAL",
+      page: "Location Page / GBP",
+    },
+    {
+      kw: "digital marketing company Agra",
+      vol: "210",
+      diff: "LOW",
+      intent: "Local",
+      pri: "HIGH",
+      page: "Homepage / GBP",
+    },
+    {
+      kw: "social media marketing Agra",
+      vol: "180",
+      diff: "LOW",
+      intent: "Local",
+      pri: "HIGH",
+      page: "SMM Service Page",
+    },
+    {
+      kw: "web design company Agra",
+      vol: "240",
+      diff: "LOW",
+      intent: "Local",
+      pri: "HIGH",
+      page: "Web Design Page / GBP",
+    },
+    {
+      kw: "PPC services Agra",
+      vol: "140",
+      diff: "LOW",
+      intent: "Local",
+      pri: "MEDIUM",
+      page: "PPC Service Page",
+    },
+    {
+      kw: "best digital marketing agency near me",
+      vol: "8,100",
+      diff: "MEDIUM",
+      intent: "Local",
+      pri: "HIGH",
+      page: "GBP + Homepage",
+    },
+    {
+      kw: "SEO company near me India",
+      vol: "5,400",
+      diff: "MEDIUM",
+      intent: "Local",
+      pri: "HIGH",
+      page: "GBP + Homepage",
+    },
+  ],
+  global: [
+    {
+      kw: "white label SEO services India",
+      vol: "2,900",
+      diff: "MEDIUM",
+      intent: "Commercial",
+      pri: "HIGH",
+      page: "Dedicated Landing Page",
+    },
+    {
+      kw: "outsource digital marketing India",
+      vol: "1,800",
+      diff: "MEDIUM",
+      intent: "Commercial",
+      pri: "HIGH",
+      page: "Landing Page",
+    },
+    {
+      kw: "hire SEO expert India",
+      vol: "3,200",
+      diff: "MEDIUM",
+      intent: "Commercial",
+      pri: "HIGH",
+      page: "Service Page / Blog",
+    },
+    {
+      kw: "digital marketing agency for ecommerce",
+      vol: "4,400",
+      diff: "MEDIUM",
+      intent: "Commercial",
+      pri: "HIGH",
+      page: "Use Case Page",
+    },
+    {
+      kw: "SEO services for SaaS companies",
+      vol: "2,100",
+      diff: "LOW",
+      intent: "Commercial",
+      pri: "HIGH",
+      page: "Use Case Page",
+    },
+    {
+      kw: "affordable digital marketing agency global",
+      vol: "1,400",
+      diff: "LOW",
+      intent: "Commercial",
+      pri: "MEDIUM",
+      page: "Homepage",
+    },
+    {
+      kw: "AI SEO services agency",
+      vol: "1,900",
+      diff: "LOW",
+      intent: "Commercial",
+      pri: "MEDIUM",
+      page: "SEO Service Page",
+    },
+    {
+      kw: "GEO optimization services",
+      vol: "800",
+      diff: "LOW",
+      intent: "Commercial",
+      pri: "MEDIUM",
+      page: "GEO Service Page",
+    },
+  ],
+};
+
+// ── UTILITIES ──
+function scCol(s) {
+  return s >= 65 ? "#21bf6b" : s >= 45 ? "#f59e0b" : "#ef4444";
 }
-function roll(p) {
-  const r = Math.random();
-  if (p === "critical") return r < 0.42 ? 1 : r < 0.68 ? 0.5 : 0;
-  if (p === "high") return r < 0.58 ? 1 : r < 0.78 ? 0.5 : 0;
-  if (p === "medium") return r < 0.72 ? 1 : r < 0.87 ? 0.5 : 0;
-  return r < 0.83 ? 1 : r < 0.92 ? 0.5 : 0;
+function scBg(s) {
+  return s >= 65 ? "#dcfce7" : s >= 45 ? "#fef9c3" : "#fee2e2";
 }
 function grade(s) {
   return s >= 90
@@ -702,85 +1605,88 @@ function grade(s) {
 function gradeClass(s) {
   return s >= 65 ? "grade-good" : s >= 45 ? "grade-ok" : "grade-bad";
 }
-function scoreColor(s) {
-  return s >= 65 ? "#21bf6b" : s >= 45 ? "#f59e0b" : "#ef4444";
+function statusBadge(st) {
+  if (st === "PASS") return `<span class="status-badge sb-pass">✓ PASS</span>`;
+  if (st === "WARN") return `<span class="status-badge sb-warn">⚠ WARN</span>`;
+  return `<span class="status-badge sb-fail">✕ FAIL</span>`;
 }
-function dotClass(v) {
-  return v === 1 ? "sd-pass" : v === 0.5 ? "sd-warn" : "sd-fail";
+function priChip(p) {
+  return `<span class="priority-badge pr-${p.toLowerCase()}">${p}</span>`;
 }
-function piClass(v) {
-  return v === 1 ? "pi-pass" : v === 0.5 ? "pi-warn" : "pi-fail";
-}
-function piIcon(v) {
-  return v === 1 ? "✓" : v === 0.5 ? "~" : "✕";
-}
-function prClass(p) {
-  return "pr-" + p;
-}
-function impactPct(p, ok) {
-  if (ok === 0.5) return 40;
-  const m = { critical: 90, high: 72, medium: 50, low: 28 };
-  return m[p] || 40;
-}
-function impactColor(p) {
-  const m = {
-    critical: "#ef4444",
-    high: "#f59e0b",
-    medium: "#3b82f6",
-    low: "#9ca3af",
+function typeChip(t) {
+  const map = {
+    "Blog Post": "type-blog",
+    "Service Page": "type-service",
+    "Case Study": "type-case",
+    "Social Post": "type-social",
+    "FAQ Page": "type-faq",
+    "Use Case Page": "type-usecase",
+    "Definition Page": "type-definition",
+    "Landing Page": "type-landing",
   };
-  return m[p];
+  return `<span class="type-chip ${map[t] || "type-blog"}">${t}</span>`;
+}
+function ownerChip(o) {
+  const map = {
+    SEO: "owner-seo",
+    Content: "owner-content",
+    Marketing: "owner-marketing",
+  };
+  return `<span class="owner-chip ${map[o] || "owner-seo"}">${o}</span>`;
+}
+function diffChip(d) {
+  return `<span class="diff-${d.toLowerCase()}">${d}</span>`;
+}
+function scoreChip(s, label) {
+  const c = s >= 80 ? "sc-green" : s >= 70 ? "sc-yellow" : "sc-red";
+  return `<span class="score-chip ${c}">${s}/100 (${grade(s)})</span>`;
 }
 
-function generateModule(mod) {
-  const cats = mod.categories.map((cat) => {
-    const checks = cat.checks.map((c) => {
-      const ok = roll(c.p);
-      const desc =
-        ok === 1
-          ? c.g
-          : ok === 0.5
-            ? "Partially set up — " + c.g.toLowerCase()
-            : c.b;
-      return { ...c, ok, desc };
-    });
-    const score = Math.round(
-      (checks.reduce((s, c) => s + (c.ok || 0), 0) / checks.length) * 100,
-    );
-    return { ...cat, checks, score };
-  });
-  const score = Math.round(cats.reduce((s, c) => s + c.score, 0) / cats.length);
-  return { ...mod, categories: cats, score };
+// ── SCAN ANIMATION (55-60 second realistic crawl) ──
+function rng(a, b) {
+  return Math.floor(Math.random() * (b - a + 1)) + a;
 }
 
-function generate(url) {
-  const domain = url
-    .replace(/https?:\/\//i, "")
-    .replace(/^www\./, "")
-    .replace(/\/.*/, "");
-  const mods = {};
-  ["seo", "aeo", "geo"].forEach((k) => (mods[k] = generateModule(MODULES[k])));
-  const overall = Math.round(
-    Object.values(mods).reduce((s, m) => s + m.score, 0) / 3,
-  );
-  return { domain, mods, overall };
-}
-
-// ══════════════════════════════════════════════════════
-//  LOADING
-// ══════════════════════════════════════════════════════
 const SCAN_STEPS = [
-  "Resolving domain DNS",
-  "Crawling homepage",
-  "Checking on-page elements",
-  "Analyzing technical setup",
-  "Testing page performance",
-  "Running AEO checks",
-  "Scanning GEO signals",
-  "Auditing structured data",
-  "Checking backlinks",
-  "Compiling results",
+  { label: "Resolving domain DNS & SSL", duration: 3000 },
+  { label: "Crawling homepage & structure", duration: 4500 },
+  { label: "Discovering internal pages", duration: 5000 },
+  { label: "Auditing on-page SEO elements", duration: 5500 },
+  { label: "Checking technical SEO setup", duration: 5000 },
+  { label: "Testing Core Web Vitals", duration: 5500 },
+  { label: "Analyzing mobile responsiveness", duration: 4500 },
+  { label: "Running AEO & schema checks", duration: 5000 },
+  { label: "Scanning GEO & AI signals", duration: 5000 },
+  { label: "Auditing backlink profile", duration: 4000 },
+  { label: "Checking local SEO signals", duration: 4000 },
+  { label: "Compiling results & scoring", duration: 5000 },
 ];
+
+// Fake pages that get "crawled"
+function generatePages(domain) {
+  const base = domain.replace(/https?:\/\//i, "").replace(/\/$/, "");
+  return [
+    { url: base + "/", label: "Homepage", icon: "🏠" },
+    { url: base + "/about", label: "About Us", icon: "👥" },
+    { url: base + "/services", label: "Services", icon: "⚙️" },
+    { url: base + "/services/seo", label: "SEO Services", icon: "🔍" },
+    { url: base + "/services/social-media", label: "Social Media", icon: "📱" },
+    { url: base + "/services/ppc", label: "PPC Advertising", icon: "📊" },
+    { url: base + "/services/web-design", label: "Web Design", icon: "🎨" },
+    { url: base + "/blog", label: "Blog", icon: "📝" },
+    { url: base + "/blog/seo-guide-2026", label: "SEO Guide 2026", icon: "📄" },
+    {
+      url: base + "/blog/digital-marketing-tips",
+      label: "Marketing Tips",
+      icon: "📄",
+    },
+    { url: base + "/contact", label: "Contact", icon: "✉️" },
+    { url: base + "/case-studies", label: "Case Studies", icon: "📋" },
+    { url: base + "/pricing", label: "Pricing", icon: "💰" },
+    { url: base + "/faq", label: "FAQ", icon: "❓" },
+    { url: base + "/sitemap.xml", label: "XML Sitemap", icon: "🗺️" },
+  ];
+}
 
 function startAudit() {
   let url = (document.getElementById("url-input").value || "").trim();
@@ -789,108 +1695,201 @@ function startAudit() {
     return;
   }
   if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+  const domain = url.replace(/https?:\/\//i, "").replace(/\/$/, "");
+
   document.getElementById("audit-btn").disabled = true;
   document.getElementById("page-hero").style.display = "none";
   document.getElementById("results").style.display = "none";
   const ld = document.getElementById("loading");
   ld.style.display = "block";
-  document.getElementById("scan-domain-text").textContent = url.replace(
-    /https?:\/\//i,
-    "",
-  );
+  document.getElementById("scan-domain-text").textContent = domain;
+
+  const pages = generatePages(url);
+  const totalPages = pages.length;
+  const pagesListEl = document.getElementById("pages-list");
+  const pagesCountEl = document.getElementById("pages-count");
+
+  // Build steps UI
   const stepsEl = document.getElementById("scan-steps");
   stepsEl.innerHTML = SCAN_STEPS.map(
-    (s, i) =>
-      `<div class="scan-step" id="ss${i}"><div class="ss-dot"></div><div class="ss-text">${s}</div></div>`,
+    (s, i) => `<div class="scan-step" id="ss${i}">
+    <div class="ss-dot"></div>
+    <div class="ss-text">${s.label}</div>
+    <span class="ss-right" id="ss-time-${i}"></span>
+  </div>`,
   ).join("");
-  let idx = 0;
+
+  // Build pages UI (all queued initially)
+  pagesListEl.innerHTML = pages
+    .map(
+      (p, i) => `<div class="page-item" id="pi${i}">
+    <span class="page-icon">${p.icon}</span>
+    <span class="page-url">${p.url}</span>
+    <span class="page-status queued" id="ps${i}">Queued</span>
+  </div>`,
+    )
+    .join("");
+  pagesCountEl.textContent = `0 / ${totalPages}`;
+
   const pf = document.getElementById("prog-fill");
   const pp = document.getElementById("prog-pct");
-  function next() {
-    if (idx > 0)
-      document.getElementById("ss" + (idx - 1)).className = "scan-step done";
-    if (idx >= SCAN_STEPS.length) {
+  const pl = document.getElementById("prog-label");
+  const pt = document.getElementById("prog-time");
+
+  // Live stat counters
+  let checked = 0,
+    errors = 12,
+    warnings = 22,
+    passed = 55;
+  const lc = document.getElementById("live-checked");
+  const le = document.getElementById("live-errors");
+  const lw = document.getElementById("live-warnings");
+  const lpass = document.getElementById("live-passed");
+
+  // Animate counters
+  function animCounter(el, target, dur) {
+    let start = 0,
+      step = target / (dur / 50);
+    const iv = setInterval(() => {
+      start = Math.min(start + step, target);
+      el.textContent = Math.round(start);
+      if (start >= target) clearInterval(iv);
+    }, 50);
+  }
+
+  const TOTAL_DURATION = 55000; // 55 seconds
+  const startTime = Date.now();
+
+  // Progress bar
+  const progIv = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const pct = Math.min(Math.round((elapsed / TOTAL_DURATION) * 100), 99);
+    pf.style.width = pct + "%";
+    pp.textContent = pct + "%";
+    const rem = Math.max(0, Math.round((TOTAL_DURATION - elapsed) / 1000));
+    pt.textContent =
+      rem > 0
+        ? `Estimated time remaining: ~${rem} seconds`
+        : "Finalizing results...";
+  }, 200);
+
+  // Crawl pages one by one
+  let pageIdx = 0;
+  const pageCrawlInterval = Math.round((TOTAL_DURATION * 0.7) / totalPages);
+  function crawlNextPage() {
+    if (pageIdx >= totalPages) return;
+    // Set previous to done
+    if (pageIdx > 0) {
+      document.getElementById("ps" + (pageIdx - 1)).textContent = "✓ Done";
+      document.getElementById("ps" + (pageIdx - 1)).className =
+        "page-status done";
+      // Scroll page list
+      document
+        .getElementById("pi" + (pageIdx - 1))
+        .scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+    document.getElementById("ps" + pageIdx).textContent = "Scanning...";
+    document.getElementById("ps" + pageIdx).className = "page-status scanning";
+    pagesCountEl.textContent = `${pageIdx + 1} / ${totalPages}`;
+    pageIdx++;
+    setTimeout(crawlNextPage, pageCrawlInterval + rng(-200, 200));
+  }
+  setTimeout(crawlNextPage, 500);
+
+  // Run checks sequentially
+  let stepIdx = 0,
+    totalStepTime = 0;
+  function runNextStep() {
+    if (stepIdx > 0) {
+      const prevEl = document.getElementById("ss" + (stepIdx - 1));
+      prevEl.className = "scan-step done";
+      document.getElementById("ss-time-" + (stepIdx - 1)).textContent = "✓";
+      document.getElementById("ss-time-" + (stepIdx - 1)).style.color =
+        "#21bf6b";
+    }
+    if (stepIdx >= SCAN_STEPS.length) {
+      // Complete remaining pages
+      for (let i = pageIdx - 1; i < totalPages; i++) {
+        document.getElementById("ps" + i).textContent = "✓ Done";
+        document.getElementById("ps" + i).className = "page-status done";
+      }
+      pagesCountEl.textContent = `${totalPages} / ${totalPages}`;
+      clearInterval(progIv);
       pf.style.width = "100%";
       pp.textContent = "100%";
+      pl.textContent = "Audit complete — building your report...";
+      pt.textContent = "";
+      animCounter(lc, 89, 1500);
+      animCounter(le, 12, 1500);
+      animCounter(lw, 22, 1500);
+      animCounter(lpass, 55, 1500);
       setTimeout(() => {
         ld.style.display = "none";
-        renderResults(generate(url));
-      }, 400);
+        renderResults(D);
+      }, 2000);
       return;
     }
-    document.getElementById("ss" + idx).className = "scan-step active";
-    const p = Math.round(((idx + 1) / SCAN_STEPS.length) * 100);
-    pf.style.width = p + "%";
-    pp.textContent = p + "%";
-    idx++;
-    setTimeout(next, rng(280, 560));
+    const step = SCAN_STEPS[stepIdx];
+    const stepEl = document.getElementById("ss" + stepIdx);
+    stepEl.className = "scan-step active";
+    pl.textContent = step.label + "...";
+    // Update live counters incrementally
+    const checksPerStep = Math.round(89 / SCAN_STEPS.length);
+    animCounter(lc, Math.min(89, checked + checksPerStep), step.duration - 200);
+    checked = Math.min(89, checked + checksPerStep);
+    stepIdx++;
+    setTimeout(runNextStep, step.duration + rng(-200, 300));
   }
-  next();
+  setTimeout(runNextStep, 800);
 }
 
-// ══════════════════════════════════════════════════════
-//  RENDER
-// ══════════════════════════════════════════════════════
+// ── RENDER ──
 let _data = null;
-
 function renderResults(data) {
   _data = data;
-  const d = data.domain;
-  document.getElementById("bc-domain").textContent = d;
-  document.getElementById("res-domain").textContent = d;
+  document.getElementById("bc-domain").textContent = data.domain;
+  document.getElementById("res-domain").textContent = data.domain;
   document.getElementById("res-meta").textContent =
-    "Audit completed " +
-    new Date().toLocaleString("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }) +
-    " · 85+ checks · SEO + AEO + GEO";
+    "Audit completed 17 March 2026 · 89 checks · SEO + AEO + GEO";
 
-  // build tabs
   const tabsEl = document.getElementById("module-tabs");
   const panelsEl = document.getElementById("tab-panels");
   tabsEl.innerHTML = "";
   panelsEl.innerHTML = "";
 
-  const tabDefs = [
-    { key: "seo", label: "SEO Analysis", mod: data.mods.seo },
-    { key: "aeo", label: "AEO Analysis", mod: data.mods.aeo },
-    { key: "geo", label: "GEO Analysis", mod: data.mods.geo },
-    { key: "recommendations", label: "Recommendations" },
-    { key: "all", label: "All Issues" },
+  const tabs = [
+    { key: "overview", label: "Overview" },
+    { key: "seo", label: "SEO Analysis" },
+    { key: "aeo", label: "AEO Analysis" },
+    { key: "geo", label: "GEO Analysis" },
+    { key: "action", label: "Action Plan" },
+    { key: "calendar", label: "Content Calendar" },
+    { key: "strategy", label: "SEO Strategy" },
+    { key: "competitors", label: "Competitors" },
+    { key: "keywords", label: "Keywords" },
   ];
-  tabDefs.forEach((t, i) => {
-    const allChecks = t.mod
-      ? t.mod.categories.flatMap((c) => c.checks)
-      : t.key === "recommendations"
-        ? ["seo", "aeo", "geo"]
-            .flatMap((k) => data.mods[k].categories.flatMap((c) => c.checks))
-            .filter((c) => c.ok !== 1)
-        : ["seo", "aeo", "geo"].flatMap((k) =>
-            data.mods[k].categories.flatMap((c) => c.checks),
-          );
-    const issues =
-      t.key === "recommendations"
-        ? allChecks.length
-        : allChecks.filter((c) => c.ok !== 1).length;
+  tabs.forEach((t, i) => {
+    const allC =
+      t.key === "seo"
+        ? data.mods.seo.categories.flatMap((c) => c.checks)
+        : t.key === "aeo"
+          ? data.mods.aeo.categories.flatMap((c) => c.checks)
+          : t.key === "geo"
+            ? data.mods.geo.categories.flatMap((c) => c.checks)
+            : [];
+    const issues = allC.filter((c) => c.status !== "PASS").length;
     const btn = document.createElement("button");
     btn.className = "mtab" + (i === 0 ? " active" : "");
-    btn.innerHTML = `${t.label}<span class="mtab-count">${issues}</span>`;
+    btn.innerHTML =
+      t.label + (issues > 0 ? `<span class="mtab-count">${issues}</span>` : "");
     btn.onclick = () => switchTab(t.key, btn);
     tabsEl.appendChild(btn);
-
     const pane = document.createElement("div");
     pane.id = "tp-" + t.key;
     pane.className = "tab-content" + (i === 0 ? " active" : "");
-    pane.innerHTML =
-      t.key === "all"
-        ? buildAllIssues(data)
-        : t.key === "recommendations"
-          ? buildRecommendationsTab(data)
-          : buildModulePanel(t.mod, data);
+    pane.innerHTML = buildPanel(t.key, data);
     panelsEl.appendChild(pane);
   });
-
   document.getElementById("results").style.display = "block";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -906,552 +1905,1287 @@ function switchTab(key, btn) {
   document.getElementById("tp-" + key).classList.add("active");
 }
 
-// ── MODULE PANEL ─────────────────────────────────────
-function buildModulePanel(mod, data) {
-  const allChecks = mod.categories.flatMap((c) => c.checks);
-  const pass = allChecks.filter((c) => c.ok === 1).length;
-  const warn = allChecks.filter((c) => c.ok === 0.5).length;
-  const fail = allChecks.filter((c) => c.ok === 0).length;
-  const circ = 2 * Math.PI * 58;
-  const offset = circ - (mod.score / 100) * circ;
-  const col = scoreColor(mod.score);
+function buildPanel(key, data) {
+  if (key === "overview") return buildOverview(data);
+  if (key === "seo") return buildModulePanel(data.mods.seo);
+  if (key === "aeo") return buildModulePanel(data.mods.aeo);
+  if (key === "geo") return buildModulePanel(data.mods.geo);
+  if (key === "action") return buildActionPlan(data);
+  if (key === "calendar") return buildCalendar();
+  if (key === "strategy") return buildStrategy();
+  if (key === "competitors") return buildCompetitors();
+  if (key === "keywords") return buildKeywords();
+  return "";
+}
 
-  // overview row
-  let html = `<div class="overview-row">
-    <div class="gauge-card">
-      <div class="gauge-title">${mod.label} Health Score</div>
+// ── OVERVIEW (matches Word doc cover + Section 1) ──
+function buildOverview(data) {
+  const allC = ["seo", "aeo", "geo"].flatMap((k) =>
+    data.mods[k].categories.flatMap((c) => c.checks),
+  );
+  const totF = allC.filter((c) => c.status === "FAIL").length;
+  const totW = allC.filter((c) => c.status === "WARN").length;
+  const totP = allC.filter((c) => c.status === "PASS").length;
+
+  let html = `
+  <!-- Cover card matching Word doc -->
+  <div class="cover-card">
+    <div class="cover-parts">
+      <div class="cover-part cover-part-1">
+        <div class="cover-part-num">PART 1</div>
+        <div class="cover-part-title">SEO / AEO / GEO</div>
+        <div class="cover-part-sub">Audit Report</div>
+        <div class="cover-part-note">74/100 Overall | 89 Checks</div>
+      </div>
+      <div class="cover-part cover-part-2">
+        <div class="cover-part-num">PART 2</div>
+        <div class="cover-part-title">Content Calendar</div>
+        <div class="cover-part-sub">6-Month Plan</div>
+        <div class="cover-part-note">29 Pieces | Apr–Oct 2026</div>
+      </div>
+      <div class="cover-part cover-part-3">
+        <div class="cover-part-num">PART 3</div>
+        <div class="cover-part-title">SEO Plan, Competitors</div>
+        <div class="cover-part-sub">& Keywords</div>
+        <div class="cover-part-note">12-Month Plan | 6 Competitors | 62 Keywords</div>
+      </div>
+    </div>
+    <div class="cover-stats">
+      <div class="cover-stat"><div class="cover-stat-val" style="color:#dc2626">${totF}</div><div class="cover-stat-lbl">Errors</div></div>
+      <div class="cover-stat"><div class="cover-stat-val" style="color:#d97706">${totW}</div><div class="cover-stat-lbl">Warnings</div></div>
+      <div class="cover-stat"><div class="cover-stat-val" style="color:#16a34a">${totP}</div><div class="cover-stat-lbl">Passed</div></div>
+      <div class="cover-stat"><div class="cover-stat-val" style="color:#3b82f6">${allC.length}</div><div class="cover-stat-lbl">Total Checks</div></div>
+    </div>
+    <div class="cover-meta">Audit Date: 17 March 2026 · Prepared by BuimbDigital · info@buimbdigital.com · CONFIDENTIAL — For Internal Distribution Only</div>
+  </div>
+
+  <!-- Section 1: Executive Summary -->
+  <div class="doc-section-head"><h2>SECTION 1: EXECUTIVE SUMMARY</h2><span>Overall scores, key strengths, critical weaknesses</span></div>
+
+  <!-- Score Summary Table (matches Word doc table) -->
+  <div class="score-summary-table">
+    <div class="sst-header">
+      <div class="sst-hcell">Module</div>
+      <div class="sst-hcell">Score</div>
+      <div class="sst-hcell">Grade</div>
+      <div class="sst-hcell">Status</div>
+    </div>
+    <div class="sst-row">
+      <div class="sst-module"><div class="sst-bar" style="background:#ff642d"></div>SEO (Search Engine Optimization)</div>
+      <div><span class="sst-score-chip" style="background:#fff0eb;color:#c2410c">70/100</span></div>
+      <div><span class="sst-grade-chip grade-ok">B+</span></div>
+      <div class="sst-status">Needs Improvement</div>
+    </div>
+    <div class="sst-row">
+      <div class="sst-module"><div class="sst-bar" style="background:#10b981"></div>AEO (Answer Engine Optimization)</div>
+      <div><span class="sst-score-chip" style="background:#dcfce7;color:#15803d">79/100</span></div>
+      <div><span class="sst-grade-chip grade-ok">B+</span></div>
+      <div class="sst-status">Good — Minor Gaps</div>
+    </div>
+    <div class="sst-row">
+      <div class="sst-module"><div class="sst-bar" style="background:#8b5cf6"></div>GEO (Generative Engine Optimization)</div>
+      <div><span class="sst-score-chip" style="background:#f5f3ff;color:#7c3aed">72/100</span></div>
+      <div><span class="sst-grade-chip grade-ok">B+</span></div>
+      <div class="sst-status">Moderate Gaps</div>
+    </div>
+    <div class="sst-row overall">
+      <div class="sst-module"><div class="sst-bar" style="background:#ff642d"></div>Overall Score</div>
+      <div><span class="sst-score-chip" style="background:#fff0eb;color:#ff642d">74/100</span></div>
+      <div><span class="sst-grade-chip grade-ok">B+</span></div>
+      <div class="sst-status">Strong Foundation</div>
+    </div>
+  </div>
+
+  <!-- Gauges row -->
+  <div class="gauges-row">`;
+
+  [
+    { lbl: "SEO", sc: 70, col: "#ff642d" },
+    { lbl: "AEO", sc: 79, col: "#10b981" },
+    { lbl: "GEO", sc: 72, col: "#8b5cf6" },
+    { lbl: "Overall", sc: 74, col: "#ff642d" },
+  ].forEach((g) => {
+    const circ = 2 * Math.PI * 40;
+    const offset = circ - (g.sc / 100) * circ;
+    html += `<div class="gauge-card">
+      <div class="gauge-title">${g.lbl} Score</div>
       <div class="gauge-wrap">
-        <svg viewBox="0 0 140 140">
-          <circle class="gauge-bg" cx="70" cy="70" r="58"/>
-          <circle class="gauge-fill" cx="70" cy="70" r="58" stroke="${col}"
-            stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
-            transform="rotate(-90 70 70)"/>
-        </svg>
-        <div class="gauge-num">
-          <div class="gauge-score">${mod.score}</div>
-          <div class="gauge-label">out of 100</div>
-        </div>
+        <svg viewBox="0 0 100 100"><circle class="gauge-bg" cx="50" cy="50" r="40"/><circle class="gauge-fill" cx="50" cy="50" r="40" stroke="${g.col}" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" transform="rotate(-90 50 50)"/></svg>
+        <div class="gauge-num"><div class="gauge-score">${g.sc}</div><div class="gauge-label">/ 100</div></div>
       </div>
-      <div class="gauge-grade ${gradeClass(mod.score)}">${grade(mod.score)}</div>
-    </div>
-    <div class="stat-cards">
-      <div class="stat-card">
-        <div class="sc-top">
-          <div class="sc-label">Errors</div>
-          <div class="sc-icon" style="background:#fee2e2">🔴</div>
-        </div>
-        <div class="sc-num" style="color:#dc2626">${fail}</div>
-        <div class="sc-sub">Critical issues to fix</div>
-        <div class="sc-bar"><div class="sc-bar-fill" style="width:${Math.round((fail / allChecks.length) * 100)}%;background:#ef4444"></div></div>
-      </div>
-      <div class="stat-card">
-        <div class="sc-top">
-          <div class="sc-label">Warnings</div>
-          <div class="sc-icon" style="background:#fff7ed">🟡</div>
-        </div>
-        <div class="sc-num" style="color:#d97706">${warn}</div>
-        <div class="sc-sub">Improvements needed</div>
-        <div class="sc-bar"><div class="sc-bar-fill" style="width:${Math.round((warn / allChecks.length) * 100)}%;background:#f59e0b"></div></div>
-      </div>
-      <div class="stat-card">
-        <div class="sc-top">
-          <div class="sc-label">Passed</div>
-          <div class="sc-icon" style="background:#dcfce7">🟢</div>
-        </div>
-        <div class="sc-num" style="color:#16a34a">${pass}</div>
-        <div class="sc-sub">Checks passing</div>
-        <div class="sc-bar"><div class="sc-bar-fill" style="width:${Math.round((pass / allChecks.length) * 100)}%;background:#21bf6b"></div></div>
-      </div>
-      <div class="stat-card">
-        <div class="sc-top">
-          <div class="sc-label">Total Checks</div>
-          <div class="sc-icon" style="background:#f1f3f7">📋</div>
-        </div>
-        <div class="sc-num">${allChecks.length}</div>
-        <div class="sc-sub">Analyzed across ${mod.categories.length} categories</div>
-        <div class="sc-bar"><div class="sc-bar-fill" style="width:100%;background:#e2e5ed"></div></div>
-      </div>
-      <div class="stat-card">
-        <div class="sc-top">
-          <div class="sc-label">Critical Issues</div>
-          <div class="sc-icon" style="background:#fee2e2">⚠️</div>
-        </div>
-        <div class="sc-num" style="color:#dc2626">${allChecks.filter((c) => c.p === "critical" && c.ok === 0).length}</div>
-        <div class="sc-sub">Require immediate action</div>
-        <div class="sc-bar"><div class="sc-bar-fill" style="width:${Math.round((allChecks.filter((c) => c.p === "critical" && c.ok === 0).length / allChecks.filter((c) => c.p === "critical").length) * 100 || 0)}%;background:#dc2626"></div></div>
-      </div>
-      <div class="stat-card">
-        <div class="sc-top">
-          <div class="sc-label">Impact Score</div>
-          <div class="sc-icon" style="background:#f0fdf4">📈</div>
-        </div>
-        <div class="sc-num" style="color:#16a34a">${mod.score}</div>
-        <div class="sc-sub">Overall ${mod.label} health</div>
-        <div class="sc-bar"><div class="sc-bar-fill" style="width:${mod.score}%;background:${col}"></div></div>
-      </div>
-    </div>
-  </div>`;
-
-  // category grid
-  html += `<div class="section-title-row"><div><div class="section-title">Category Breakdown</div><div class="section-sub">Click any category to see detailed checks</div></div></div>`;
-  html += `<div class="cat-grid">`;
-  mod.categories.forEach((cat, ci) => {
-    const col2 = scoreColor(cat.score);
-    const p2 = cat.checks.filter((c) => c.ok === 1).length;
-    const f2 = cat.checks.filter((c) => c.ok === 0).length;
-    const w2 = cat.checks.filter((c) => c.ok === 0.5).length;
-    html += `<div class="cat-card" onclick="toggleCatDetail('${mod.label}-${ci}')">
-      <div class="cat-head">
-        <div class="cat-icon" style="background:${cat.bg}">${cat.icon}</div>
-        <div><div class="cat-name">${cat.name}</div><div class="cat-sub">${cat.checks.length} checks</div></div>
-      </div>
-      <div class="cat-score-row">
-        <div class="cat-score-num">${cat.score}</div>
-        <span class="cat-grade-badge ${gradeClass(cat.score)}">${grade(cat.score)}</span>
-        <div class="cat-track"><div class="cat-fill" style="width:${cat.score}%;background:${col2}"></div></div>
-      </div>
-      <div class="cat-footer">
-        <span><strong style="color:#16a34a">${p2}</strong> passed</span>
-        <span><strong style="color:#d97706">${w2}</strong> warnings</span>
-        <span><strong style="color:#dc2626">${f2}</strong> errors</span>
-      </div>
+      <div class="gauge-grade ${gradeClass(g.sc)}">${grade(g.sc)}</div>
     </div>`;
   });
-  html += `</div>`;
 
-  // main issues table
-  html += `<div class="section-title-row" style="margin-top:8px">
-    <div><div class="section-title">All Checks</div><div class="section-sub">Sorted by priority — click a row to expand details</div></div>
+  html += `</div>
+
+  <!-- Key Strengths -->
+  <div style="margin-bottom:10px;font-size:16px;font-weight:700;color:#1a1a2e">Key Strengths</div>
+  <div class="sw-list">
+    <div class="sw-item strength"><div class="sw-dot s"></div>Voice Search Optimization — perfect 100/100. Conversational keywords, long-tail questions, and local signals all well-implemented.</div>
+    <div class="sw-item strength"><div class="sw-dot s"></div>NLP &amp; Semantic SEO — 90/100. Well-structured, semantically rich content aligned with how search engines process natural language.</div>
+    <div class="sw-item strength"><div class="sw-dot s"></div>LLM-Ready Content and AI Topical Coverage — both 90/100. Site is well-structured for AI tools to parse and cite.</div>
+    <div class="sw-item strength"><div class="sw-dot s"></div>Backlinks &amp; Off-Page SEO — 90/100. Strong domain authority and quality external link signals.</div>
+    <div class="sw-item strength"><div class="sw-dot s"></div>Technical SEO fundamentals (SSL, XML sitemap, robots.txt, redirect hygiene) largely in order at 83/100.</div>
+  </div>
+
+  <!-- Critical Weaknesses -->
+  <div style="margin-bottom:10px;font-size:16px;font-weight:700;color:#1a1a2e">Critical Weaknesses Requiring Immediate Action</div>
+  <div class="sw-list">
+    <div class="sw-item weakness"><div class="sw-dot w"></div>Page Load Speed — CRITICAL failure. Slow load times directly reduce Google rankings, increase bounce rates, and hurt mobile conversions.</div>
+    <div class="sw-item weakness"><div class="sw-dot w"></div>Mobile Responsiveness — 38/100, the single lowest score in the entire audit. With over 60% of web traffic on mobile, this is a major revenue-impacting issue.</div>
+    <div class="sw-item weakness"><div class="sw-dot w"></div>HTTPS Security (GEO) — CRITICAL error. AI systems and security-conscious search algorithms may deprioritize or distrust the site.</div>
+    <div class="sw-item weakness"><div class="sw-dot w"></div>E-E-A-T — 60/100. Missing trust badges, publication dates, and expanded author credentials.</div>
+    <div class="sw-item weakness"><div class="sw-dot w"></div>Machine-Readable Metadata — 50/100, the lowest category score. Limiting how search engines and AI systems represent the site.</div>
   </div>`;
-  html += buildChecksTable(allChecks, "main-" + mod.label);
 
   return html;
 }
 
-// Recommendation text per check
-function recoText(c) {
-  const map = {
-    "Title Tag":
-      "Add a unique 50–60 character title tag on every page. Include your primary keyword near the beginning. Avoid duplicate titles across pages.",
-    "Meta Description":
-      "Write a compelling 150–160 character meta description. Include a call-to-action and your target keyword. Each page needs a unique description.",
-    "H1 Heading":
-      "Use exactly one H1 tag per page containing your primary keyword. Place it as the first visible heading on the page.",
-    "H2/H3 Hierarchy":
-      "Structure headings logically: H1 → H2 → H3. Never skip levels. Use H2 for main sections and H3 for subsections.",
-    "Keyword in First 100 Words":
-      "Place your target keyword naturally within the first 100 words of body content. This signals topic relevance to search engines.",
-    "Image Alt Attributes":
-      "Add descriptive alt text to every image. Include relevant keywords where appropriate. Keep alt text under 125 characters.",
-    "Canonical Tag":
-      "Add a self-referencing canonical tag to every page to prevent duplicate content. Point all variants to the preferred URL.",
-    "Internal Linking":
-      "Add 3–5 contextual internal links per page. Link to relevant pillar pages and use keyword-rich anchor text.",
-    "Content Word Count":
-      "Expand thin content to at least 800–1200 words. Cover the topic thoroughly to outrank competitors.",
-    "HTTPS / SSL":
-      "Install an SSL certificate and redirect all HTTP traffic to HTTPS. Ensure no mixed content warnings exist.",
-    "robots.txt":
-      "Create or fix your robots.txt file. Allow crawling of all important pages. Disallow only admin and private directories.",
-    "XML Sitemap":
-      "Create an XML sitemap listing all important URLs. Submit it to Google Search Console and Bing Webmaster Tools.",
-    "Noindex Tags":
-      "Remove noindex directives from all pages you want indexed. Audit meta robots tags and X-Robots-Tag headers.",
-    "Structured Data":
-      "Add JSON-LD schema markup. Start with Organization, WebSite, and BreadcrumbList schemas on every page.",
-    "404 Error Page":
-      "Create a helpful custom 404 page with navigation links. Log 404 errors in Search Console and redirect broken URLs.",
-    "URL Structure":
-      "Use short, keyword-rich URLs with hyphens as separators. Remove stop words, numbers, and parameters from URLs.",
-    "Redirect Chains":
-      "Fix redirect chains by pointing each old URL directly to its final destination. Maximum one redirect per URL.",
-    "Hreflang Tags":
-      "Implement hreflang tags for multilingual sites. Ensure bidirectional implementation between language variants.",
-    "Page Load Speed":
-      "Minify CSS/JS, enable GZIP compression, use a CDN, and optimize server response time. Target under 3 seconds.",
-    "LCP — Largest Contentful Paint":
-      "Optimize LCP by preloading hero images, removing render-blocking resources, and using efficient image formats (WebP).",
-    "CLS — Cumulative Layout Shift":
-      "Set explicit width/height on images and embeds. Reserve space for ads and dynamic content to prevent layout shifts.",
-    "INP — Interaction to Next Paint":
-      "Break up long JavaScript tasks, defer non-critical scripts, and optimize event handlers to reduce interaction delays.",
-    TTFB: "Use server-side caching, upgrade hosting, implement a CDN, and optimize database queries to reduce time to first byte.",
-    "Image Optimization":
-      "Convert all images to WebP or AVIF format. Use srcset for responsive images. Compress images with lossy/lossless tools.",
-    "Render-Blocking Resources":
-      "Add defer or async attributes to non-critical scripts. Move CSS to the head and eliminate unused stylesheets.",
-    "Browser Caching":
-      "Set cache-control headers: 1 year for static assets, 1 day for HTML. Use versioned filenames for cache-busting.",
-    "Mobile Responsiveness":
-      "Use responsive CSS with flexible grids. Test on Google Mobile-Friendly Test. Avoid fixed-width layouts.",
-    "Viewport Meta Tag":
-      "Add <meta name='viewport' content='width=device-width, initial-scale=1'> to every page's <head>.",
-    "Touch Target Size":
-      "Make all buttons and links at least 44×44px. Add sufficient padding around small touch targets.",
-    "Font Size on Mobile":
-      "Set base font size to at least 16px. Avoid using px for font sizes — use rem units for accessibility.",
-    "Domain Authority":
-      "Earn high-quality backlinks from authoritative sites. Create linkable assets like original research, tools, and guides.",
-    "Total Backlinks":
-      "Build a consistent link acquisition strategy. Guest post, create partnerships, and submit to relevant directories.",
-    "Referring Domains":
-      "Focus on earning links from diverse domains. One link from 100 domains beats 100 links from one domain.",
-    "Toxic Backlinks":
-      "Identify toxic links in Google Search Console. Create a disavow file and submit it to remove their influence.",
-    "Social Profiles Linked":
-      "Link all active social media profiles from your site footer or About page. Keep NAP consistent across platforms.",
-    "Google Business Profile":
-      "Claim and fully complete your Google Business Profile. Add photos, hours, categories, and respond to reviews.",
-    "NAP Consistency":
-      "Audit all business directory listings. Ensure name, address, and phone are identical across every platform.",
-    "Local Business Schema":
-      "Implement LocalBusiness JSON-LD schema with name, address, phone, hours, and geo coordinates.",
-    "Local Citations":
-      "List your business on Google, Bing Places, Apple Maps, Yelp, and industry-specific directories.",
-    "Question-Based Headings":
-      "Rewrite H2/H3 headings as questions users actually search. Use tools like Answer The Public to find question keywords.",
-    "Direct Answer Paragraphs":
-      "Follow each question heading with a concise 40–60 word answer paragraph. Lead with the answer, then elaborate.",
-    "Definition Sections":
-      "Add 'What is X?' sections with clear, concise definitions. Format as: 'X is [definition]' for featured snippet eligibility.",
-    "Ordered Lists for Steps":
-      "Format how-to content as numbered lists with 3–8 steps. Each step should be one sentence with a clear action.",
-    "Comparison Tables":
-      "Add HTML tables comparing key attributes. Use clear headers and short cell values for table snippet eligibility.",
-    "FAQ Section":
-      "Add a FAQ section with 5–10 Q&A pairs at the bottom of each page. Keep answers between 40–80 words.",
-    "Conversational Keywords":
-      "Target natural language questions users ask voice assistants. Include 'how to', 'what is', 'near me' phrases.",
-    "Long-Tail Questions":
-      "Create dedicated pages for specific question keywords. Target low-competition, high-intent question phrases.",
-    "Local Voice Signals":
-      "Add location-based content and use 'near me' phrases naturally. Include city/region in your content and meta tags.",
-    "Speakable Schema":
-      "Add SpeakableSpecification schema to identify content suitable for text-to-speech. Mark intro paragraphs and definitions.",
-    "FAQPage Schema":
-      "Implement FAQPage JSON-LD schema with your FAQ Q&A pairs. Ensure answers are under 300 characters for best display.",
-    "HowTo Schema":
-      "Add HowTo schema to tutorial and step-by-step content. Include each step, estimated time, and required tools.",
-    "QAPage Schema":
-      "Add QAPage schema to community Q&A content. Mark the accepted answer with the upvoteCount property.",
-    "Review / Rating Schema":
-      "Implement Product or LocalBusiness review schema with aggregateRating. Collect genuine reviews from users.",
-    "Event Schema":
-      "Add Event JSON-LD to all upcoming events with name, date, location, and URL. Enables Google Event rich results.",
-    "Author Bio & Credentials":
-      "Add a detailed author bio with credentials, expertise, and links to social profiles on every piece of content.",
-    "About Page Quality":
-      "Create a comprehensive About page with company history, team bios, credentials, and mission statement.",
-    "External Citations":
-      "Link out to authoritative sources (government, academic, industry) to support claims and show research depth.",
-    "Trust Badges & Reviews":
-      "Display security badges, industry certifications, and real customer reviews prominently on key pages.",
-    "Last Updated Date":
-      "Show publication and last-updated dates on all content pages. Update content regularly to maintain freshness signals.",
-    "Clear Topic Sentences":
-      "Begin each section with a clear topic sentence that summarizes what follows. Helps NLP systems parse content.",
-    "Entity Linking":
-      "Link first mentions of key entities (people, brands, places) to authoritative sources. Use consistent entity names.",
-    "Semantic Keyword Coverage":
-      "Use LSI keywords and semantic variants throughout content. Avoid over-reliance on exact-match keywords.",
-    "Readability Score":
-      "Simplify complex sentences. Aim for Flesch Reading Ease above 60. Use active voice and short paragraphs.",
-    "Topical Depth":
-      "Cover your topic exhaustively. Address related questions, subtopics, and use cases to establish topical authority.",
-    "Clear Page Summaries":
-      "Start every page with a 2–3 sentence summary of the content. This helps LLMs accurately describe your page.",
-    "Factual Data with Sources":
-      "Back every statistic with a citation link. Use government, academic, or authoritative industry sources.",
-    "Unique Research / Data":
-      "Conduct original surveys or compile unique datasets. LLMs and journalists cite original data more frequently.",
-    "AI Crawler Permissions":
-      "Update robots.txt to explicitly allow or disallow AI training crawlers (GPTBot, ClaudeBot, Google-Extended).",
-    "Structured for Extraction":
-      "Use clear H2/H3 headings, bullet lists, and short paragraphs. Avoid dense walls of text that AI systems can't parse.",
-    "Consistent Brand Name":
-      "Use your exact brand name consistently across all pages, metadata, and external mentions to aid entity recognition.",
-    "Wikipedia / Wikidata":
-      "Submit your brand to Wikidata with a unique identifier. Pursue Wikipedia coverage through PR and notable coverage.",
-    "Industry Directories":
-      "List your brand in relevant niche directories and association member pages. These build topic authority citations.",
-    "News & Press Mentions":
-      "Issue press releases for milestones. Build journalist relationships to earn brand mentions in news articles.",
-    "Niche Term Co-occurrence":
-      "Create content that naturally pairs your brand with target niche keywords to build semantic associations.",
-    "Pillar + Cluster Content":
-      "Build topic clusters: one pillar page per main topic + 5–10 cluster pages. Link all clusters back to the pillar.",
-    "Definition Pages":
-      "Create standalone definition pages for key terms in your niche. Title them 'What is [Term]?' for AI discoverability.",
-    "Comparison Pages":
-      "Create [Your Brand] vs [Competitor] pages. Use balanced comparison tables to rank for comparison searches.",
-    "Use Case Content":
-      "Create dedicated pages for each use case or customer segment. Include specific examples and outcomes.",
-    "Glossary / Terminology":
-      "Build a comprehensive glossary of niche terms. Link glossary terms throughout your site content.",
-    "HTTPS Security":
-      "Ensure valid SSL certificate, force HTTPS, and fix all mixed-content warnings. Renew certificates before expiry.",
-    "Contact & Ownership":
-      "Display full company name, address, phone, email, and team details prominently on contact and about pages.",
-    "Legal Pages":
-      "Create and maintain Privacy Policy, Terms of Service, Cookie Policy, and Disclaimer pages. Update them regularly.",
-    "Content Freshness":
-      "Audit and update content at least quarterly. Add new information, update statistics, and refresh outdated advice.",
-    "Social Proof":
-      "Add testimonials, case studies, review counts, and user-generated content to key pages to build credibility.",
-    "Organization Schema":
-      "Implement Organization JSON-LD with legalName, url, logo, contactPoint, and sameAs (social profiles).",
-    "Author / Person Schema":
-      "Add Person schema to author pages and bylines with name, jobTitle, sameAs, and knowsAbout properties.",
-    "BreadcrumbList Schema":
-      "Add BreadcrumbList JSON-LD to all pages showing their position in the site hierarchy.",
-    "Open Graph Tags":
-      "Add og:title, og:description, og:image, and og:url to all pages. Twitter cards with twitter:card and twitter:image.",
-    SiteLinksSearchBox:
-      "Add WebSite schema with SearchAction potentialAction to enable the sitelinks search box in Google results.",
-  };
-  return map[c.n] || c.b;
-}
+// ── EXECUTION SUMMARY DATA per module ──
+const EXEC_SUMMARIES = {
+  SEO: {
+    what: "This section evaluates 40 technical and content signals that determine how well buimbdigital.com ranks on Google. It covers 6 categories: On-Page SEO, Technical SEO, Core Web Vitals, Mobile & UX, Backlinks, and Local SEO. The overall SEO score is 70/100 (Grade B+) — a solid foundation with critical mobile and speed gaps pulling the score down.",
+    problems: [
+      "Page Load Speed — CRITICAL: Slow load times hurt rankings and increase bounce rate",
+      "Mobile Responsiveness — 38/100: Site is not fully responsive — lowest score in entire audit",
+      "Viewport Meta Tag missing — Google cannot render mobile layout correctly",
+      "Title Tags missing or generic on key pages — hurting click-through rates",
+      "Noindex tags found on important pages — blocking Google from indexing them",
+      "Canonical tags missing — creating duplicate content risk",
+      "TTFB too high — server responds slowly before page begins loading",
+      "Google Business Profile not fully verified — missing local search visibility",
+    ],
+    improvements: [
+      "Fix mobile responsiveness immediately — add responsive CSS and viewport meta tag",
+      "Optimize page speed: minify CSS/JS, enable GZIP, use a CDN, convert images to WebP",
+      "Write unique 50–60 char title tags on every page with primary keyword",
+      "Remove all noindex directives from pages you want Google to index",
+      "Add self-referencing canonical tags to every page to prevent duplicate content",
+      "Enable server-side caching and use a CDN to reduce TTFB under 200ms",
+      "Claim and fully optimize Google Business Profile with photos, hours and categories",
+      "Expand thin content pages to 800–1200 words with FAQ sections",
+    ],
+  },
+  AEO: {
+    what: "This section evaluates how well buimbdigital.com is optimized for AI-powered answer engines — Google's People Also Ask, Featured Snippets, and voice search assistants. AEO score is 79/100 (Grade B+) — the strongest section overall. Voice Search is perfect at 100/100. Main gaps are in schema markup, FAQ sections, and trust signals.",
+    problems: [
+      "No 'X is...' definition sections found — missing featured snippet opportunities",
+      "No FAQ sections on key pages — missing People Also Ask (PAA) capture",
+      "HowTo Schema missing — step-by-step content not eligible for rich results",
+      "QAPage Schema not implemented — Q&A content not structured for AI reading",
+      "No trust badges or client reviews on key pages — E-E-A-T score impacted",
+      "No publication/update dates on content — freshness signal missing",
+    ],
+    improvements: [
+      "Add 'What is X?' definition sections to every service and topic page",
+      "Add FAQ sections with 5–10 Q&A pairs (40–80 words each) to all key pages",
+      "Implement HowTo JSON-LD schema on all tutorial and process pages",
+      "Add QAPage schema to all Q&A content pages",
+      "Add trust badges, certifications, partner logos and genuine client reviews",
+      "Add 'Last Updated' dates to all articles — signals freshness to AI systems",
+      "Link first mentions of key entities to authoritative external sources",
+    ],
+  },
+  GEO: {
+    what: "This section evaluates buimbdigital.com's visibility inside AI-powered tools like ChatGPT, Google AI Overview, Perplexity and Bing Copilot. GEO score is 72/100 (Grade B+). The site has strong AI-ready content and topical coverage, but critical gaps in metadata, HTTPS consistency, brand name standardization and social proof are limiting AI citation frequency.",
+    problems: [
+      "HTTPS Security flagged — mixed content issues — AI systems may deprioritize HTTP pages",
+      "Organization Schema (JSON-LD) missing — AI cannot properly identify the business",
+      "Inconsistent brand name across pages — confusing for AI entity recognition",
+      "Machine-Readable Metadata score 50/100 — lowest category — Open Graph and Twitter Cards incomplete",
+      "No testimonials or case studies — AI systems favor sites with social proof",
+      "BreadcrumbList Schema missing — AI cannot understand site structure",
+      "Open Graph and Twitter Card tags missing/incomplete on most pages",
+    ],
+    improvements: [
+      "Enforce HTTPS sitewide — fix all mixed content warnings immediately",
+      "Add Organization JSON-LD schema with legalName, url, logo, sameAs to all pages",
+      "Standardize brand name as 'BuimbDigital' across all pages and metadata",
+      "Add complete Open Graph tags: og:title, og:description, og:image, og:url",
+      "Add Twitter Card meta tags: twitter:card, twitter:title, twitter:image",
+      "Add BreadcrumbList JSON-LD to communicate site hierarchy to AI systems",
+      "Add 3–5 case studies and 10+ client testimonials to key service pages",
+      "Submit to Clutch, GoodFirms, DesignRush directories for AI brand citations",
+    ],
+  },
+};
 
-function buildChecksTable(checks, prefix) {
-  const sorted = [...checks].sort((a, b) => {
-    const o = ["critical", "high", "medium", "low"];
-    const oa = o.indexOf(a.p),
-      ob = o.indexOf(b.p);
-    if (oa !== ob) return oa - ob;
-    return a.ok - b.ok;
-  });
-  let html = `<div class="issues-table">
-    <div class="it-header">
-      <div class="it-hcell"></div>
-      <div class="it-hcell">Check</div>
-      <div class="it-hcell">Category</div>
-      <div class="it-hcell">Priority</div>
-      <div class="it-hcell">Impact</div>
-      <div class="it-hcell">Recommendation</div>
-    </div>`;
-  sorted.forEach((c, i) => {
-    const ip = impactPct(c.p, c.ok);
-    const ic = impactColor(c.p);
-    const reco = recoText(c);
-    const recoClass = c.ok === 1 ? "it-reco it-reco-pass" : "it-reco";
-    const recoDisplay =
-      c.ok === 1 ? "✓ No action needed" : reco.split(".")[0] + ".";
-    html += `<div class="it-row" onclick="toggleRow('${prefix}-${i}')">
-      <div class="it-status"><div class="status-dot ${dotClass(c.ok)}"></div></div>
-      <div class="it-name">
-        <div class="it-name-main">${c.n}</div>
-        <div class="it-name-desc">${c.desc}</div>
+// ── MODULE PANEL (SEO / AEO / GEO) — matches Word doc sections 2, 3, 4 ──
+function buildModulePanel(mod) {
+  const allC = mod.categories.flatMap((c) => c.checks);
+  const totF = allC.filter((c) => c.status === "FAIL").length;
+  const totW = allC.filter((c) => c.status === "WARN").length;
+  const totP = allC.filter((c) => c.status === "PASS").length;
+  const sectionMap = { SEO: "2", AEO: "3", GEO: "4" };
+  const sNum = sectionMap[mod.label] || "";
+  const es = EXEC_SUMMARIES[mod.label] || {};
+
+  // Build execution summary
+  let html = `
+  <div class="doc-section-head"><h2>SECTION ${sNum}: ${mod.label} ANALYSIS — Detailed Findings</h2><span>${allC.length} checks · Score: ${mod.score}/100 · Grade: ${grade(mod.score)}</span></div>
+
+  <!-- Execution Summary -->
+  <div class="exec-summary">
+    <div class="exec-summary-title">📋 Execution Summary — What Is Happening & What To Do</div>
+    <p style="font-size:13px;color:#374151;line-height:1.65;margin-bottom:14px">${es.what || ""}</p>
+    <div class="exec-summary-grid">
+      <div class="exec-summary-col">
+        <h3>⚠️ Current Problems Identified</h3>
+        <ul>${(es.problems || []).map((p) => `<li><span class="li-dot" style="background:#ef4444"></span>${p}</li>`).join("")}</ul>
       </div>
-      <div><span class="it-category">${c.cat || "Check"}</span></div>
-      <div><span class="it-priority ${prClass(c.p)}">${c.p}</span></div>
-      <div class="it-impact">
-        <div class="impact-track"><div class="impact-bar" style="width:${ip}%;background:${ic}"></div></div>
-        <span style="font-size:10px;color:#9ba3af">${ip}%</span>
+      <div class="exec-summary-col">
+        <h3>✅ Improvements To Make</h3>
+        <ul>${(es.improvements || []).map((i) => `<li><span class="li-dot" style="background:#21bf6b"></span>${i}</li>`).join("")}</ul>
       </div>
-      <div class="${recoClass}">${recoDisplay}</div>
     </div>
-    <div class="expand-panel" id="exp-${prefix}-${i}">
-      <div class="ep-row">
-        <div class="ep-status ${dotClass(c.ok)}"></div>
-        <div class="ep-info">
-          <div class="ep-name">${c.ok === 1 ? "✓ Passed" : c.ok === 0.5 ? "⚠ Warning" : "✕ Failed"} — ${c.n}</div>
-          <div class="ep-desc" style="margin-bottom:6px">${c.ok === 1 ? c.g : c.b}</div>
-          ${c.ok !== 1 ? `<div style="font-size:11px;color:#374151;background:#fff;border:1px solid #e9ecef;border-radius:6px;padding:8px 10px;line-height:1.6"><strong style="color:#ff642d">How to fix:</strong> ${reco}</div>` : ""}
+    <div class="exec-summary-score-row">
+      <div class="exec-score-badge">
+        <div class="exec-score-num" style="color:${scCol(mod.score)}">${mod.score}</div>
+        <div><div style="font-size:12px;font-weight:700;color:#1a1a2e">${mod.label} Health Score</div><div style="font-size:11px;color:#6b7280">Grade: ${grade(mod.score)} · ${totF} errors · ${totW} warnings · ${totP} passed</div></div>
+      </div>
+      <div class="exec-cta">Scroll down to see each check in detail — click any category to expand</div>
+    </div>
+  </div>
+
+  <div class="stat-cards-row">
+    <div class="stat-card"><div class="sc-top"><div class="sc-label">${mod.label} Score</div></div><div class="sc-num" style="color:${scCol(mod.score)}">${mod.score}</div><div class="sc-sub">${grade(mod.score)} — ${mod.score >= 70 ? "Good Foundation" : mod.score >= 60 ? "Needs Work" : "Critical Issues"}</div><div class="sc-bar"><div class="sc-bar-fill" style="width:${mod.score}%;background:${mod.color}"></div></div></div>
+    <div class="stat-card"><div class="sc-top"><div class="sc-label">Errors</div></div><div class="sc-num" style="color:#dc2626">${totF}</div><div class="sc-sub">Critical issues to fix</div><div class="sc-bar"><div class="sc-bar-fill" style="width:${Math.round((totF / allC.length) * 100)}%;background:#ef4444"></div></div></div>
+    <div class="stat-card"><div class="sc-top"><div class="sc-label">Warnings</div></div><div class="sc-num" style="color:#d97706">${totW}</div><div class="sc-sub">Improvements needed</div><div class="sc-bar"><div class="sc-bar-fill" style="width:${Math.round((totW / allC.length) * 100)}%;background:#f59e0b"></div></div></div>
+    <div class="stat-card"><div class="sc-top"><div class="sc-label">Passed</div></div><div class="sc-num" style="color:#16a34a">${totP}</div><div class="sc-sub">Checks passing</div><div class="sc-bar"><div class="sc-bar-fill" style="width:${Math.round((totP / allC.length) * 100)}%;background:#21bf6b"></div></div></div>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:14px;margin-top:8px">Category Breakdown — Click to Expand Details</h3>`;
+
+  mod.categories.forEach((cat) => {
+    const catF = cat.checks.filter((c) => c.status === "FAIL").length;
+    const catW = cat.checks.filter((c) => c.status === "WARN").length;
+    const catP = cat.checks.filter((c) => c.status === "PASS").length;
+    const id = "cat-" + cat.name.replace(/\s+/g, "-");
+    html += `
+    <div class="cat-section" id="${id}">
+      <div class="cat-section-head" onclick="toggleCat('${id}')">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div class="cat-section-title"><h3 style="font-size:15px;font-weight:700;color:#1a1a2e;margin:0">${cat.sectionNum} ${cat.name}</h3>${cat.note ? `<span style="font-size:11px;color:#dc2626;font-weight:600">${cat.note}</span>` : ""}</div>
+          <span class="cat-score-badge ${gradeClass(cat.score)}" style="background:${scBg(cat.score)};color:${scCol(cat.score)}">${cat.score}/100 (${grade(cat.score)})</span>
         </div>
-        <div class="ep-right">
-          <span class="it-priority ${prClass(c.p)}">${c.p}</span>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div class="cat-stats-row">
+            <span><span class="cat-stat-pass">✓ ${catP} passed</span></span>
+            <span><span class="cat-stat-warn">⚠ ${catW} warnings</span></span>
+            <span><span class="cat-stat-fail">✕ ${catF} errors</span></span>
+          </div>
+          <span class="cat-toggle">▼</span>
         </div>
       </div>
-    </div>`;
+      <div class="table-scroll">
+        <table class="checks-table" style="min-width:660px">
+          <thead><tr>
+            <th style="width:155px">Check</th>
+            <th style="width:72px">Status</th>
+            <th>Finding</th>
+            <th style="width:88px">Priority</th>
+            <th>Action Required</th>
+          </tr></thead>
+          <tbody>`;
+    cat.checks.forEach((c) => {
+      html += `<tr>
+        <td><div class="check-name">${c.n}</div></td>
+        <td>${statusBadge(c.status)}</td>
+        <td><div class="finding-text">${c.finding}</div></td>
+        <td>${priChip(c.priority)}</td>
+        <td><div class="action-text">${c.action}</div></td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
   });
-  html += `</div>`;
+
   return html;
 }
 
-function toggleRow(id) {
-  const el = document.getElementById("exp-" + id);
+function toggleCat(id) {
+  const el = document.getElementById(id);
   if (el) el.classList.toggle("open");
 }
 
-function toggleCatDetail(id) {
-  // just scroll to table
-}
-
-// ── ALL ISSUES ───────────────────────────────────────
-function buildAllIssues(data) {
-  const allChecks = [];
-  ["seo", "aeo", "geo"].forEach((k) => {
-    data.mods[k].categories.forEach((cat) => {
-      cat.checks.forEach((c) =>
-        allChecks.push({ ...c, module: k.toUpperCase(), cat: cat.name }),
-      );
-    });
-  });
-  const fail = allChecks.filter((c) => c.ok === 0);
-  const warn = allChecks.filter((c) => c.ok === 0.5);
-  const pass = allChecks.filter((c) => c.ok === 1);
-
-  let html = `<div class="overview-row" style="grid-template-columns:repeat(4,1fr)">`;
-  [
-    {
-      label: "Total Checks",
-      val: allChecks.length,
-      col: "#6b7280",
-      bg: "#f1f3f7",
-    },
-    { label: "Errors", val: fail.length, col: "#dc2626", bg: "#fee2e2" },
-    { label: "Warnings", val: warn.length, col: "#d97706", bg: "#fff7ed" },
-    { label: "Passed", val: pass.length, col: "#16a34a", bg: "#dcfce7" },
-  ].forEach((s) => {
-    html += `<div class="stat-card">
-      <div class="sc-top"><div class="sc-label">${s.label}</div><div class="sc-icon" style="background:${s.bg}"></div></div>
-      <div class="sc-num" style="color:${s.col}">${s.val}</div>
-      <div class="sc-bar"><div class="sc-bar-fill" style="width:${Math.round((s.val / allChecks.length) * 100)}%;background:${s.col}"></div></div>
-    </div>`;
-  });
-  html += `</div>`;
-
-  // top issues + passed panels
-  html += `<div class="two-col">
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-head-title">🔴 Errors <span class="panel-count">${fail.length}</span></div>
-      </div>
-      ${fail
-        .slice(0, 8)
-        .map(
-          (c) => `
-        <div class="panel-item">
-          <div class="pi-icon pi-fail">✕</div>
-          <div class="pi-body">
-            <div class="pi-name">${c.n}</div>
-            <div class="pi-desc">${c.b}</div>
-            <span class="pi-tag pr-${c.p}">${c.p} · ${c.module}</span>
-          </div>
-        </div>`,
-        )
-        .join("")}
-    </div>
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-head-title">🟡 Warnings <span class="panel-count">${warn.length}</span></div>
-      </div>
-      ${warn
-        .slice(0, 8)
-        .map(
-          (c) => `
-        <div class="panel-item">
-          <div class="pi-icon pi-warn">~</div>
-          <div class="pi-body">
-            <div class="pi-name">${c.n}</div>
-            <div class="pi-desc">${c.g}</div>
-            <span class="pi-tag pr-${c.p}">${c.p} · ${c.module}</span>
-          </div>
-        </div>`,
-        )
-        .join("")}
-    </div>
-  </div>`;
-
-  html += `<div class="section-title-row"><div class="section-title">All Issues — Full List</div></div>`;
-  html += buildChecksTable(
-    allChecks.filter((c) => c.ok !== 1),
-    "allissues",
-  );
-  return html;
-}
-
-// ── RECOMMENDATIONS TAB ─────────────────────────────
-function buildRecommendationsTab(data) {
-  const allChecks = [];
-  ["seo", "aeo", "geo"].forEach((k) => {
-    data.mods[k].categories.forEach((cat) => {
+// ── ACTION PLAN (Section 5 — matches Word doc table) ──
+function buildActionPlan(data) {
+  const allC = [];
+  ["seo", "aeo", "geo"].forEach((k) =>
+    data.mods[k].categories.forEach((cat) =>
       cat.checks
-        .filter((c) => c.ok !== 1)
-        .forEach((c) => {
-          allChecks.push({
-            ...c,
-            module: k.toUpperCase(),
-            modKey: k,
-            cat: cat.name,
-          });
-        });
-    });
-  });
+        .filter((c) => c.status !== "PASS")
+        .forEach((c) => allC.push({ ...c, module: k.toUpperCase() })),
+    ),
+  );
+  allC.sort(
+    (a, b) =>
+      ["CRITICAL", "HIGH", "MEDIUM", "LOW"].indexOf(a.priority) -
+      ["CRITICAL", "HIGH", "MEDIUM", "LOW"].indexOf(b.priority),
+  );
 
-  const byCrit = { critical: [], high: [], medium: [], low: [] };
-  allChecks.forEach((c) => byCrit[c.p].push(c));
-
-  const total = allChecks.length;
-  const critCount = byCrit.critical.length;
-  const highCount = byCrit.high.length;
-  const medCount = byCrit.medium.length;
-  const lowCount = byCrit.low.length;
-
-  let html = `<div class="reco-summary-bar">
-    <div class="rsb-item"><div class="rsb-dot" style="background:#6b7280"></div>Total issues: <span class="rsb-num" style="margin-left:4px">${total}</span></div>
-    <div class="rsb-item"><div class="rsb-dot" style="background:#dc2626"></div>Critical: <span class="rsb-num" style="margin-left:4px;color:#dc2626">${critCount}</span></div>
-    <div class="rsb-item"><div class="rsb-dot" style="background:#d97706"></div>High: <span class="rsb-num" style="margin-left:4px;color:#d97706">${highCount}</span></div>
-    <div class="rsb-item"><div class="rsb-dot" style="background:#a16207"></div>Medium: <span class="rsb-num" style="margin-left:4px;color:#a16207">${medCount}</span></div>
-    <div class="rsb-item"><div class="rsb-dot" style="background:#6b7280"></div>Low: <span class="rsb-num" style="margin-left:4px">${lowCount}</span></div>
-  </div>`;
-
-  const priConfig = [
+  const groups = [
     {
-      key: "critical",
-      label: "Critical Issues",
-      dot: "#dc2626",
-      numCls: "rn-critical",
+      key: "CRITICAL",
+      label: "Critical Priority — Fix Within 2 Weeks",
+      bg: "#fef2f2",
+      col: "#dc2626",
     },
-    { key: "high", label: "High Priority", dot: "#d97706", numCls: "rn-high" },
     {
-      key: "medium",
-      label: "Medium Priority",
-      dot: "#a16207",
-      numCls: "rn-medium",
+      key: "HIGH",
+      label: "High Priority — Fix Within 30 Days",
+      bg: "#fff7ed",
+      col: "#c2410c",
     },
-    { key: "low", label: "Low Priority", dot: "#6b7280", numCls: "rn-low" },
+    {
+      key: "MEDIUM",
+      label: "Medium Priority — Fix Within 60-90 Days",
+      bg: "#fefce8",
+      col: "#a16207",
+    },
+    { key: "LOW", label: "Low Priority", bg: "#f8f9fc", col: "#6b7280" },
   ];
 
-  priConfig.forEach((pc) => {
-    const items = byCrit[pc.key];
+  let html = `<div class="doc-section-head"><h2>SECTION 5: PRIORITIZED ACTION PLAN — All ${allC.length} Actions</h2><span>Critical (2 weeks) · High (30 days) · Medium (60-90 days)</span></div>
+
+  <div class="exec-summary">
+    <div class="exec-summary-title">📋 Execution Summary — Your Complete Fix List</div>
+    <p style="font-size:13px;color:#374151;line-height:1.65;margin-bottom:14px">Below is every issue from the audit organized by priority. Fix Critical items within 2 weeks — they are actively hurting your rankings right now. High priority items should be completed within 30 days. Medium priority improvements can be tackled over 60–90 days.</p>
+    <div class="exec-summary-grid">
+      <div class="exec-summary-col">
+        <h3>🔴 What's Broken Right Now</h3>
+        <ul>
+          <li><span class="li-dot" style="background:#ef4444"></span>7 Critical issues blocking rankings immediately</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>Mobile site not responsive — failing Google's mobile-first index</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>HTTPS issues — AI search tools deprioritizing HTTP pages</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>Organization Schema missing — search engines can't identify the business</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>15 High priority issues reducing search visibility daily</li>
+        </ul>
+      </div>
+      <div class="exec-summary-col">
+        <h3>✅ What To Do & When</h3>
+        <ul>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Week 1–2: Developer sprint — fix all 7 Critical technical items</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Week 1–4: Content/SEO team rewrites titles, meta, adds FAQs</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 1–2: Marketing team collects reviews, trust badges, case studies</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 2–3: Medium priority improvements for sustained growth</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Target: 83/100 overall score within 30 days of starting</li>
+        </ul>
+      </div>
+    </div>
+  </div>`;
+  let num = 1;
+  groups.forEach((g) => {
+    const items = allC.filter((c) => c.priority === g.key);
     if (!items.length) return;
-    let num = 1;
-    html += `<div class="reco-section">
-      <div class="reco-section-head">
-        <div class="reco-section-dot" style="background:${pc.dot}"></div>
-        <div class="reco-section-title">${pc.label}</div>
-        <span class="reco-section-count">${items.length} issues</span>
-      </div>`;
-    items.forEach((c, i) => {
-      const reco = recoText(c);
-      const modCls = "rmt-" + c.modKey;
-      const ip = impactPct(c.p, c.ok);
-      const ic = impactColor(c.p);
-      html += `<div class="reco-card">
-        <div class="reco-num ${pc.numCls}">${num++}</div>
-        <div class="reco-body">
-          <div class="reco-title">${c.n}</div>
-          <div class="reco-action">${reco}</div>
-          <div class="reco-impact-row">
-            <div class="reco-impact-label">Impact</div>
-            <div class="reco-impact-track"><div class="reco-impact-fill" style="width:${ip}%;background:${ic}"></div></div>
-            <div class="reco-impact-pct">${ip}%</div>
-          </div>
-          <div class="reco-meta-row" style="margin-top:8px">
-            <span class="reco-module-tag ${modCls}">${c.module}</span>
-            <span class="reco-tag">${c.cat}</span>
-            <span class="reco-tag">${c.ok === 0.5 ? "⚠ Partial" : "✕ Missing"}</span>
-          </div>
-        </div>
-      </div>`;
+    html += `<div style="background:${g.bg};border:1px solid ${g.col}33;border-radius:8px;padding:10px 16px;margin-bottom:8px;margin-top:12px">
+      <span style="font-size:13px;font-weight:700;color:${g.col}">${g.label}</span>
+      <span style="font-size:11px;color:#9ba3af;margin-left:8px">(${items.length} issues)</span>
+    </div>
+    <div class="table-scroll" style="margin-bottom:8px">
+    <table class="action-table">
+      <thead style="background:#a90006"><tr><th style="width:35px">#</th><th style="width:150px">Issue</th><th style="width:60px">Module</th><th style="width:85px">Priority</th><th>Recommended Fix</th></tr></thead>
+      <tbody>`;
+    items.forEach((c) => {
+      const mCol =
+        c.module === "SEO"
+          ? "#ff642d"
+          : c.module === "AEO"
+            ? "#10b981"
+            : "#8b5cf6";
+      const mBg =
+        c.module === "SEO"
+          ? "#fff0eb"
+          : c.module === "AEO"
+            ? "#f0fdf4"
+            : "#f5f3ff";
+      html += `<tr>
+        <td><div class="action-num" style="color:${g.col}">${num++}</div></td>
+        <td><div class="check-name">${c.n}</div><div class="check-desc">${c.finding}</div></td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:${mBg};color:${mCol}">${c.module}</span></td>
+        <td>${priChip(c.priority)}</td>
+        <td><div class="action-fix">${c.action}</div></td>
+      </tr>`;
     });
-    html += `</div>`;
+    html += `</tbody></table></div>`;
   });
+
+  // Section 6: Team Responsibilities
+  html += `<div class="doc-section-head" style="margin-top:24px"><h2>SECTION 6: TEAM RESPONSIBILITIES &amp; TIMELINE</h2><span>30/60-day targets by team</span></div>
+  <div class="team-grid">`;
+  const teams = [
+    {
+      name: "Developer / Technical Team",
+      col: "#3b82f6",
+      bg: "#1e3a5f",
+      tasks: [
+        "Fix HTTPS / mixed content warnings — Week 1",
+        "Add viewport meta tag to all pages — Week 1",
+        "Implement Organization JSON-LD schema sitewide — Week 1",
+        "Remove noindex tags from key pages — Week 1",
+        "Fix TTFB: enable caching, CDN, server optimization — Week 1–2",
+        "Improve page load speed: minify, compress, lazy-load — Week 1–2",
+        "Create custom 404 error page — Week 2",
+        "Add HowTo, QAPage, BreadcrumbList, and Person schema to relevant pages — Week 3–4",
+        "Add Open Graph and Twitter Card meta tags to all pages — Week 3–4",
+        "Add canonical tags to all pages — Week 3–4",
+      ],
+    },
+    {
+      name: "Content / SEO Team",
+      col: "#ff642d",
+      bg: "#7c2d12",
+      tasks: [
+        "Audit and rewrite all title tags — Week 1–2",
+        "Write unique meta descriptions for all pages — Week 1–2",
+        "Add primary keywords to first 100 words of all service pages — Week 2",
+        "Add definition sections ('What is X?') to all service pages — Week 2–3",
+        "Create FAQ sections for all key pages — Week 2–3",
+        "Add publication and 'Last Updated' dates to all content — Week 2–3",
+        "Expand thin content pages to 800+ words — Week 3–6",
+        "Create 3–5 use case landing pages — Week 4–8",
+      ],
+    },
+    {
+      name: "Marketing / Brand Team",
+      col: "#10b981",
+      bg: "#064e3b",
+      tasks: [
+        "Audit brand name consistency across all pages and external listings — Week 1",
+        "Collect and add trust badges, certifications, and partner logos — Week 2–3",
+        "Gather and publish 10+ client testimonials with names and companies — Week 2–4",
+        "Create 3–5 detailed case studies — Week 3–8",
+        "Submit brand to Clutch, GoodFirms, DesignRush directories — Week 2–3",
+        "Optimize Google Business Profile — Week 1–2",
+        "Pursue press mentions and digital PR opportunities — Ongoing",
+      ],
+    },
+  ];
+  teams.forEach((t) => {
+    html += `<div class="team-card">
+      <div class="team-card-head" style="background:${t.bg};color:#fff">${t.name}</div>
+      <div class="team-task-list">`;
+    t.tasks.forEach((task) => {
+      html += `<div class="team-task"><div class="team-task-dot" style="background:${t.col}"></div>${task}</div>`;
+    });
+    html += `</div></div>`;
+  });
+  html += `</div>
+
+  <!-- 30/60-Day Milestone Targets -->
+  <div style="margin-bottom:10px;font-size:16px;font-weight:700;color:#1a1a2e">30/60-Day Score Milestone Targets</div>
+  <table class="milestone-table" style="border-radius:12px;overflow:hidden">
+    <thead><tr><th>Module</th><th>Current Score</th><th>30-Day Target</th><th>60-Day Target</th></tr></thead>
+    <tbody>
+      <tr><td>SEO Overall</td><td>${scoreChip(70)}</td><td><span class="score-chip sc-yellow">80/100</span></td><td><span class="score-chip sc-green">87/100</span></td></tr>
+      <tr><td>AEO Overall</td><td>${scoreChip(79)}</td><td><span class="score-chip sc-green">86/100</span></td><td><span class="score-chip sc-green">91/100</span></td></tr>
+      <tr><td>GEO Overall</td><td>${scoreChip(72)}</td><td><span class="score-chip sc-yellow">82/100</span></td><td><span class="score-chip sc-green">88/100</span></td></tr>
+      <tr class="overall-row"><td><strong>Overall Score</strong></td><td>${scoreChip(74)}</td><td><span class="score-chip sc-yellow">83/100</span></td><td><span class="score-chip sc-green">89/100 (A)</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- Section 7 -->
+  <div class="doc-section-head"><h2>SECTION 7: FINAL NOTES &amp; EXECUTIVE RECOMMENDATIONS</h2><span>Summary for leadership and 4 immediate actions</span></div>
+  <div style="background:#f8f9fc;border:1px solid #e2e5ed;border-radius:12px;padding:18px;margin-bottom:20px;font-size:13px;color:#374151;line-height:1.65">
+    buimbdigital.com is performing at a B+ level across all three dimensions of modern search visibility. Core strengths — strong backlinks, perfect voice search optimization, and well-structured AI-ready content — provide a competitive foundation that many agencies lack. However, the 74/100 overall score leaves meaningful performance on the table. The two most revenue-impactful issues are mobile responsiveness (38/100) and page load speed (CRITICAL failure). Fixing these two items alone could produce measurable ranking improvements within 30-60 days.
+  </div>
+  <div style="margin-bottom:10px;font-size:16px;font-weight:700;color:#1a1a2e">4 Immediate Actions for Leadership</div>
+  ${[
+    "Assign a developer sprint in the next 5-7 days focused exclusively on the 8 critical technical items.",
+    "Schedule a content audit meeting where the SEO/content team reviews all pages missing FAQs, definitions, and trust signals.",
+    "Begin collecting client testimonials and case study approvals from existing clients this week.",
+    "Set a re-audit date 30 days from today to measure progress against the baseline scores in this report.",
+  ]
+    .map(
+      (a, i) => `
+  <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 16px;background:#fff;border:1px solid #e2e5ed;border-radius:10px;margin-bottom:8px">
+    <div style="width:28px;height:28px;background:#ff642d;border-radius:8px;color:#fff;font-size:13px;font-weight:700;display:grid;place-items:center;flex-shrink:0">${i + 1}</div>
+    <div style="font-size:13px;color:#374151;line-height:1.5;padding-top:4px">${a}</div>
+  </div>`,
+    )
+    .join("")}`;
+
   return html;
 }
 
-// ── PDF DOWNLOAD (jsPDF direct download) ─────────────
+// ── CALENDAR (Part 2 — Section 8, 9, 10) ──
+function buildCalendar() {
+  let html = `<div class="doc-section-head"><h2>PART 2: 6-MONTH CONTENT CALENDAR</h2><span>April – October 2026 · 29 Content Pieces · Weekly Breakdown</span></div>
+
+  <div class="exec-summary">
+    <div class="exec-summary-title">📋 Execution Summary — 6-Month Content Strategy</div>
+    <p style="font-size:13px;color:#374151;line-height:1.65;margin-bottom:14px">29 pieces of content mapped directly to audit gaps. Each piece targets a specific SEO, AEO or GEO weakness identified in the audit. Follow the calendar week-by-week to systematically close every content gap identified.</p>
+    <div class="exec-summary-grid">
+      <div class="exec-summary-col">
+        <h3>📌 What's Broken (Content Gaps)</h3>
+        <ul>
+          <li><span class="li-dot" style="background:#ef4444"></span>No definition sections — missing featured snippet eligibility</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>No FAQ sections — missing People Also Ask visibility</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>No case studies — E-E-A-T score and trust signals lacking</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>Thin service pages — not competitive for commercial keywords</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>No GEO/AI-focused content — missing LLM citation opportunities</li>
+        </ul>
+      </div>
+      <div class="exec-summary-col">
+        <h3>✅ What This Calendar Fixes</h3>
+        <ul>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 1: SEO foundations — service pages + definition pieces</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 2: AEO push — first case study, FAQ page, AEO guide</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 3: GEO awareness — GEO explainer + niche use cases</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 4-5: Thought leadership + local SEO reinforcement</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 6: Authority consolidation + 2027 forward positioning</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-section-head"><h2>SECTION 8: CONTENT CALENDAR — Strategy &amp; Overview</h2><span>Content mix, audit gap mapping, content type legend</span></div>
+  <div style="background:#fff;border:1px solid #e2e5ed;border-radius:12px;padding:18px;margin-bottom:16px">
+    <div style="font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:12px">Content Type Legend</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+      ${["Blog Post", "Service Page", "Case Study", "Social Post", "FAQ Page", "Use Case Page", "Definition Page", "Landing Page"].map((t) => typeChip(t)).join("")}
+    </div>
+    <div style="font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:8px">Audit Gap Mapping</div>
+    ${[
+      [
+        "Definition pages",
+        "Fixes AEO gap: 'No definition sections found'",
+        "Score impact: +8pts AEO",
+      ],
+      [
+        "FAQ pages",
+        "Fixes AEO gap: 'No FAQ sections on pages'",
+        "Score impact: +6pts AEO",
+      ],
+      [
+        "Case studies",
+        "Fixes E-E-A-T gap: 'No trust signals or social proof'",
+        "Score impact: +10pts AEO",
+      ],
+      [
+        "Use case pages",
+        "Fixes GEO gap: 'Limited use-case content'",
+        "Score impact: +5pts GEO",
+      ],
+      [
+        "Service page expansions",
+        "Fixes SEO gap: 'Thin content on key pages'",
+        "Score impact: +8pts SEO",
+      ],
+      [
+        "GEO/AI-focused blog posts",
+        "Improves LLM citability and AI topical authority",
+        "Score impact: +5pts GEO",
+      ],
+    ]
+      .map(
+        ([type, fix, impact]) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f0fdf4;border-radius:6px;margin-bottom:6px;font-size:12px">
+      <div style="width:6px;height:6px;border-radius:50%;background:#10b981;flex-shrink:0"></div>
+      <strong>${type}</strong> — ${fix} <span style="color:#6b7280;margin-left:4px">${impact}</span>
+    </div>`,
+      )
+      .join("")}
+  </div>
+
+  <div class="doc-section-head"><h2>SECTION 9: 6-MONTH WEEKLY CALENDAR</h2><span>Week-by-week topics, types, keywords, CTAs, and owner assignments</span></div>`;
+
+  CALENDAR.forEach((month) => {
+    html += `<div class="cal-month">
+      <div class="cal-month-head">
+        <h3>${month.month}</h3>
+        <span>Theme: ${month.theme}</span>
+      </div>
+      <div class="table-scroll">
+      <table class="cal-table">
+        <thead><tr><th style="width:50px">Week</th><th style="width:100px">Type</th><th style="width:240px">Title / Topic</th><th style="width:160px">Target Keywords</th><th>SEO / AEO Goal</th><th style="width:70px">Owner</th></tr></thead>
+        <tbody>`;
+    month.items.forEach((item) => {
+      html += `<tr>
+        <td><div class="cal-week">${item.week}</div><div class="cal-dates">${item.dates}</div></td>
+        <td>${typeChip(item.type)}</td>
+        <td><div class="cal-title">${item.title}</div></td>
+        <td><div class="cal-kw">${item.keywords}</div></td>
+        <td><div class="cal-goal">${item.goal}</div></td>
+        <td>${ownerChip(item.owner)}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  });
+
+  // Section 10: KPIs
+  html += `<div class="doc-section-head"><h2>SECTION 10: CONTENT KPIs &amp; SUCCESS METRICS</h2><span>Track these 8 KPIs monthly using Looker Studio + GA4 + Search Console</span></div>
+  <table class="kpi-table">
+    <thead><tr><th>KPI Metric</th><th>Starting Point</th><th>Tracking Tool</th><th>Frequency</th><th>6-Month Target</th></tr></thead>
+    <tbody>
+      ${[
+        [
+          "Organic Traffic",
+          "Baseline (Month 0)",
+          "Google Analytics 4",
+          "Monthly",
+          "+15% by Month 3, +40% by Month 6",
+        ],
+        [
+          "Keyword Rankings",
+          "Track 20 target keywords",
+          "Google Search Console",
+          "Weekly",
+          "5+ in Top 10 by Month 3",
+        ],
+        [
+          "Blog Pageviews",
+          "Baseline (Month 0)",
+          "GA4 / GSC",
+          "Monthly",
+          "2x by Month 6",
+        ],
+        [
+          "Case Study Leads",
+          "0 currently",
+          "CRM / Form tracking",
+          "Monthly",
+          "3+ leads from case studies by Month 4",
+        ],
+        [
+          "Social Engagement Rate",
+          "Baseline this week",
+          "LinkedIn / Meta Analytics",
+          "Weekly",
+          "+20% engagement by Month 2",
+        ],
+        [
+          "AI Citation Appearances",
+          "Manual audit",
+          "Perplexity / ChatGPT manual check",
+          "Monthly",
+          "Brand cited in 5+ AI queries by Month 6",
+        ],
+        [
+          "Domain Authority",
+          "Current score",
+          "Ahrefs / Moz",
+          "Monthly",
+          "+5 DA points by Month 6",
+        ],
+        [
+          "Backlinks Earned",
+          "Baseline",
+          "Ahrefs",
+          "Monthly",
+          "10+ new referring domains by Month 6",
+        ],
+      ]
+        .map(
+          ([kpi, start, tool, freq, target], i) =>
+            `<tr style="background:${i % 2 === 0 ? "#fff" : "#f8f9fc"}"><td class="kpi-name">${kpi}</td><td>${start}</td><td>${tool}</td><td><span style="font-size:11px;padding:2px 8px;background:#eff6ff;color:#1d4ed8;border-radius:4px;font-weight:500">${freq}</span></td><td class="kpi-target">${target}</td></tr>`,
+        )
+        .join("")}
+    </tbody>
+  </table>
+
+  <div style="font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:12px">Pre-Publish Content Quality Checklist</div>
+  <div class="checklist">
+    ${["Title tag and meta description written and within character limits", "Primary keyword appears in first 100 words of body content", "At least one definition section ('X is...') present on service/topic pages", "FAQ section added at page bottom (5-10 Q&A pairs, 40-80 words each)", "Publication date and 'Last Updated' date visible near the title", "At least 3 internal links to related service or blog pages", "All images in WebP format with descriptive alt text", "Relevant schema markup added (FAQPage, HowTo, Article, or BlogPosting)", "Open Graph and Twitter Card meta tags populated", "Page reviewed for mobile readability at 375px and 768px breakpoints", "2-3 sentence summary paragraph at very top of page for AI readability", "External links to at least 2 authoritative sources for E-E-A-T"].map((item) => `<div class="checklist-item"><div class="ck">✓</div>${item}</div>`).join("")}
+  </div>`;
+
+  return html;
+}
+
+// ── STRATEGY (Part 3 — Section 11) ──
+function buildStrategy() {
+  let html = `<div class="doc-section-head"><h2>SECTION 11: 12-MONTH SEO STRATEGY PLAN</h2><span>4 Phases: Fix Foundation → Authority → Scale → Dominate</span></div>
+
+  <div class="exec-summary">
+    <div class="exec-summary-title">📋 Execution Summary — 12-Month Growth Roadmap</div>
+    <p style="font-size:13px;color:#374151;line-height:1.65;margin-bottom:14px">A structured 4-phase plan to take buimbdigital.com from 74/100 to 93/100 within 12 months, grow organic traffic by 150%, and generate 20+ qualified leads per month. Each phase builds on the last — do not skip phases.</p>
+    <div class="exec-summary-grid">
+      <div class="exec-summary-col">
+        <h3>📌 Current Situation</h3>
+        <ul>
+          <li><span class="li-dot" style="background:#ef4444"></span>Overall 74/100 — solid base but with critical technical gaps</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>Mobile score 38/100 — actively suppressing rankings</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>GEO score 72/100 — AI search visibility not yet optimized</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>0 case studies or testimonials — E-E-A-T very weak</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>Local SEO 63/100 — GBP not fully claimed/optimized</li>
+        </ul>
+      </div>
+      <div class="exec-summary-col">
+        <h3>✅ 12-Month Targets</h3>
+        <ul>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 3: Fix all critical issues, 81/100 overall score</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 6: Content clusters built, 86/100 overall score</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 9: International reach, brand in 10+ AI queries</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 12: 93/100 overall, Top 3 for 10 primary keywords</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>+150% organic traffic growth from Month 1 baseline</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:14px">Strategic Objectives</div>`;
+
+  const objectives = [
+    {
+      n: 1,
+      obj: "Top 3 rankings for 10 primary keywords",
+      why: "Primary keywords drive highest commercial intent traffic and qualified leads",
+      target: "10 keywords in Top 3 by Month 12",
+    },
+    {
+      n: 2,
+      obj: "Fix all Critical and High Priority audit issues",
+      why: "Technical issues actively suppress current rankings",
+      target: "Overall audit score ≥ 90/100 by Month 6",
+    },
+    {
+      n: 3,
+      obj: "Grow organic traffic by 150%",
+      why: "Compounding organic traffic reduces reliance on paid ads and lowers CAC",
+      target: "+150% sessions from organic by Month 12",
+    },
+    {
+      n: 4,
+      obj: "Establish AEO & GEO authority in niche",
+      why: "AI-driven search is the fastest growing search surface in 2026",
+      target: "Brand cited in 10+ AI queries by Month 9",
+    },
+    {
+      n: 5,
+      obj: "Local SEO dominance in Agra + pan-India",
+      why: "Local SEO drives high-converting leads from nearby businesses",
+      target: "GBP in Top 3 Local Pack for 5 keywords by Month 6",
+    },
+    {
+      n: 6,
+      obj: "Generate 20+ organic leads per month",
+      why: "Converts SEO investment into measurable business revenue",
+      target: "20+ monthly organic leads tracked in CRM by Month 12",
+    },
+  ];
+  objectives.forEach((o) => {
+    html += `<div class="objective-card"><div class="obj-num">${o.n}</div><div class="obj-body"><div class="obj-title">${o.obj}</div><div class="obj-why">${o.why}</div><div class="obj-target">Target: ${o.target}</div></div></div>`;
+  });
+
+  const phases = [
+    {
+      name: "Phase 1 — Months 1-3: Fix the Foundation",
+      focus:
+        "Technical fixes, on-page corrections, schema implementation, local SEO setup",
+      col: "#dc2626",
+      bg: "#1a0000",
+      items: [
+        [
+          "Add viewport meta tag + responsive CSS fix",
+          "Developer",
+          "Week 1",
+          "Mobile 38→75",
+          "+15% rankings",
+        ],
+        [
+          "Fix HTTPS / resolve all mixed content warnings",
+          "Developer",
+          "Week 1",
+          "GEO HTTPS fix",
+          "+AI trust signals",
+        ],
+        [
+          "Remove noindex from all key pages",
+          "Developer/SEO",
+          "Week 1",
+          "Tech SEO fix",
+          "New pages indexed",
+        ],
+        [
+          "Write unique title tags + meta descriptions for all pages",
+          "SEO Team",
+          "Weeks 1-2",
+          "On-Page fix",
+          "+20% CTR est.",
+        ],
+        [
+          "Page speed optimisation: GZIP, CDN, image WebP conversion",
+          "Developer",
+          "Weeks 1-2",
+          "CWV fix",
+          "+Core Web Vitals",
+        ],
+        [
+          "Add Organization + FAQPage + BreadcrumbList schema sitewide",
+          "Developer",
+          "Week 2",
+          "GEO schema fix",
+          "Rich results eligible",
+        ],
+        [
+          "Claim + fully optimise Google Business Profile",
+          "Marketing",
+          "Week 1-2",
+          "Local SEO fix",
+          "Local Pack entry",
+        ],
+        [
+          "Expand thin content pages to 800-1200 words",
+          "Content",
+          "Weeks 2-6",
+          "Content fix",
+          "+Rankings depth",
+        ],
+        [
+          "Add definition sections + FAQ blocks to all service pages",
+          "Content",
+          "Weeks 2-6",
+          "AEO fix",
+          "+PAA capture",
+        ],
+      ],
+    },
+    {
+      name: "Phase 2 — Months 4-6: Authority & Content Build",
+      focus:
+        "Content cluster build, E-E-A-T trust signals, link acquisition, case studies",
+      col: "#d97706",
+      bg: "#451a03",
+      items: [
+        [
+          "Publish 6-month content calendar Weeks 1-4 content",
+          "Content",
+          "Month 4",
+          "Content gap fix",
+          "Featured snippets",
+        ],
+        [
+          "Launch 3 use case pages for niche verticals",
+          "SEO + Content",
+          "Month 4-5",
+          "GEO fix",
+          "Niche traffic",
+        ],
+        [
+          "Publish 2 case studies with measurable results",
+          "Marketing",
+          "Month 4-5",
+          "E-E-A-T fix",
+          "Trust signals",
+        ],
+        [
+          "Build 10+ quality backlinks via guest posts and directories",
+          "SEO",
+          "Month 4-6",
+          "Authority build",
+          "+Domain Authority",
+        ],
+        [
+          "Submit to Clutch, GoodFirms, DesignRush + 5 niche directories",
+          "Marketing",
+          "Month 4",
+          "GEO fix",
+          "Directory citations",
+        ],
+        [
+          "Add 10+ client testimonials and trust badges sitewide",
+          "Marketing",
+          "Month 4-5",
+          "E-E-A-T fix",
+          "Social proof",
+        ],
+        [
+          "Achieve 83/100 overall audit score",
+          "All Teams",
+          "Month 6",
+          "Milestone",
+          "Score benchmark",
+        ],
+      ],
+    },
+    {
+      name: "Phase 3 — Months 7-9: Scale & Brand Authority",
+      focus:
+        "International targeting, PR outreach, AI citation building, schema expansion",
+      col: "#10b981",
+      bg: "#064e3b",
+      items: [
+        [
+          "Create international landing pages for white-label and outsource keywords",
+          "SEO + Dev",
+          "Month 7",
+          "Global keywords",
+          "International leads",
+        ],
+        [
+          "Publish 3 more case studies for E-E-A-T depth",
+          "Marketing",
+          "Month 7-8",
+          "E-E-A-T fix",
+          "Trust authority",
+        ],
+        [
+          "Expand schema to HowTo and QAPage on all eligible content",
+          "Developer",
+          "Month 7",
+          "AEO fix",
+          "Rich results expansion",
+        ],
+        [
+          "Launch link building campaign: target DA60+ referral domains",
+          "SEO",
+          "Month 7-9",
+          "Authority build",
+          "+10 referring domains",
+        ],
+        [
+          "Press outreach: 3-5 media mentions or guest articles",
+          "Marketing",
+          "Month 7-9",
+          "Domain authority",
+          "+3 DA60+ links",
+        ],
+      ],
+    },
+    {
+      name: "Phase 4 — Months 10-12: Dominate & Sustain",
+      focus:
+        "Top 3 keyword push, brand authority consolidation, 2027 AI search preparation",
+      col: "#8b5cf6",
+      bg: "#2e1065",
+      items: [
+        [
+          "Content refresh: update all 2026 blog posts for 2027 accuracy",
+          "Content",
+          "Month 10-11",
+          "Freshness signal",
+          "All posts refreshed",
+        ],
+        [
+          "Push top 10 primary keywords toward Top 3 via link building",
+          "SEO",
+          "Months 10-12",
+          "Revenue-driving rankings",
+          "5+ in Top 3",
+        ],
+        [
+          "Expand to 2 new niche verticals with dedicated pages",
+          "SEO + Content",
+          "Month 10",
+          "Vertical authority",
+          "2 new pages ranked",
+        ],
+        [
+          "Full re-audit: target 93/100 overall score",
+          "SEO Lead",
+          "Month 12",
+          "Benchmark verification",
+          "93+ overall score",
+        ],
+        [
+          "2027 SEO predictions piece + strategy update document",
+          "Content + SEO",
+          "Month 11-12",
+          "Thought leadership",
+          "Rank for 2027 keywords",
+        ],
+      ],
+    },
+  ];
+
+  phases.forEach((phase) => {
+    html += `<div class="phase-table" style="margin-top:20px">
+      <div class="phase-table-head" style="background:${phase.bg}">
+        <div class="phase-table-title" style="color:#fff">${phase.name}</div>
+        <div style="font-size:11px;color:#9ba3af;font-style:italic">FOCUS: ${phase.focus}</div>
+      </div>
+      <div class="table-scroll">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#f8f9fc">
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;color:#9ba3af;text-align:left;border-bottom:1px solid #e9ecef">Deliverable</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;color:#9ba3af;text-align:left;border-bottom:1px solid #e9ecef;white-space:nowrap">Owner</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;color:#9ba3af;text-align:left;border-bottom:1px solid #e9ecef;white-space:nowrap">Timeline</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;color:#9ba3af;text-align:left;border-bottom:1px solid #e9ecef;white-space:nowrap">Audit Fix</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;color:#9ba3af;text-align:left;border-bottom:1px solid #e9ecef">Expected Impact</th>
+        </tr></thead>
+        <tbody>`;
+    phase.items.forEach((item, ii) => {
+      html += `<tr style="background:${ii % 2 === 0 ? "#fff" : "#f8f9fc"}">
+        <td style="padding:9px 12px;border-bottom:1px solid #f1f3f7;font-size:12px;font-weight:500;color:#1a1a2e">${item[0]}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #f1f3f7;font-size:12px;color:#6b7280;white-space:nowrap">${item[1]}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #f1f3f7;font-size:12px;color:#6b7280;white-space:nowrap">${item[2]}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #f1f3f7;font-size:12px"><span style="background:${phase.col}22;color:${phase.col};font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px">${item[3]}</span></td>
+        <td style="padding:9px 12px;border-bottom:1px solid #f1f3f7;font-size:12px;color:#16a34a;font-weight:500">${item[4]}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  });
+
+  // 12-Month Score Projection
+  html += `<div style="margin-top:24px;margin-bottom:8px;font-size:14px;font-weight:700;color:#1a1a2e">12-Month Score Projection</div>
+  <table class="proj-table">
+    <thead><tr><th>Module</th><th>Now (Mar 26)</th><th>Month 3</th><th>Month 6</th><th>Month 9</th><th>Month 12 Target</th></tr></thead>
+    <tbody>
+      <tr><td>SEO</td><td>${scoreChip(70)}</td><td><span class="score-chip sc-yellow">79/100</span></td><td><span class="score-chip sc-green">84/100</span></td><td><span class="score-chip sc-green">88/100</span></td><td><span class="score-chip sc-target">92/100 (A)</span></td></tr>
+      <tr><td>AEO</td><td>${scoreChip(79)}</td><td><span class="score-chip sc-green">85/100</span></td><td><span class="score-chip sc-green">89/100</span></td><td><span class="score-chip sc-green">92/100</span></td><td><span class="score-chip sc-target">95/100 (A+)</span></td></tr>
+      <tr><td>GEO</td><td>${scoreChip(72)}</td><td><span class="score-chip sc-yellow">80/100</span></td><td><span class="score-chip sc-green">85/100</span></td><td><span class="score-chip sc-green">89/100</span></td><td><span class="score-chip sc-target">92/100 (A)</span></td></tr>
+      <tr class="overall-row"><td><strong>OVERALL</strong></td><td>${scoreChip(74)}</td><td><span class="score-chip sc-yellow">81/100</span></td><td><span class="score-chip sc-green">86/100</span></td><td><span class="score-chip sc-green">90/100</span></td><td><span class="score-chip sc-target">93/100 (A+)</span></td></tr>
+    </tbody>
+  </table>`;
+
+  return html;
+}
+
+// ── COMPETITORS (Section 12) ──
+function buildCompetitors() {
+  function stars(n, col) {
+    return `<span style="color:${col};letter-spacing:1px;font-size:12px">${"●".repeat(n)}${"○".repeat(5 - n)}</span>`;
+  }
+
+  let html = `<div class="doc-section-head"><h2>SECTION 12: COMPETITOR ANALYSIS</h2><span>6 key competitors — India + Global digital marketing agency landscape</span></div>
+
+  <div class="exec-summary">
+    <div class="exec-summary-title">📋 Execution Summary — Competitive Landscape &amp; Where You Win</div>
+    <p style="font-size:13px;color:#374151;line-height:1.65;margin-bottom:14px">6 competitors analyzed across SEO, AEO, and GEO strength. All are established players in the India + Global digital marketing space — but none lead clearly on AEO or GEO, giving BuimbDigital a significant first-mover advantage to capture those emerging search surfaces.</p>
+    <div class="exec-summary-grid">
+      <div class="exec-summary-col">
+        <h3>📌 Competitor Weaknesses</h3>
+        <ul>
+          <li><span class="li-dot" style="background:#ef4444"></span>PageTraffic &amp; Techmagnate — expensive, enterprise-only, no AEO/GEO strategy</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>Social Beat — India-only, almost no technical SEO or AEO capability</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>EZ Rankings — inconsistent content quality, limited international reach</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>WebSpero — GEO not prominently marketed, limited PPC depth</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>None of the 6 explicitly market GEO or AI search optimisation as a service</li>
+        </ul>
+      </div>
+      <div class="exec-summary-col">
+        <h3>✅ BuimbDigital Opportunities</h3>
+        <ul>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Be the first Indian agency to lead with AEO + GEO positioning</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Publish definitive guides for "AEO" and "GEO" keywords in India now</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Position as premium full-service at SME-friendly pricing — clear gap</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Target global businesses wanting India quality + Indian businesses wanting global reach</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Answer the "ChatGPT visibility" question that no competitor addresses</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:10px">Competitor Overview Snapshot</h3>
+  <div class="table-scroll" style="margin-bottom:20px">
+  <table class="comp-overview-table">
+    <thead><tr><th>Agency</th><th>Est.</th><th>Team</th><th>HQ</th><th>SEO Str.</th><th>AEO Str.</th><th>GEO Str.</th><th>Pricing/mo</th></tr></thead>
+    <tbody>`;
+  COMPETITORS.forEach((c, i) => {
+    html += `<tr style="background:${i % 2 === 0 ? "#fff" : "#f8f9fc"}">
+      <td><div class="comp-name">${c.name}</div><div class="comp-domain">${c.domain}</div></td>
+      <td>${c.est}</td><td>${c.team}</td><td>${c.hq}</td>
+      <td>${stars(c.seo, "#ff642d")}</td>
+      <td>${stars(c.aeo, "#10b981")}</td>
+      <td>${stars(c.geo, "#8b5cf6")}</td>
+      <td style="font-weight:500">${c.pricing}</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>
+  <div style="font-size:11px;color:#9ba3af;margin-bottom:20px">Strength rating: ●●●●● = Industry-leading &nbsp; ●●●●○ = Strong &nbsp; ●●●○○ = Moderate &nbsp; ●●○○○ = Weak &nbsp; ●○○○○ = Minimal</div>
+
+  <h3 style="font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:12px">Detailed Competitor Profiles</h3>`;
+
+  COMPETITORS.forEach((c, i) => {
+    html += `<div class="comp-profile">
+      <div class="comp-profile-head">
+        <h3>${i + 1}. ${c.name} (${c.domain})</h3>
+        <span>Clutch: ${c.clutch} · Est. ${c.est} · Team: ${c.team} · ${c.market}</span>
+      </div>
+      <table class="comp-detail-table"><tbody>
+        <tr><td>HQ / Market</td><td>${c.hq} | ${c.market} | Est. ${c.est} | Team: ${c.team}</td></tr>
+        <tr><td>Pricing</td><td>${c.pricing} | Clutch: ${c.clutch}</td></tr>
+        <tr><td>Strengths</td><td>${c.strengths}</td></tr>
+        <tr><td>Weaknesses</td><td>${c.weaknesses}</td></tr>
+        <tr><td>Our Opportunity</td><td><strong>${c.opp}</strong></td></tr>
+      </tbody></table>
+    </div>`;
+  });
+
+  html += `<div class="doc-section-head" style="margin-top:24px"><h2>Competitive Gap Analysis — Where BuimbDigital Wins</h2></div>
+  <table class="comp-gap-table">
+    <thead><tr><th>Competitive Gap</th><th>What Competitors Are Missing</th><th>BuimbDigital Opportunity</th></tr></thead>
+    <tbody>
+      ${[
+        [
+          "AEO + GEO Expertise",
+          "Most agencies still focus on traditional SEO. AEO and GEO are mentioned by fewer than 30% of competitors in their core positioning.",
+          "Lead with AEO+GEO as a differentiator. Create the definitive guides for both terms in India — dominate these low-competition keywords now.",
+        ],
+        [
+          "SME-Friendly Full-Service at Competitive Pricing",
+          "Top agencies are expensive and enterprise-focused. Affordable agencies often lack full-service depth.",
+          "Position as the premium-quality but accessible full-service agency for growing SMEs, startups, and businesses scaling internationally.",
+        ],
+        [
+          "AI-Ready Strategy Communication",
+          "No competitor is clearly communicating AI search optimisation (GEO) as a client benefit — most still use 2022-era language.",
+          "First-mover advantage: actively market GEO as a service. Be the agency that answers the ChatGPT visibility question.",
+        ],
+        [
+          "India-Based + Global Execution",
+          "Social Beat is India-only. International agencies are expensive. Few agencies serve both India SMEs and global clients equally well.",
+          "Explicitly market to global businesses wanting India-quality+pricing AND Indian businesses wanting global-standard strategy.",
+        ],
+      ]
+        .map(
+          ([gap, miss, opp], i) =>
+            `<tr style="background:${i % 2 === 0 ? "#fff" : "#f8f9fc"}"><td><strong>${gap}</strong></td><td>${miss}</td><td style="color:#7c3aed;font-weight:500">${opp}</td></tr>`,
+        )
+        .join("")}
+    </tbody>
+  </table>
+
+  <div style="font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:10px">Recommended Positioning Statement</div>
+  <div class="positioning-box">
+    "BuimbDigital is a full-service digital marketing agency offering enterprise-quality SEO, AEO, GEO, social media, PPC, and web design — built for growing businesses in India and globally. We are the only agency that combines traditional search excellence with AI search optimisation, at a price point that works for SMEs and scaling brands."
+  </div>`;
+
+  return html;
+}
+
+// ── KEYWORDS (Section 13) ──
+function buildKeywords() {
+  function kwTable(title, desc, kwList) {
+    let html = `<div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:6px;margin-top:20px">${title}</div>`;
+    if (desc)
+      html += `<div style="font-size:12px;color:#6b7280;margin-bottom:10px;line-height:1.5">${desc}</div>`;
+    html += `<div class="table-scroll"><table class="kw-table">
+      <thead><tr><th>Keyword</th><th style="text-align:right;white-space:nowrap">Vol/mo</th><th>Difficulty</th><th>Intent</th><th>Priority</th><th>Target Page</th></tr></thead>
+      <tbody>`;
+    kwList.forEach((kw, i) => {
+      html += `<tr style="background:${i % 2 === 0 ? "#fff" : "#f8f9fc"}">
+        <td class="kw-keyword">${kw.kw}</td>
+        <td class="kw-vol">${kw.vol}</td>
+        <td>${diffChip(kw.diff)}</td>
+        <td><span class="intent-chip">${kw.intent}</span></td>
+        <td>${priChip(kw.pri)}</td>
+        <td class="target-page">${kw.page}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+    return html;
+  }
+
+  let html = `<div class="doc-section-head"><h2>SECTION 13: KEYWORD RECOMMENDATIONS — 62 Keywords</h2><span>Primary Commercial, Long-Tail Informational, Local SEO, and Global/International</span></div>
+
+  <div class="exec-summary">
+    <div class="exec-summary-title">📋 Execution Summary — Keyword Strategy</div>
+    <p style="font-size:13px;color:#374151;line-height:1.65;margin-bottom:14px">62 keywords across 4 categories: Primary Commercial, Long-Tail Informational, Local SEO (Agra + Near Me), and Global/International. Start with Local Agra keywords for fastest ROI, then build towards competitive primary commercial keywords over 12 months.</p>
+    <div class="exec-summary-grid">
+      <div class="exec-summary-col">
+        <h3>📌 Priority Keyword Gaps</h3>
+        <ul>
+          <li><span class="li-dot" style="background:#ef4444"></span>4 CRITICAL primary keywords not ranking yet (22K+ monthly searches each)</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>Local Agra keywords (320–260 vol) — fastest ROI, very low competition</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>"What is AEO/GEO" — emerging keywords with near-zero competition now</li>
+          <li><span class="li-dot" style="background:#ef4444"></span>Global B2B keywords not targeted — white-label, outsource searches</li>
+        </ul>
+      </div>
+      <div class="exec-summary-col">
+        <h3>✅ Keyword Action Plan</h3>
+        <ul>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 1–2: Target all 8 local Agra keywords — quick wins</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 2–4: Create content for 15 long-tail informational keywords</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 4–6: Expand service pages for 4 primary commercial keywords</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 6–9: Build international landing pages for global B2B keywords</li>
+          <li><span class="li-dot" style="background:#21bf6b"></span>Month 9–12: Push remaining primary + own emerging AEO/GEO terms</li>
+        </ul>
+      </div>
+    </div>
+  </div>`;
+
+  html += kwTable(
+    "C.1 — Primary Commercial Keywords (10 Keywords)",
+    "Highest-value keywords for driving qualified leads. High competition — winning requires strong domain authority, excellent on-page SEO, and consistent link building. Target over 12 months.",
+    KW.primary,
+  );
+  html += kwTable(
+    "C.2 — Long-Tail Informational Keywords (15 Keywords)",
+    "Lower competition keywords targeting AEO/GEO gaps — missing FAQ sections, definition pages, and People Also Ask opportunities. Drive featured snippets, AI citations, and awareness-stage traffic.",
+    KW.longtail,
+  );
+  html += kwTable(
+    "C.3 — Local SEO Keywords — Agra & Near Me (8 Keywords)",
+    "Critical for driving nearby business enquiries. Very low competition and high commercial intent — these represent the fastest ROI opportunity in the entire keyword set.",
+    KW.local,
+  );
+  html += kwTable(
+    "C.4 — Global & International Keywords (8 Keywords)",
+    "Target international clients looking to outsource digital marketing from India. High-value B2B leads. Strong backlink profile (90/100) gives the domain authority to compete globally.",
+    KW.global,
+  );
+
+  html += `<div style="font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:12px;margin-top:26px">Keyword Implementation Roadmap</div>
+  <table class="roadmap-table">
+    <thead><tr><th>Phase</th><th>Keywords to Target</th><th>Action</th><th>Owner</th></tr></thead>
+    <tbody>
+      ${[
+        [
+          "Month 1-2",
+          "All 8 local Agra keywords + title tag + meta fixes for primary pages",
+          "GBP optimisation + on-page fixes + local landing page",
+          "SEO + Dev",
+        ],
+        [
+          "Month 2-4",
+          "All 15 long-tail informational keywords → blog posts + FAQ pages + definition pages",
+          "Content creation per 6-month calendar",
+          "Content Team",
+        ],
+        [
+          "Month 4-6",
+          "4 primary commercial keywords (SEO services, digital marketing agency, social media, PPC)",
+          "Service page expansion + link building + FAQ blocks",
+          "SEO + Content",
+        ],
+        [
+          "Month 6-9",
+          "Global B2B keywords (white-label SEO, outsource digital marketing, AI SEO services)",
+          "Dedicated international landing pages + PR outreach",
+          "SEO + Dev",
+        ],
+        [
+          "Month 9-12",
+          "Remaining primary + AEO/GEO emerging terms (what is GEO, AI search optimisation)",
+          "Pillar content + authority link push + content refresh",
+          "SEO Lead",
+        ],
+      ]
+        .map(
+          ([phase, kws, action, owner], i) =>
+            `<tr style="background:${i % 2 === 0 ? "#fff" : "#f8f9fc"}"><td style="font-weight:700;color:#8b5cf6;white-space:nowrap">${phase}</td><td>${kws}</td><td>${action}</td><td><span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;background:#f5f3ff;color:#7c3aed">${owner}</span></td></tr>`,
+        )
+        .join("")}
+    </tbody>
+  </table>
+
+  <div style="background:#1a1a2e;border-radius:12px;padding:20px;text-align:center;margin-top:24px">
+    <div style="font-size:14px;font-weight:700;color:#ff642d;margin-bottom:6px">BuimbDigital.com — Complete Digital Marketing Strategy & Audit Report</div>
+    <div style="font-size:12px;color:#9ba3af">Prepared by BuimbDigital · info@buimbdigital.com · buimbdigital.com · 17 March 2026</div>
+    <div style="font-size:11px;color:#6b7280;margin-top:4px;font-style:italic">CONFIDENTIAL — For Internal Distribution Only. Do Not Distribute Without Authorization.</div>
+  </div>`;
+
+  return html;
+}
+
+// ── RESET ──
+function resetAudit() {
+  _data = null;
+  document.getElementById("results").style.display = "none";
+  document.getElementById("page-hero").style.display = "block";
+  document.getElementById("audit-btn").disabled = false;
+  document.getElementById("url-input").value = "";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+document.getElementById("url-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") startAudit();
+});
+
+// ══════════════════════════════════════════════════════
+//  PDF DOWNLOAD — Full 3-Part Report
+// ══════════════════════════════════════════════════════
 function pdfGrade(s) {
   return s >= 90
     ? "A+"
@@ -1470,7 +3204,7 @@ function pdfGrade(s) {
 function pdfScoreCol(s) {
   return s >= 65 ? "#21bf6b" : s >= 45 ? "#f59e0b" : "#ef4444";
 }
-function pdfH2r(h) {
+function h2r(h) {
   h = h.replace("#", "");
   if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
   return [
@@ -1481,11 +3215,8 @@ function pdfH2r(h) {
 }
 
 async function downloadPDF() {
-  if (!_data) {
-    return;
-  }
+  if (!_data) return;
   const btn = document.querySelector(".btn-orange");
-  const origTxt = btn.textContent;
   btn.textContent = "Generating PDF...";
   btn.disabled = true;
   try {
@@ -1501,677 +3232,1693 @@ async function downloadPDF() {
       s.onerror = rej;
       document.head.appendChild(s);
     });
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
-    const PW = 210,
-      PH = 297,
-      ML = 14,
-      MR = 14,
-      CW = PW - ML - MR;
-    const SF = (c) => {
-      const [r, g, b] = pdfH2r(c);
-      doc.setFillColor(r, g, b);
-    };
-    const SD = (c) => {
-      const [r, g, b] = pdfH2r(c);
-      doc.setDrawColor(r, g, b);
-    };
-    const ST = (c) => {
-      const [r, g, b] = pdfH2r(c);
-      doc.setTextColor(r, g, b);
-    };
-    const OR = "#ff642d",
-      DK = "#1a1a2e",
-      MD = "#5c6070",
-      LT = "#9ba3af";
-    const BD = "#e2e5ed",
-      BG2 = "#f8f9fc";
-    const GR = "#21bf6b",
-      RD = "#ef4444",
-      YL = "#f59e0b",
-      BL = "#3b82f6";
-    const GRB = "#dcfce7",
-      RDB = "#fee2e2",
-      YLB = "#fff7ed",
-      BLB = "#eff6ff";
-    const WH = "#ffffff";
-    const SEO = "#ff642d",
-      AEO = "#10b981",
-      GEO = "#8b5cf6";
-    const d = _data;
-    const allC = ["seo", "aeo", "geo"].flatMap((k) =>
-      d.mods[k].categories.flatMap((c) => c.checks),
-    );
-    const totP = allC.filter((c) => c.ok === 1).length;
-    const totW = allC.filter((c) => c.ok === 0.5).length;
-    const totF = allC.filter((c) => c.ok === 0).length;
-    const ov = Math.round(
-      (d.mods.seo.score + d.mods.aeo.score + d.mods.geo.score) / 3,
-    );
-    let y = 0;
-    function hdr() {
-      SF(OR);
-      doc.rect(0, 0, PW, 10, "F");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      ST(WH);
-      doc.text("AuditX", ML, 6.5);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      ST(WH);
-      doc.text("SEO / AEO / GEO Audit Platform", ML + 22, 6.5);
-      doc.setFontSize(7);
-      const dt = new Date().toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-      doc.text(dt, PW - ML, 6.5, "right");
-      y = 14;
+    // Use the standalone PDF generator from script_pdf.js if available
+    // Otherwise fall back to inline generation
+    if (typeof generateFullPDF === "function") {
+      generateFullPDF(_data, CALENDAR, COMPETITORS, KW);
+    } else {
+      await generatePDFInline();
     }
-    function ftr() {
-      const fy = PH - 9;
-      SF(DK);
-      doc.rect(0, fy - 1, PW, 10, "F");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
-      ST(WH);
-      doc.text("BuimbDigital", ML, fy + 4);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
-      ST(LT);
-      doc.text("info@buimbdigital.com", ML + 27, fy + 4);
-      doc.text(
-        "Powered by AuditX  |  buimbdigital.com",
-        PW - ML,
-        fy + 4,
-        "right",
-      );
-    }
-    const newPage = () => {
-      doc.addPage();
-      y = 0;
-      hdr();
-      ftr();
-    };
-    const needY = (n) => {
-      if (y + n > PH - 20) newPage();
-    };
-    function secTitle(txt, sub) {
-      needY(12);
-      SF(BG2);
-      SD(BD);
-      doc.setLineWidth(0.2);
-      doc.rect(ML, y, CW, 8, "FD");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      ST(DK);
-      doc.text(txt, ML + 3, y + 5.5);
-      if (sub) {
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(7);
-        ST(LT);
-        doc.text(sub, PW - MR, y + 5.5, "right");
-      }
-      y += 11;
-    }
-    function gauge(cx, cy, r, score) {
-      const col = pdfScoreCol(score);
-      SD(BD);
-      doc.setLineWidth(3);
-      doc.circle(cx, cy, r, "S");
-      SD(col);
-      doc.setLineWidth(3);
-      const steps = Math.round((score / 100) * 48);
-      for (let i = 0; i < steps; i++) {
-        const a1 = -Math.PI / 2 + (i / 48) * 2 * Math.PI;
-        const a2 = -Math.PI / 2 + ((i + 1) / 48) * 2 * Math.PI;
-        doc.line(
-          cx + r * Math.cos(a1),
-          cy + r * Math.sin(a1),
-          cx + r * Math.cos(a2),
-          cy + r * Math.sin(a2),
-        );
-      }
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      ST(DK);
-      doc.text(String(score), cx, cy + 1, "center");
-      doc.setFontSize(6);
-      ST(LT);
-      doc.text("/100", cx, cy + 5.5, "center");
-    }
-    function miniBar(x, by, w, h, val, max, col) {
-      SF(BG2);
-      doc.rect(x, by, w, h, "F");
-      const fw = max > 0 ? Math.max(0, (val / max) * w) : 0;
-      if (fw > 0) {
-        SF(col);
-        doc.rect(x, by, fw, h, "F");
-      }
-    }
-    function chipPDF(x, cy, txt, bg, fg, w) {
-      const cw = w || Math.min(doc.getTextWidth(txt) + 6, 40);
-      SF(bg);
-      doc.roundedRect(x, cy, cw, 4, 0.8, 0.8, "F");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(6);
-      ST(fg);
-      doc.text(txt, x + cw / 2, cy + 2.9, "center");
-      return cw;
-    }
-    // PAGE 1: COVER
-    hdr();
-    ftr();
-    SF(OR);
-    doc.rect(ML, y, CW, 28, "F");
-    SF("#c2410c");
-    doc.rect(PW - MR - 18, y, 18, 28, "F");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    ST(WH);
-    doc.text("Site Audit Report", ML + 6, y + 12);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    ST("#ffd4c2");
-    doc.text(
-      "SEO / AEO / GEO  --  Complete Search Visibility Analysis",
-      ML + 6,
-      y + 20,
-    );
-    doc.setFontSize(7);
-    ST("#ffb89a");
-    doc.text(
-      "Generated by BuimbDigital  |  info@buimbdigital.com",
-      ML + 6,
-      y + 26,
-    );
-    y += 32;
-    SF(WH);
-    SD(BD);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(ML, y, CW, 24, 2, 2, "FD");
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
-    ST(LT);
-    doc.text("WEBSITE AUDITED", ML + 5, y + 5);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    ST(DK);
-    doc.text(d.domain, ML + 5, y + 13);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
-    ST(MD);
-    doc.text(
-      "Audit Date: " +
-        new Date().toLocaleString("en-GB", {
-          dateStyle: "long",
-          timeStyle: "short",
-        }),
-      ML + 5,
-      y + 19,
-    );
-    doc.text(
-      "Total Checks: " + allC.length + "  |  SEO + AEO + GEO",
-      PW - MR - 3,
-      y + 19,
-      "right",
-    );
-    y += 28;
-    secTitle("Overall Audit Scores", "SEO / AEO / GEO + Overall Health");
-    const gDefs = [
-      { lbl: "SEO", sc: d.mods.seo.score, col: SEO },
-      { lbl: "AEO", sc: d.mods.aeo.score, col: AEO },
-      { lbl: "GEO", sc: d.mods.geo.score, col: GEO },
-      { lbl: "Overall", sc: ov, col: OR },
-    ];
-    gDefs.forEach((g, i) => {
-      const gx = ML + 22 + i * 46;
-      gauge(gx, y + 14, 11, g.sc);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(7);
-      ST(DK);
-      doc.text(g.lbl, gx, y + 29, "center");
-      const gr = pdfGrade(g.sc);
-      const grCol = g.sc >= 65 ? GR : g.sc >= 45 ? YL : RD;
-      const grBg = g.sc >= 65 ? GRB : g.sc >= 45 ? YLB : RDB;
-      chipPDF(gx - 5, y + 31, gr, grBg, grCol, 10);
-    });
-    y += 40;
-    needY(24);
-    const stats = [
-      { lbl: "ERRORS", val: totF, col: RD, bg: RDB },
-      { lbl: "WARNINGS", val: totW, col: YL, bg: YLB },
-      { lbl: "PASSED", val: totP, col: GR, bg: GRB },
-      { lbl: "TOTAL", val: allC.length, col: BL, bg: BLB },
-    ];
-    const sw = (CW - 9) / 4;
-    stats.forEach((s, i) => {
-      const sx = ML + i * (sw + 3);
-      SF(s.bg);
-      SD(BD);
-      doc.setLineWidth(0.2);
-      doc.roundedRect(sx, y, sw, 18, 2, 2, "FD");
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(6);
-      ST(LT);
-      doc.text(s.lbl, sx + 3, y + 5);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(15);
-      ST(s.col);
-      doc.text(String(s.val), sx + 3, y + 13);
-      miniBar(sx + 3, y + 15.5, sw - 6, 1.5, s.val, allC.length, s.col);
-    });
-    y += 24;
-    needY(36);
-    secTitle("Issues Distribution by Module");
-    const mkDef = [
-      { k: "seo", lbl: "SEO Analysis", col: SEO },
-      { k: "aeo", lbl: "AEO Analysis", col: AEO },
-      { k: "geo", lbl: "GEO Analysis", col: GEO },
-    ];
-    const bW = CW - 44,
-      bX = ML + 40;
-    mkDef.forEach((m, i) => {
-      const mc = d.mods[m.k].categories.flatMap((c) => c.checks);
-      const mf = mc.filter((c) => c.ok === 0).length,
-        mw = mc.filter((c) => c.ok === 0.5).length,
-        mp = mc.filter((c) => c.ok === 1).length;
-      const by = y + i * 10;
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(7);
-      ST(DK);
-      doc.text(m.lbl, ML, by + 5);
-      SF(BG2);
-      doc.roundedRect(bX, by, bW, 7, 1, 1, "F");
-      let xo = bX;
-      [
-        [mf, RD],
-        [mw, YL],
-        [mp, GR],
-      ].forEach(([n, c]) => {
-        if (n > 0) {
-          const w = (n / mc.length) * bW;
-          SF(c);
-          doc.rect(xo, by, w, 7, "F");
-          xo += w;
-        }
-      });
-      SD(BD);
-      doc.setLineWidth(0.15);
-      doc.roundedRect(bX, by, bW, 7, 1, 1, "S");
-      const scBg2 =
-        d.mods[m.k].score >= 65 ? GRB : d.mods[m.k].score >= 45 ? YLB : RDB;
-      const scFg2 =
-        d.mods[m.k].score >= 65 ? GR : d.mods[m.k].score >= 45 ? YL : RD;
-      chipPDF(
-        bX + bW + 3,
-        by + 1.5,
-        String(d.mods[m.k].score),
-        scBg2,
-        scFg2,
-        10,
-      );
-    });
-    y += mkDef.length * 10 + 2;
-    [
-      [RD, "Errors"],
-      [YL, "Warnings"],
-      [GR, "Passed"],
-    ].forEach(([c, lbl], i) => {
-      SF(c);
-      doc.circle(ML + i * 30 + 2, y + 2, 1.5, "F");
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(6.5);
-      ST(MD);
-      doc.text(lbl, ML + i * 30 + 5.5, y + 3);
-    });
-    y += 8;
-    needY(20);
-    secTitle("Category Scores Overview");
-    const catW = (CW - 6) / 3;
-    let cx = ML,
-      cy = y,
-      cc = 0;
-    const modColMap = { seo: SEO, aeo: AEO, geo: GEO };
-    mkDef.forEach((m) => {
-      d.mods[m.k].categories.forEach((cat) => {
-        if (cc >= 3) {
-          cx = ML;
-          cy += 20;
-          cc = 0;
-        }
-        needY(22);
-        const cs = cat.score,
-          cFg = cs >= 65 ? GR : cs >= 45 ? YL : RD,
-          cBg = cs >= 65 ? GRB : cs >= 45 ? YLB : RDB;
-        SF(WH);
-        SD(BD);
-        doc.setLineWidth(0.2);
-        doc.roundedRect(cx, cy, catW - 2, 18, 1.5, 1.5, "FD");
-        SF(modColMap[m.k]);
-        doc.rect(cx, cy, 2, 18, "F");
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(6.5);
-        ST(DK);
-        doc.text(
-          cat.name.length > 20 ? cat.name.slice(0, 19) + ".." : cat.name,
-          cx + 5,
-          cy + 5.5,
-        );
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(5.5);
-        ST(modColMap[m.k]);
-        doc.text(m.k.toUpperCase(), cx + 5, cy + 9.5);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        ST(cFg);
-        doc.text(String(cs), cx + catW - 6, cy + 10, "right");
-        miniBar(cx + 5, cy + 12, catW - 13, 2, cs, 100, cFg);
-        const cp2 = cat.checks.filter((c) => c.ok === 1).length,
-          cf2 = cat.checks.filter((c) => c.ok === 0).length;
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(5.5);
-        ST(LT);
-        doc.text("P:" + cp2 + " F:" + cf2, cx + 5, cy + 16.5);
-        cx += catW;
-        cc++;
-      });
-    });
-    y = cy + (cc > 0 ? 21 : 2);
-    // DETAILED PAGES
-    const colObj = {
-      SF,
-      SD,
-      ST,
-      WH,
-      DK,
-      MD,
-      LT,
-      BD,
-      BG2,
-      GR,
-      RD,
-      YL,
-      GRB,
-      RDB,
-      YLB,
-    };
-    newPage();
-    secTitle(
-      "SEO Analysis -- Detailed Checks",
-      "On-Page / Technical / Performance / Mobile / Backlinks / Local",
-    );
-    y = pdfChecks(
-      doc,
-      d.mods.seo.categories,
-      y,
-      colObj,
-      ML,
-      CW,
-      PH,
-      needY,
-      chipPDF,
-      miniBar,
-    );
-    newPage();
-    secTitle(
-      "AEO Analysis -- Detailed Checks",
-      "Featured Snippets / Voice Search / Schema / E-E-A-T / NLP",
-    );
-    y = pdfChecks(
-      doc,
-      d.mods.aeo.categories,
-      y,
-      colObj,
-      ML,
-      CW,
-      PH,
-      needY,
-      chipPDF,
-      miniBar,
-    );
-    newPage();
-    secTitle(
-      "GEO Analysis -- Detailed Checks",
-      "LLM Content / Brand Citability / AI Coverage / Trust / Metadata",
-    );
-    y = pdfChecks(
-      doc,
-      d.mods.geo.categories,
-      y,
-      colObj,
-      ML,
-      CW,
-      PH,
-      needY,
-      chipPDF,
-      miniBar,
-    );
-    // RECOMMENDATIONS
-    newPage();
-    secTitle(
-      "Action Plan -- Prioritized Recommendations",
-      "Fix these issues to improve your search visibility",
-    );
-    const allIss = [];
-    ["seo", "aeo", "geo"].forEach((k) =>
-      d.mods[k].categories.forEach((cat) =>
-        cat.checks
-          .filter((c) => c.ok !== 1)
-          .forEach((c) => allIss.push({ ...c, module: k.toUpperCase() })),
-      ),
-    );
-    allIss.sort(
-      (a, b) =>
-        ["critical", "high", "medium", "low"].indexOf(a.p) -
-        ["critical", "high", "medium", "low"].indexOf(b.p),
-    );
-    const priCfg = [
-      {
-        k: "critical",
-        lbl: "Critical Issues",
-        col: RD,
-        bg: RDB,
-        fg: "#dc2626",
-      },
-      { k: "high", lbl: "High Priority", col: YL, bg: YLB, fg: "#c2410c" },
-      {
-        k: "medium",
-        lbl: "Medium Priority",
-        col: "#d97706",
-        bg: "#fef9c3",
-        fg: "#a16207",
-      },
-      { k: "low", lbl: "Low Priority", col: LT, bg: BG2, fg: LT },
-    ];
-    let rn = 1;
-    priCfg.forEach((pc) => {
-      const items = allIss.filter((c) => c.p === pc.k);
-      if (!items.length) return;
-      needY(12);
-      SF(pc.bg);
-      SD(pc.col);
-      doc.setLineWidth(0.3);
-      doc.roundedRect(ML, y, CW, 7, 1, 1, "FD");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
-      ST(pc.fg);
-      doc.text(pc.lbl, ML + 5, y + 5);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
-      ST(LT);
-      doc.text(
-        "(" + items.length + " issues)",
-        ML + 5 + doc.getTextWidth(pc.lbl) + 3,
-        y + 5,
-      );
-      y += 10;
-      items.forEach((item) => {
-        const reco = recoText(item);
-        const lines = doc.splitTextToSize(reco, CW - 28);
-        const cardH = Math.max(14, 6 + lines.length * 3.6 + 4);
-        needY(cardH + 3);
-        SF(WH);
-        SD(BD);
-        doc.setLineWidth(0.2);
-        doc.roundedRect(ML, y, CW, cardH, 1.5, 1.5, "FD");
-        SF(pc.bg);
-        doc.roundedRect(ML + 2.5, y + 3, 7, 7, 1, 1, "F");
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(6.5);
-        ST(pc.fg);
-        doc.text(String(rn++), ML + 6, y + 7.5, "center");
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(7.5);
-        ST(DK);
-        doc.text(item.n, ML + 12, y + 7.5);
-        const mCol = { SEO: SEO, AEO: AEO, GEO: GEO }[item.module] || OR;
-        const mBg =
-          { SEO: "#fff0eb", AEO: "#f0fdf4", GEO: "#f5f3ff" }[item.module] ||
-          "#fff0eb";
-        chipPDF(ML + 12, y + 9.5, item.module, mBg, mCol);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(6.5);
-        ST(MD);
-        lines.forEach((ln, li) => doc.text(ln, ML + 12, y + 14.5 + li * 3.6));
-        const ip = impactPct(item.p, item.ok);
-        doc.setFontSize(5.5);
-        ST(LT);
-        doc.text("Impact: " + ip + "%", ML + CW - 22, y + 7.5);
-        SF(BG2);
-        doc.rect(ML + CW - 22, y + 9.5, 19, 2, "F");
-        SF(pc.col);
-        doc.rect(ML + CW - 22, y + 9.5, (ip / 100) * 19, 2, "F");
-        y += cardH + 3;
-      });
-      y += 3;
-    });
-    doc.save(
-      "AuditX-Report-" +
-        d.domain +
-        "-" +
-        new Date().toISOString().slice(0, 10) +
-        ".pdf",
-    );
   } catch (err) {
-    console.error("PDF error:", err);
-    alert("PDF generation failed: " + err.message);
+    console.error(err);
+    alert("PDF error: " + err.message);
   }
-  btn.textContent = origTxt;
+  btn.textContent = "⬇ Download PDF";
   btn.disabled = false;
 }
 
-// helper: render checks table pages
-function pdfChecks(doc, categories, y, C, ML, CW, PH, needY, chip, bar) {
-  const {
-    SF,
-    SD,
-    ST,
-    WH,
-    WH2,
-    DK,
-    MD,
-    LT,
-    BD,
-    BG2,
-    GR,
-    RD,
-    YL,
-    GRB,
-    RDB,
-    YLB,
-  } = C;
-  const scCol = (s) => (s >= 65 ? GR : s >= 45 ? YL : RD);
-  const scBg = (s) => (s >= 65 ? GRB : s >= 45 ? YLB : RDB);
+async function generatePDFInline() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const PW = 210,
+    PH = 297,
+    ML = 12,
+    MR = 12,
+    MT = 13,
+    MB = 14,
+    CW = 186;
+  const SF = (c) => {
+    const [r, g, b] = h2r(c);
+    doc.setFillColor(r, g, b);
+  };
+  const SD = (c) => {
+    const [r, g, b] = h2r(c);
+    doc.setDrawColor(r, g, b);
+  };
+  const ST = (c) => {
+    const [r, g, b] = h2r(c);
+    doc.setTextColor(r, g, b);
+  };
+  const OR = "#ff642d",
+    DK = "#1a1a2e",
+    MD = "#5c6070",
+    LT = "#9ba3af";
+  const BD = "#e2e5ed",
+    BG2 = "#f8f9fc";
+  const GR = "#21bf6b",
+    RD = "#ef4444",
+    YL = "#f59e0b";
+  const GRB = "#dcfce7",
+    RDB = "#fee2e2",
+    YLB = "#fff7ed";
+  const WH = "#ffffff";
+  const SEO = "#ff642d",
+    AEO = "#10b981",
+    GEO = "#8b5cf6";
+  const d = _data;
+  const BOTTOM = PH - MB - 2;
+  let y = 0,
+    _part = "";
 
-  categories.forEach((cat) => {
-    needY(16);
-    const sc = cat.score;
-    SF(BG2);
-    SD(BD);
-    doc.setLineWidth(0.15);
-    doc.rect(ML, y, CW, 8, "FD");
+  function hdr() {
+    SF(OR);
+    doc.rect(0, 0, PW, 9, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    ST(WH);
+    doc.text("AuditX", ML, 6);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    ST(WH);
+    doc.text(
+      "BuimbDigital.com Complete Digital Marketing Strategy & Audit Report",
+      ML + 18,
+      6,
+    );
+    ST(WH);
+    doc.text("17 March 2026", PW - MR, 6, "right");
+    y = MT;
+  }
+  function ftr() {
+    const fy = PH - MB + 2;
+    SF(DK);
+    doc.rect(0, fy, PW, MB, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    ST(WH);
+    doc.text("BuimbDigital", ML, fy + 5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6);
+    ST(LT);
+    doc.text("info@buimbdigital.com", ML + 25, fy + 5);
+    if (_part) {
+      ST("#ffd4c2");
+      doc.text(_part, PW / 2, fy + 5, "center");
+    }
+    doc.text("CONFIDENTIAL", PW - MR, fy + 5, "right");
+  }
+  const needY = (n) => {
+    if (y + n > BOTTOM) {
+      ftr();
+      doc.addPage();
+      hdr();
+    }
+  };
+  function chip(x, cy, txt, bg, fg, w) {
+    const cw = w || Math.min(doc.getTextWidth(txt) + 6, 40);
+    SF(bg);
+    doc.roundedRect(x, cy, cw, 3.8, 0.8, 0.8, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(5.5);
+    ST(fg);
+    doc.text(txt, x + cw / 2, cy + 2.8, "center");
+    return cw;
+  }
+  function sectionHead(txt, sub) {
+    needY(9);
+    SF(DK);
+    doc.rect(ML, y, CW, 7, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
+    ST(WH);
+    doc.text(txt, ML + 3, y + 5);
+    if (sub) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.5);
+      ST(LT);
+      doc.text(sub, PW - MR, y + 5, "right");
+    }
+    y += 9;
+  }
+
+  // COVER
+  _part = "PART 1: SEO/AEO/GEO AUDIT REPORT";
+  hdr();
+  ftr();
+  // 3-panel cover
+  const panW = (CW - 4) / 3;
+  [
+    {
+      num: "PART 1",
+      title: "SEO / AEO / GEO",
+      sub: "Audit Report",
+      note: "74/100 Overall | 89 Checks",
+      col: SEO,
+    },
+    {
+      num: "PART 2",
+      title: "Content Calendar",
+      sub: "6-Month Plan",
+      note: "29 Pieces | Apr–Oct 2026",
+      col: AEO,
+    },
+    {
+      num: "PART 3",
+      title: "SEO Plan, Competitors & Keywords",
+      sub: "12-Month Plan",
+      note: "6 Competitors | 62 Keywords",
+      col: GEO,
+    },
+  ].forEach((p, i) => {
+    const px = ML + i * (panW + 2);
+    SF(p.col);
+    doc.roundedRect(px, y, panW - 1, 28, 1.5, 1.5, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    ST(WH);
+    doc.text(p.num, px + 3, y + 7);
+    doc.setFontSize(9);
+    doc.text(p.title, px + 3, y + 14);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.text(p.sub, px + 3, y + 20);
+    doc.setFontSize(5.5);
+    ST("#ffffff99");
+    doc.text(p.note, px + 3, y + 26);
+  });
+  y += 31;
+
+  // Stats bar
+  needY(12);
+  const sw = (CW - 9) / 4;
+  [
+    { val: "12", lbl: "ERRORS", col: RD, bg: RDB },
+    { val: "22", lbl: "WARNINGS", col: YL, bg: YLB },
+    { val: "55", lbl: "PASSED", col: GR, bg: GRB },
+    { val: "89", lbl: "TOTAL CHECKS", col: "#3b82f6", bg: "#eff6ff" },
+  ].forEach((s, i) => {
+    const sx = ML + i * (sw + 3);
+    SF(s.bg);
+    SD(BD);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(sx, y, sw, 11, 1.5, 1.5, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    ST(s.col);
+    doc.text(s.val, sx + sw / 2, y + 7, "center");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(5.5);
+    ST(LT);
+    doc.text(s.lbl, sx + sw / 2, y + 10.5, "center");
+  });
+  y += 14;
+  needY(7);
+  SF(BG2);
+  doc.roundedRect(ML, y, CW, 6, 1, 1, "F");
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.5);
+  ST(MD);
+  doc.text(
+    "Audit Date: 17 March 2026  |  Prepared by BuimbDigital  |  info@buimbdigital.com  |  CONFIDENTIAL — For Internal Distribution Only",
+    ML + CW / 2,
+    y + 4,
+    "center",
+  );
+  y += 8;
+
+  // Exec Summary
+  sectionHead(
+    "SECTION 1: EXECUTIVE SUMMARY",
+    "Score Summary · Key Strengths · Critical Weaknesses",
+  );
+  // Score table
+  needY(32);
+  const stCols = [70, 18, 15, CW - 70 - 18 - 15 - 6],
+    stX = [ML, ML + 70, ML + 88, ML + 103];
+  SF(DK);
+  doc.rect(ML, y, CW, 5.5, "F");
+  ["Module", "Score", "Grade", "Status"].forEach((h, i) => {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    ST(WH);
+    doc.text(h, stX[i] + 2, y + 3.8);
+  });
+  y += 5.5;
+  [
+    {
+      mod: "SEO (Search Engine Optimization)",
+      sc: 70,
+      col: SEO,
+      status: "Needs Improvement",
+    },
+    {
+      mod: "AEO (Answer Engine Optimization)",
+      sc: 79,
+      col: AEO,
+      status: "Good — Minor Gaps",
+    },
+    {
+      mod: "GEO (Generative Engine Optimization)",
+      sc: 72,
+      col: GEO,
+      status: "Moderate Gaps",
+    },
+    { mod: "Overall Score", sc: 74, col: OR, status: "Strong Foundation" },
+  ].forEach((r) => {
+    needY(7);
+    const isOv = r.mod === "Overall Score";
+    SF(isOv ? BG2 : WH);
+    doc.rect(ML, y, CW, 6.5, "F");
+    SF(r.col);
+    doc.rect(ML, y, 2.5, 6.5, "F");
+    SD(BD);
+    doc.setLineWidth(0.07);
+    doc.line(ML, y + 6.5, ML + CW, y + 6.5);
+    doc.setFont("helvetica", isOv ? "bold" : "normal");
+    doc.setFontSize(6.8);
     ST(DK);
-    doc.text(cat.name, ML + 3, y + 5.5);
-    const cp = cat.checks.filter((c) => c.ok === 1).length;
-    const cw = cat.checks.filter((c) => c.ok === 0.5).length;
-    const cf = cat.checks.filter((c) => c.ok === 0).length;
+    doc.text(r.mod, ML + 5, y + 4.3);
+    const sc = r.sc >= 65 ? GR : r.sc >= 45 ? YL : RD,
+      sb = r.sc >= 65 ? GRB : r.sc >= 45 ? YLB : RDB;
+    chip(stX[1] + 1, y + 1.3, r.sc + "/100", sb, sc, 15);
+    chip(stX[2] + 1, y + 1.3, pdfGrade(r.sc), sb, sc, 12);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    ST(MD);
+    doc.text(r.status, stX[3] + 2, y + 4.3);
+    y += 6.5;
+  });
+  y += 4;
+
+  // Gauges
+  needY(38);
+  [
+    { lbl: "SEO", sc: 70, col: SEO },
+    { lbl: "AEO", sc: 79, col: AEO },
+    { lbl: "GEO", sc: 72, col: GEO },
+    { lbl: "Overall", sc: 74, col: OR },
+  ].forEach((g, i) => {
+    const gx = ML + 22 + i * 45,
+      r2 = 10,
+      circ = 2 * Math.PI * r2;
+    const offset = circ - (g.sc / 100) * circ;
+    SD(BD);
+    doc.setLineWidth(3);
+    doc.circle(gx, y + 13, r2, "S");
+    SD(g.col);
+    doc.setLineWidth(3);
+    const steps = Math.round((g.sc / 100) * 48);
+    for (let k = 0; k < steps; k++) {
+      const a1 = -Math.PI / 2 + (k / 48) * 2 * Math.PI,
+        a2 = -Math.PI / 2 + ((k + 1) / 48) * 2 * Math.PI;
+      doc.line(
+        gx + r2 * Math.cos(a1),
+        y + 13 + r2 * Math.sin(a1),
+        gx + r2 * Math.cos(a2),
+        y + 13 + r2 * Math.sin(a2),
+      );
+    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    ST(DK);
+    doc.text(String(g.sc), gx, y + 15, "center");
+    doc.setFontSize(5.5);
+    ST(LT);
+    doc.text("/100", gx, y + 19, "center");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    ST(DK);
+    doc.text(g.lbl, gx, y + 27, "center");
+    const gc = g.sc >= 65 ? GR : g.sc >= 45 ? YL : RD,
+      gb = g.sc >= 65 ? GRB : g.sc >= 45 ? YLB : RDB;
+    chip(gx - 5, y + 29, pdfGrade(g.sc), gb, gc, 10);
+  });
+  y += 38;
+
+  // Strengths
+  needY(6);
+  sectionHead("Key Strengths", "Areas performing well");
+  [
+    "Voice Search Optimization — perfect 100/100. Conversational keywords, long-tail questions, and local signals all well-implemented.",
+    "NLP & Semantic SEO — 90/100. Well-structured, semantically rich content aligned with how search engines process natural language.",
+    "LLM-Ready Content and AI Topical Coverage — both 90/100. Site is well-structured for AI tools to parse and cite.",
+    "Backlinks & Off-Page SEO — 90/100. Strong domain authority and quality external link signals.",
+    "Technical SEO fundamentals (SSL, XML sitemap, robots.txt, redirect hygiene) largely in order at 83/100.",
+  ].forEach((s) => {
+    const lines = doc.splitTextToSize(s, CW - 11);
+    const rh = Math.max(6.5, lines.length * 3.5 + 1);
+    needY(rh + 0.5);
+    SF(GRB);
+    doc.roundedRect(ML, y, CW, rh, 1, 1, "F");
+    SF(GR);
+    doc.circle(ML + 4.5, y + rh / 2, 1.5, "F");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    ST(DK);
+    lines.forEach((ln, li) => doc.text(ln, ML + 9, y + 2.5 + li * 3.5));
+    y += rh + 0.8;
+  });
+  y += 2;
+
+  // Weaknesses
+  sectionHead(
+    "Critical Weaknesses Requiring Immediate Action",
+    "Fix these to unlock significant ranking improvements",
+  );
+  [
+    "Page Load Speed — CRITICAL failure. Slow load times directly reduce Google rankings, increase bounce rates, and hurt mobile conversions.",
+    "Mobile Responsiveness — 38/100, the single lowest score in the entire audit. With over 60% of web traffic on mobile, this is a major revenue-impacting issue.",
+    "HTTPS Security (GEO) — CRITICAL error. AI systems and security-conscious search algorithms may deprioritize or distrust the site.",
+    "E-E-A-T — 60/100. Missing trust badges, publication dates, and expanded author credentials.",
+    "Machine-Readable Metadata — 50/100, the lowest category score. Limiting how search engines and AI systems represent the site.",
+  ].forEach((s) => {
+    const lines = doc.splitTextToSize(s, CW - 11);
+    const rh = Math.max(6.5, lines.length * 3.5 + 1);
+    needY(rh + 0.5);
+    SF(RDB);
+    doc.roundedRect(ML, y, CW, rh, 1, 1, "F");
+    SF(RD);
+    doc.circle(ML + 4.5, y + rh / 2, 1.5, "F");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    ST(DK);
+    lines.forEach((ln, li) => doc.text(ln, ML + 9, y + 2.5 + li * 3.5));
+    y += rh + 0.8;
+  });
+
+  // SEO/AEO/GEO detail pages
+  const modColMap = { seo: SEO, aeo: AEO, geo: GEO };
+  const modSecMap = { seo: "SECTION 2", aeo: "SECTION 3", geo: "SECTION 4" };
+  ["seo", "aeo", "geo"].forEach((mk) => {
+    ftr();
+    doc.addPage();
+    hdr();
+    _part = "PART 1: " + mk.toUpperCase() + " ANALYSIS";
+    const mod = d.mods[mk];
+    sectionHead(
+      `${modSecMap[mk]}: ${mod.label} ANALYSIS — Detailed Findings`,
+      `Score: ${mod.score}/100`,
+    );
+    mod.categories.forEach((cat) => {
+      needY(12);
+      SF(BG2);
+      SD(BD);
+      doc.setLineWidth(0.15);
+      doc.rect(ML, y, CW, 7.5, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      ST(DK);
+      doc.text(
+        `${cat.sectionNum} ${cat.name}${cat.note ? " " + cat.note : ""}`,
+        ML + 3,
+        y + 5.2,
+      );
+      const cp = cat.checks.filter((c) => c.status === "PASS").length,
+        cw = cat.checks.filter((c) => c.status === "WARN").length,
+        cf = cat.checks.filter((c) => c.status === "FAIL").length;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6);
+      ST(LT);
+      doc.text(
+        `Passed:${cp}  Warnings:${cw}  Errors:${cf}`,
+        ML + CW - 14,
+        y + 5.2,
+        "right",
+      );
+      const sc = cat.score,
+        sc2 = sc >= 65 ? GR : sc >= 45 ? YL : RD,
+        sb = sc >= 65 ? GRB : sc >= 45 ? YLB : RDB;
+      chip(ML + CW - 12, y + 1.8, `${sc} ${pdfGrade(sc)}`, sb, sc2, 12);
+      y += 9.5;
+      // Table header
+      const cols = [35, 22, 50, 22, CW - 35 - 22 - 50 - 22 - 5],
+        colX = [ML, ML + 35, ML + 57, ML + 107, ML + 129];
+      needY(5.5);
+      SF(DK);
+      doc.rect(ML, y, CW, 5, "F");
+      ["Check", "Status", "Finding", "Priority", "Action Required"].forEach(
+        (h, i) => {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(6);
+          ST(WH);
+          doc.text(h, colX[i] + 1, y + 3.5);
+        },
+      );
+      y += 5;
+      cat.checks.forEach((c) => {
+        const descL = doc.splitTextToSize(c.finding, cols[2] - 3);
+        const actL = doc.splitTextToSize(c.action, cols[4] - 3);
+        const rh = Math.max(8, Math.max(descL.length, actL.length) * 3.2 + 2.5);
+        needY(rh + 0.5);
+        const rb =
+          c.status === "FAIL"
+            ? "#fff5f5"
+            : c.status === "WARN"
+              ? "#fffbf0"
+              : WH;
+        SF(rb);
+        doc.rect(ML, y, CW, rh, "F");
+        SD(BD);
+        doc.setLineWidth(0.07);
+        doc.line(ML, y + rh, ML + CW, y + rh);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(6.5);
+        ST(DK);
+        doc.text(c.n, colX[0] + 1, y + 4);
+        const stC = c.status === "PASS" ? GR : c.status === "WARN" ? YL : RD,
+          stB = c.status === "PASS" ? GRB : c.status === "WARN" ? YLB : RDB;
+        chip(colX[1] + 1, y + rh / 2 - 2, c.status, stB, stC, 20);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(5.8);
+        ST(MD);
+        descL.forEach((ln, li) =>
+          doc.text(ln, colX[2] + 1, y + 3.5 + li * 3.2),
+        );
+        const pm = {
+          CRITICAL: { bg: RDB, fg: RD },
+          HIGH: { bg: YLB, fg: "#c2410c" },
+          MEDIUM: { bg: "#fef9c3", fg: "#a16207" },
+          LOW: { bg: BG2, fg: LT },
+        };
+        const p = pm[c.priority] || pm.LOW;
+        chip(colX[3] + 1, y + rh / 2 - 2, c.priority, p.bg, p.fg, 20);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(5.8);
+        ST(DK);
+        actL.forEach((ln, li) => doc.text(ln, colX[4] + 1, y + 3.5 + li * 3.2));
+        y += rh + 0.5;
+      });
+      y += 3;
+    });
+  });
+
+  // Action Plan page
+  ftr();
+  doc.addPage();
+  hdr();
+  _part = "PART 1: ACTION PLAN";
+  sectionHead(
+    "SECTION 5: PRIORITIZED ACTION PLAN",
+    "Critical (2 weeks) · High (30 days) · Medium (60-90 days)",
+  );
+  const allIss = [];
+  ["seo", "aeo", "geo"].forEach((k) =>
+    d.mods[k].categories.forEach((cat) =>
+      cat.checks
+        .filter((c) => c.status !== "PASS")
+        .forEach((c) => allIss.push({ ...c, module: k.toUpperCase() })),
+    ),
+  );
+  allIss.sort(
+    (a, b) =>
+      ["CRITICAL", "HIGH", "MEDIUM", "LOW"].indexOf(a.priority) -
+      ["CRITICAL", "HIGH", "MEDIUM", "LOW"].indexOf(b.priority),
+  );
+  const priCfg = [
+    {
+      k: "CRITICAL",
+      lbl: "Critical Priority — Fix Within 2 Weeks",
+      col: RD,
+      bg: RDB,
+      fg: "#dc2626",
+    },
+    {
+      k: "HIGH",
+      lbl: "High Priority — Fix Within 30 Days",
+      col: YL,
+      bg: YLB,
+      fg: "#c2410c",
+    },
+    {
+      k: "MEDIUM",
+      lbl: "Medium Priority — Fix Within 60-90 Days",
+      col: "#d97706",
+      bg: "#fef9c3",
+      fg: "#a16207",
+    },
+    { k: "LOW", lbl: "Low Priority", col: LT, bg: BG2, fg: LT },
+  ];
+  let actN = 1;
+  priCfg.forEach((pg) => {
+    const items = allIss.filter((c) => c.priority === pg.k);
+    if (!items.length) return;
+    needY(8);
+    SF(pg.bg);
+    SD(pg.col);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(ML, y, CW, 6, 1, 1, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    ST(pg.fg);
+    doc.text(pg.lbl, ML + 4, y + 4);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(6.5);
     ST(LT);
     doc.text(
-      "Passed: " + cp + "  Warnings: " + cw + "  Errors: " + cf,
-      ML + CW - 15,
-      y + 5.5,
-      "right",
+      `(${items.length} issues)`,
+      ML + 4 + doc.getTextWidth(pg.lbl) + 3,
+      y + 4,
     );
-    chip(
-      ML + CW - 13,
-      y + 2,
-      String(sc) + "  " + pdfGrade(sc),
-      scBg(sc),
-      scCol(sc),
-      13,
-    );
-    y += 10;
-
-    cat.checks.forEach((c) => {
-      const desc = c.ok === 1 ? c.g : c.b;
-      const lines = doc.splitTextToSize(desc, CW - 24);
-      const rh = Math.max(9, 4 + lines.length * 3.4 + 2);
-      needY(rh + 1);
-      const rowBg = c.ok === 0 ? "#fff5f5" : c.ok === 0.5 ? "#fffbf0" : WH;
-      SF(rowBg);
+    y += 8;
+    const cX = [ML, ML + 7, ML + 55, ML + 70, ML + 86];
+    const cW = [7, 48, 15, 16, CW - 86 - 3];
+    needY(5);
+    SF(DK);
+    doc.rect(ML, y, CW, 5, "F");
+    ["#", "Issue", "Module", "Priority", "Recommended Fix"].forEach((h, i) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6);
+      ST(WH);
+      doc.text(h, cX[i] + 1, y + 3.5);
+    });
+    y += 5;
+    items.forEach((item) => {
+      const rLines = doc.splitTextToSize(item.action, cW[4] - 3);
+      const rh = Math.max(7, rLines.length * 3.2 + 2.5);
+      needY(rh + 0.5);
+      const rb = item.status === "FAIL" ? RDB : YLB;
+      SF(rb);
       doc.rect(ML, y, CW, rh, "F");
       SD(BD);
-      doc.setLineWidth(0.08);
+      doc.setLineWidth(0.07);
       doc.line(ML, y + rh, ML + CW, y + rh);
-      // dot
-      const dc = c.ok === 1 ? GR : c.ok === 0.5 ? YL : RD;
-      SF(dc);
-      doc.circle(ML + 3, y + rh / 2, 1.4, "F");
-      // name
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(7);
+      doc.setFontSize(6.5);
+      ST(pg.fg);
+      doc.text(String(actN++), cX[0] + 3, y + rh / 2 + 1.5, "center");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
       ST(DK);
-      doc.text(c.n, ML + 7, y + 4.5);
-      // desc
+      doc.text(item.n, cX[1] + 1, y + 4);
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(6.2);
+      doc.setFontSize(5.5);
       ST(MD);
-      lines.forEach((ln, li) => doc.text(ln, ML + 7, y + 8 + li * 3.4));
-      // priority chip
-      const pMap = {
-        critical: { bg: RDB, fg: RD },
-        high: { bg: YLB, fg: "#c2410c" },
-        medium: { bg: "#fef9c3", fg: "#a16207" },
-        low: { bg: BG2, fg: LT },
+      const fl = doc.splitTextToSize(item.finding, cW[1] - 3);
+      fl.slice(0, 1).forEach((ln, li) => doc.text(ln, cX[1] + 1, y + 7.5));
+      const mC = { SEO: SEO, AEO: AEO, GEO: GEO }[item.module] || OR,
+        mB =
+          { SEO: "#fff0eb", AEO: "#f0fdf4", GEO: "#f5f3ff" }[item.module] ||
+          "#fff0eb";
+      chip(cX[2] + 1, y + rh / 2 - 2, item.module, mB, mC, 13);
+      const pm = {
+        CRITICAL: { bg: RDB, fg: RD },
+        HIGH: { bg: YLB, fg: "#c2410c" },
+        MEDIUM: { bg: "#fef9c3", fg: "#a16207" },
+        LOW: { bg: BG2, fg: LT },
       };
-      const pm = pMap[c.p] || pMap.low;
-      chip(ML + CW - 18, y + 1.5, c.p.toUpperCase(), pm.bg, pm.fg, 17);
-      y += rh + 1;
+      const p = pm[pg.k] || pm.LOW;
+      chip(cX[3] + 1, y + rh / 2 - 2, pg.k, p.bg, p.fg, 15);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(5.8);
+      ST(DK);
+      rLines.forEach((ln, li) => doc.text(ln, cX[4] + 1, y + 3.5 + li * 3.2));
+      y += rh + 0.5;
     });
     y += 4;
   });
-  return y;
-}
 
-function resetAudit() {
-  _data = null;
-  document.getElementById("results").style.display = "none";
-  document.getElementById("page-hero").style.display = "block";
-  document.getElementById("audit-btn").disabled = false;
-  document.getElementById("url-input").value = "";
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
+  // Team section
+  ftr();
+  doc.addPage();
+  hdr();
+  _part = "PART 1: TEAM & FINAL NOTES";
+  sectionHead(
+    "SECTION 6: TEAM RESPONSIBILITIES & TIMELINE",
+    "30/60-day targets by team",
+  );
+  const teams2 = [
+    {
+      name: "Developer / Technical Team",
+      col: "#3b82f6",
+      bg: "#1e3a5f",
+      tasks: [
+        "Fix HTTPS / mixed content warnings — Week 1",
+        "Add viewport meta tag to all pages — Week 1",
+        "Implement Organization JSON-LD schema sitewide — Week 1",
+        "Remove noindex tags from key pages — Week 1",
+        "Fix TTFB: enable caching, CDN, server optimization — Week 1–2",
+        "Improve page load speed: minify, compress, lazy-load — Week 1–2",
+        "Create custom 404 error page — Week 2",
+        "Add HowTo, QAPage, BreadcrumbList, and Person schema — Week 3–4",
+        "Add Open Graph and Twitter Card meta tags — Week 3–4",
+        "Add canonical tags to all pages — Week 3–4",
+      ],
+    },
+    {
+      name: "Content / SEO Team",
+      col: SEO,
+      bg: "#7c2d12",
+      tasks: [
+        "Audit and rewrite all title tags — Week 1–2",
+        "Write unique meta descriptions for all pages — Week 1–2",
+        "Add primary keywords to first 100 words of all service pages — Week 2",
+        "Add definition sections ('What is X?') to all service pages — Week 2–3",
+        "Create FAQ sections for all key pages — Week 2–3",
+        "Add publication and 'Last Updated' dates to all content — Week 2–3",
+        "Expand thin content pages to 800+ words — Week 3–6",
+        "Create 3–5 use case landing pages — Week 4–8",
+      ],
+    },
+    {
+      name: "Marketing / Brand Team",
+      col: AEO,
+      bg: "#064e3b",
+      tasks: [
+        "Audit brand name consistency across all pages — Week 1",
+        "Collect and add trust badges, certifications, partner logos — Week 2–3",
+        "Gather and publish 10+ client testimonials — Week 2–4",
+        "Create 3–5 detailed case studies — Week 3–8",
+        "Submit brand to Clutch, GoodFirms, DesignRush — Week 2–3",
+        "Optimize Google Business Profile — Week 1–2",
+        "Pursue press mentions and digital PR — Ongoing",
+      ],
+    },
+  ];
+  teams2.forEach((t) => {
+    needY(12);
+    SF(t.bg);
+    doc.roundedRect(ML, y, CW, 7, 1, 1, "F");
+    SF(t.col);
+    doc.rect(ML, y, 3, 7, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    ST(WH);
+    doc.text(t.name, ML + 6, y + 5);
+    y += 9;
+    t.tasks.forEach((task) => {
+      const lines = doc.splitTextToSize(task, CW - 9);
+      const rh = Math.max(5.5, lines.length * 3.4 + 0.5);
+      needY(rh + 0.5);
+      SD(BD);
+      doc.setLineWidth(0.06);
+      doc.line(ML, y + rh, ML + CW, y + rh);
+      SF(t.col);
+      doc.circle(ML + 3.5, y + rh / 2, 1.2, "F");
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.5);
+      ST(DK);
+      lines.forEach((ln, li) => doc.text(ln, ML + 8, y + 2.5 + li * 3.4));
+      y += rh + 0.5;
+    });
+    y += 4;
+  });
 
-document.getElementById("url-input").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") startAudit();
-});
+  // 30/60 day targets
+  needY(28);
+  sectionHead("30/60-Day Score Milestone Targets");
+  const mX = [ML, ML + 50, ML + 90, ML + 130];
+  SF(DK);
+  doc.rect(ML, y, CW, 5.5, "F");
+  ["Module", "Current Score", "30-Day Target", "60-Day Target"].forEach(
+    (h, i) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
+      ST(WH);
+      doc.text(h, mX[i] + 2, y + 3.8);
+    },
+  );
+  y += 5.5;
+  [
+    { mod: "SEO Overall", now: 70, d30: 80, d60: 87 },
+    { mod: "AEO Overall", now: 79, d30: 86, d60: 91 },
+    { mod: "GEO Overall", now: 72, d30: 82, d60: 88 },
+    { mod: "Overall Score", now: 74, d30: 83, d60: 89 },
+  ].forEach((m) => {
+    needY(7);
+    const isOv = m.mod === "Overall Score";
+    SF(isOv ? BG2 : WH);
+    doc.rect(ML, y, CW, 6.5, "F");
+    SD(BD);
+    doc.setLineWidth(0.07);
+    doc.line(ML, y + 6.5, ML + CW, y + 6.5);
+    doc.setFont("helvetica", isOv ? "bold" : "normal");
+    doc.setFontSize(6.8);
+    ST(DK);
+    doc.text(m.mod, mX[0] + 2, y + 4.3);
+    [m.now, m.d30, m.d60].forEach((v, i) => {
+      const bg = v >= 80 ? GRB : v >= 70 ? YLB : RDB,
+        fg = v >= 80 ? GR : v >= 70 ? YL : RD;
+      chip(mX[i + 1] + 2, y + 1.3, v + "/100", bg, fg, 18);
+    });
+    y += 6.5;
+  });
+  y += 4;
+
+  // Section 7
+  sectionHead(
+    "SECTION 7: FINAL NOTES & EXECUTIVE RECOMMENDATIONS",
+    "Summary for leadership and 4 immediate actions",
+  );
+  const sumText =
+    "buimbdigital.com is performing at a B+ level across all three dimensions of modern search visibility. Core strengths — strong backlinks, perfect voice search optimization, and well-structured AI-ready content — provide a competitive foundation that many agencies lack. The two most revenue-impactful issues are mobile responsiveness (38/100) and page load speed (CRITICAL failure). Fixing these two items alone could produce measurable ranking improvements within 30-60 days.";
+  const sumLines = doc.splitTextToSize(sumText, CW - 8);
+  needY(sumLines.length * 3.8 + 6);
+  SF(BG2);
+  doc.roundedRect(ML, y, CW, sumLines.length * 3.8 + 4, 1.5, 1.5, "F");
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(6.8);
+  ST(DK);
+  sumLines.forEach((ln, li) => doc.text(ln, ML + 4, y + 4 + li * 3.8));
+  y += sumLines.length * 3.8 + 6;
+  [
+    "Assign a developer sprint in the next 5-7 days focused exclusively on the 8 critical technical items.",
+    "Schedule a content audit meeting where the SEO/content team reviews all pages missing FAQs, definitions, and trust signals.",
+    "Begin collecting client testimonials and case study approvals from existing clients this week.",
+    "Set a re-audit date 30 days from today to measure progress against the baseline scores in this report.",
+  ].forEach((a, i) => {
+    const lines = doc.splitTextToSize(a, CW - 15);
+    const rh = Math.max(8, lines.length * 3.5 + 3);
+    needY(rh + 1);
+    SF(BG2);
+    doc.roundedRect(ML, y, CW, rh, 1.5, 1.5, "F");
+    SF(OR);
+    doc.roundedRect(ML + 2, y + rh / 2 - 3.5, 7, 7, 1, 1, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    ST(WH);
+    doc.text(String(i + 1), ML + 5.5, y + rh / 2 + 1, "center");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.8);
+    ST(DK);
+    lines.forEach((ln, li) => doc.text(ln, ML + 12, y + 4 + li * 3.5));
+    y += rh + 2;
+  });
+
+  // PART 2 banner
+  ftr();
+  doc.addPage();
+  hdr();
+  _part = "PART 2: CONTENT CALENDAR";
+  SF(AEO);
+  doc.rect(ML, y, CW, 28, "F");
+  SF("#06b6d4");
+  doc.rect(PW - MR - 20, y, 20, 28, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  ST("#d1fae5");
+  doc.text("PART 2", ML + 5, y + 8);
+  doc.setFontSize(16);
+  ST(WH);
+  doc.text("6-MONTH CONTENT CALENDAR", ML + 5, y + 17);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  ST("#d1fae5");
+  doc.text(
+    "April – October 2026  |  29 Content Pieces  |  Weekly Breakdown",
+    ML + 5,
+    y + 24,
+  );
+  y += 31;
+
+  sectionHead(
+    "SECTION 8: CONTENT CALENDAR — Strategy & Overview",
+    "Content mix, audit gap mapping, content type legend",
+  );
+  sectionHead(
+    "SECTION 9: 6-MONTH WEEKLY CALENDAR",
+    "Week-by-week topics, types, keywords, CTAs, and owner assignments",
+  );
+
+  CALENDAR.forEach((month) => {
+    needY(10);
+    SF(DK);
+    doc.roundedRect(ML, y, CW, 7.5, 1, 1, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    ST(AEO);
+    doc.text(month.month, ML + 4, y + 5);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(6.5);
+    ST(LT);
+    doc.text("Theme: " + month.theme, PW - MR, y + 5, "right");
+    y += 9.5;
+    const cX2 = [ML, ML + 9, ML + 29, ML + 80, ML + 130, ML + CW - 9];
+    SF("#e2e5ed");
+    doc.rect(ML, y, CW, 5, "F");
+    ["Wk", "Type", "Title / Topic", "Target Keywords", "Goal", "Owner"].forEach(
+      (h, i) => {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(5.8);
+        ST(DK);
+        doc.text(h, cX2[i] + 1, y + 3.5);
+      },
+    );
+    y += 5;
+    month.items.forEach((item, ii) => {
+      const tLines = doc.splitTextToSize(item.title, 50);
+      const kwLines = doc.splitTextToSize(item.keywords, 49);
+      const gLines = doc.splitTextToSize(item.goal, 49);
+      const rh = Math.max(
+        7,
+        Math.max(tLines.length, kwLines.length, gLines.length) * 3.2 + 2,
+      );
+      needY(rh + 0.5);
+      SF(ii % 2 === 0 ? WH : BG2);
+      doc.rect(ML, y, CW, rh, "F");
+      SD(BD);
+      doc.setLineWidth(0.07);
+      doc.line(ML, y + rh, ML + CW, y + rh);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6);
+      ST(AEO);
+      doc.text(item.week, cX2[0] + 1, y + rh / 2 + 1.5, "center");
+      const tC =
+        {
+          "Blog Post": "#3b82f6",
+          "Service Page": SEO,
+          "Case Study": GEO,
+          "Social Post": AEO,
+          "FAQ Page": "#f59e0b",
+          "Use Case Page": "#8b5cf6",
+          "Definition Page": "#06b6d4",
+        }[item.type] || DK;
+      const tB =
+        {
+          "Blog Post": "#dbeafe",
+          "Service Page": "#fff0eb",
+          "Case Study": "#f0fdf4",
+          "Social Post": "#ecfdf5",
+          "FAQ Page": "#fff7ed",
+          "Use Case Page": "#f5f3ff",
+          "Definition Page": "#ecfeff",
+        }[item.type] || BG2;
+      chip(
+        cX2[1] + 1,
+        y + rh / 2 - 2,
+        item.type.slice(0, 10) + (item.type.length > 10 ? ".." : ""),
+        tB,
+        tC,
+        18,
+      );
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.2);
+      ST(DK);
+      tLines.forEach((ln, li) => doc.text(ln, cX2[2] + 1, y + 3.5 + li * 3.2));
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(5.8);
+      ST(MD);
+      kwLines.forEach((ln, li) => doc.text(ln, cX2[3] + 1, y + 3.5 + li * 3.2));
+      doc.setFontSize(5.8);
+      ST(DK);
+      gLines.forEach((ln, li) => doc.text(ln, cX2[4] + 1, y + 3.5 + li * 3.2));
+      const oC = { SEO: SEO, Content: GEO, Marketing: AEO }[item.owner] || DK;
+      const oB =
+        { SEO: "#fff0eb", Content: "#f5f3ff", Marketing: "#f0fdf4" }[
+          item.owner
+        ] || BG2;
+      chip(cX2[5] + 1, y + rh / 2 - 2, item.owner, oB, oC, 9);
+      y += rh + 0.5;
+    });
+    y += 4;
+  });
+
+  // Section 10 KPIs
+  ftr();
+  doc.addPage();
+  hdr();
+  sectionHead(
+    "SECTION 10: CONTENT KPIs & SUCCESS METRICS",
+    "Track these 8 KPIs monthly using Looker Studio + GA4 + Search Console",
+  );
+  const kX = [ML, ML + 35, ML + 80, ML + 125, ML + 140];
+  SF(DK);
+  doc.rect(ML, y, CW, 5, "F");
+  [
+    "KPI Metric",
+    "Starting Point",
+    "Tracking Tool",
+    "Frequency",
+    "6-Month Target",
+  ].forEach((h, i) => {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6);
+    ST(WH);
+    doc.text(h, kX[i] + 1, y + 3.5);
+  });
+  y += 5;
+  [
+    [
+      "Organic Traffic",
+      "Baseline (Month 0)",
+      "Google Analytics 4",
+      "Monthly",
+      "+15% by Month 3, +40% by Month 6",
+    ],
+    [
+      "Keyword Rankings",
+      "Track 20 target keywords",
+      "Google Search Console",
+      "Weekly",
+      "5+ in Top 10 by Month 3",
+    ],
+    [
+      "Blog Pageviews",
+      "Baseline (Month 0)",
+      "GA4 / GSC",
+      "Monthly",
+      "2x by Month 6",
+    ],
+    [
+      "Case Study Leads",
+      "0 currently",
+      "CRM / Form tracking",
+      "Monthly",
+      "3+ leads from case studies by Month 4",
+    ],
+    [
+      "Social Engagement Rate",
+      "Baseline this week",
+      "LinkedIn / Meta Analytics",
+      "Weekly",
+      "+20% engagement by Month 2",
+    ],
+    [
+      "AI Citation Appearances",
+      "Manual audit",
+      "Perplexity / ChatGPT",
+      "Monthly",
+      "Brand cited in 5+ AI queries by Month 6",
+    ],
+    [
+      "Domain Authority",
+      "Current score",
+      "Ahrefs / Moz",
+      "Monthly",
+      "+5 DA points by Month 6",
+    ],
+    [
+      "Backlinks Earned",
+      "Baseline",
+      "Ahrefs",
+      "Monthly",
+      "10+ new referring domains by Month 6",
+    ],
+  ].forEach((r, ii) => {
+    const tL = doc.splitTextToSize(r[4], CW - 140 - 3);
+    const rh = Math.max(7, tL.length * 3.2 + 2);
+    needY(rh + 0.5);
+    SF(ii % 2 === 0 ? WH : BG2);
+    doc.rect(ML, y, CW, rh, "F");
+    SD(BD);
+    doc.setLineWidth(0.07);
+    doc.line(ML, y + rh, ML + CW, y + rh);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    ST(DK);
+    doc.text(r[0], kX[0] + 1, y + rh / 2 + 1.5);
+    [r[1], r[2]].forEach((v, i) => {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6);
+      ST(MD);
+      doc.text(v, kX[i + 1] + 1, y + rh / 2 + 1.5);
+    });
+    chip(kX[3] + 1, y + rh / 2 - 2, r[3], AEO + "22", AEO, 14);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6);
+    ST(GR);
+    tL.forEach((ln, li) => doc.text(ln, kX[4] + 1, y + 3.5 + li * 3.2));
+    y += rh + 0.5;
+  });
+  y += 4;
+
+  // PART 3 banner
+  ftr();
+  doc.addPage();
+  hdr();
+  _part = "PART 3: SEO STRATEGY & KEYWORDS";
+  SF(GEO);
+  doc.rect(ML, y, CW, 28, "F");
+  SF("#7c3aed");
+  doc.rect(PW - MR - 20, y, 20, 28, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  ST("#ede9fe");
+  doc.text("PART 3", ML + 5, y + 8);
+  doc.setFontSize(14);
+  ST(WH);
+  doc.text("SEO STRATEGY · COMPETITORS · KEYWORDS", ML + 5, y + 17);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  ST("#ede9fe");
+  doc.text(
+    "12-Month Plan  |  6 Competitor Profiles  |  62 Keyword Recommendations",
+    ML + 5,
+    y + 24,
+  );
+  y += 31;
+
+  // Section 11: 12-Month Strategy — directly on same page (no new page)
+  sectionHead(
+    "SECTION 11: 12-MONTH SEO STRATEGY PLAN",
+    "Strategic Objectives & 4-Phase Execution Plan",
+  );
+  // Strategic Objectives compact
+  const objectives = [
+    {
+      n: 1,
+      obj: "Top 3 rankings for 10 primary keywords",
+      target: "10 keywords in Top 3 by Month 12",
+      col: GEO,
+    },
+    {
+      n: 2,
+      obj: "Fix all Critical and High Priority audit issues",
+      target: "Overall audit score ≥ 90/100 by Month 6",
+      col: RD,
+    },
+    {
+      n: 3,
+      obj: "Grow organic traffic by 150%",
+      target: "+150% sessions from organic by Month 12",
+      col: GR,
+    },
+    {
+      n: 4,
+      obj: "Establish AEO & GEO authority in niche",
+      target: "Brand cited in 10+ AI queries by Month 9",
+      col: AEO,
+    },
+    {
+      n: 5,
+      obj: "Local SEO dominance in Agra + pan-India",
+      target: "GBP in Top 3 Local Pack for 5 keywords by Month 6",
+      col: "#f59e0b",
+    },
+    {
+      n: 6,
+      obj: "Generate 20+ organic leads per month",
+      target: "20+ monthly organic leads tracked in CRM by Month 12",
+      col: SEO,
+    },
+  ];
+  const objW = (CW - 4) / 3;
+  for (let i = 0; i < objectives.length; i += 3) {
+    needY(14);
+    for (let j = 0; j < 3; j++) {
+      const o = objectives[i + j];
+      if (!o) break;
+      const ox = ML + j * (objW + 2);
+      SF(WH);
+      SD(BD);
+      doc.setLineWidth(0.15);
+      doc.roundedRect(ox, y, objW - 1, 12, 1.5, 1.5, "FD");
+      SF(o.col);
+      doc.roundedRect(ox + 1, y + 1, 5, 5, 1, 1, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7);
+      ST(WH);
+      doc.text(String(o.n), ox + 3.5, y + 4.8, "center");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.2);
+      ST(DK);
+      doc.text(o.obj, ox + 8, y + 4.2);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(5.5);
+      ST(GR);
+      doc.text("→ " + o.target, ox + 8, y + 8);
+    }
+    y += 14;
+  }
+  y += 2;
+
+  // 4 Phases as compact tables
+  const phases4 = [
+    {
+      name: "Phase 1 — Months 1-3: Fix the Foundation",
+      focus: "Technical fixes, on-page corrections, schema, local SEO setup",
+      col: RD,
+      bg: "#fff5f5",
+      items: [
+        [
+          "Viewport meta tag + responsive CSS fix",
+          "Developer",
+          "Week 1",
+          "Mobile 38→75",
+          "+15% rankings",
+        ],
+        [
+          "Fix HTTPS / resolve mixed content",
+          "Developer",
+          "Week 1",
+          "GEO HTTPS",
+          "+AI trust",
+        ],
+        [
+          "Remove noindex from key pages",
+          "Dev/SEO",
+          "Week 1",
+          "Tech SEO",
+          "Pages indexed",
+        ],
+        [
+          "Unique title tags + meta descriptions",
+          "SEO Team",
+          "Weeks 1-2",
+          "On-Page",
+          "+20% CTR",
+        ],
+        [
+          "Page speed: GZIP, CDN, WebP images",
+          "Developer",
+          "Weeks 1-2",
+          "CWV fix",
+          "+Core Vitals",
+        ],
+        [
+          "Org + FAQPage + BreadcrumbList schema",
+          "Developer",
+          "Week 2",
+          "GEO schema",
+          "Rich results",
+        ],
+        [
+          "Claim + fully optimise Google Business Profile",
+          "Marketing",
+          "Week 1-2",
+          "Local SEO",
+          "Local Pack",
+        ],
+        [
+          "Expand thin content to 800-1200 words",
+          "Content",
+          "Weeks 2-6",
+          "Content fix",
+          "+Rankings",
+        ],
+        [
+          "Add definition sections + FAQ blocks",
+          "Content",
+          "Weeks 2-6",
+          "AEO fix",
+          "+PAA capture",
+        ],
+      ],
+    },
+    {
+      name: "Phase 2 — Months 4-6: Authority & Content Build",
+      focus: "Content clusters, E-E-A-T trust signals, link acquisition",
+      col: YL,
+      bg: "#fffbf0",
+      items: [
+        [
+          "Publish 6-month content calendar",
+          "Content",
+          "Month 4",
+          "Content fix",
+          "Featured snippets",
+        ],
+        [
+          "Launch 3 use case pages",
+          "SEO + Content",
+          "Month 4-5",
+          "GEO fix",
+          "Niche traffic",
+        ],
+        [
+          "Publish 2 case studies with results",
+          "Marketing",
+          "Month 4-5",
+          "E-E-A-T fix",
+          "Trust signals",
+        ],
+        [
+          "Build 10+ quality backlinks",
+          "SEO",
+          "Month 4-6",
+          "Authority",
+          "+Domain Authority",
+        ],
+        [
+          "Submit to Clutch, GoodFirms, DesignRush",
+          "Marketing",
+          "Month 4",
+          "GEO fix",
+          "Directory citations",
+        ],
+        [
+          "10+ client testimonials + trust badges",
+          "Marketing",
+          "Month 4-5",
+          "E-E-A-T fix",
+          "Social proof",
+        ],
+        [
+          "Achieve 83/100 overall audit score",
+          "All Teams",
+          "Month 6",
+          "Milestone",
+          "Score benchmark",
+        ],
+      ],
+    },
+    {
+      name: "Phase 3 — Months 7-9: Scale & Brand Authority",
+      focus: "International targeting, PR outreach, AI citation building",
+      col: AEO,
+      bg: "#f0fdf4",
+      items: [
+        [
+          "International landing pages (white-label, outsource)",
+          "SEO + Dev",
+          "Month 7",
+          "Global kws",
+          "Intl leads",
+        ],
+        [
+          "3 more case studies for E-E-A-T depth",
+          "Marketing",
+          "Month 7-8",
+          "E-E-A-T fix",
+          "Trust authority",
+        ],
+        [
+          "Expand HowTo & QAPage schema",
+          "Developer",
+          "Month 7",
+          "AEO fix",
+          "Rich results",
+        ],
+        [
+          "Link building: target DA60+ domains",
+          "SEO",
+          "Month 7-9",
+          "Authority",
+          "+10 domains",
+        ],
+        [
+          "Press outreach: 3-5 media mentions",
+          "Marketing",
+          "Month 7-9",
+          "Domain auth",
+          "+3 DA60+ links",
+        ],
+      ],
+    },
+    {
+      name: "Phase 4 — Months 10-12: Dominate & Sustain",
+      focus: "Top 3 keyword push, 2027 AI search preparation",
+      col: GEO,
+      bg: "#f5f3ff",
+      items: [
+        [
+          "Refresh all 2026 blog posts for 2027",
+          "Content",
+          "Month 10-11",
+          "Freshness",
+          "Posts refreshed",
+        ],
+        [
+          "Push top 10 keywords toward Top 3",
+          "SEO",
+          "Month 10-12",
+          "Revenue kws",
+          "5+ in Top 3",
+        ],
+        [
+          "Expand to 2 new niche verticals",
+          "SEO + Content",
+          "Month 10",
+          "Vertical auth",
+          "2 new pages",
+        ],
+        [
+          "Full re-audit: target 93/100 score",
+          "SEO Lead",
+          "Month 12",
+          "Benchmark",
+          "93+ overall",
+        ],
+        [
+          "2027 SEO predictions + strategy update",
+          "Content + SEO",
+          "Month 11-12",
+          "Thought lead",
+          "2027 keywords",
+        ],
+      ],
+    },
+  ];
+
+  phases4.forEach((phase) => {
+    needY(12);
+    SF(phase.bg);
+    SD(phase.col);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(ML, y, CW, 7, 1, 1, "FD");
+    SF(phase.col);
+    doc.rect(ML, y, 3, 7, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    ST(DK);
+    doc.text(phase.name, ML + 6, y + 4.5);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(6);
+    ST(MD);
+    doc.text(phase.focus, PW - MR, y + 4.5, "right");
+    y += 9;
+    const pCX = [ML, ML + 52, ML + 70, ML + 84, ML + 102];
+    SF("#f1f3f7");
+    doc.rect(ML, y, CW, 4.5, "F");
+    ["Deliverable", "Owner", "Timeline", "Audit Fix", "Impact"].forEach(
+      (h, i) => {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(5.5);
+        ST(DK);
+        doc.text(h, pCX[i] + 1, y + 3.2);
+      },
+    );
+    y += 4.5;
+    phase.items.forEach((item, ii) => {
+      const rh = 7;
+      needY(rh + 0.3);
+      SF(ii % 2 === 0 ? WH : BG2);
+      doc.rect(ML, y, CW, rh, "F");
+      SD(BD);
+      doc.setLineWidth(0.06);
+      doc.line(ML, y + rh, ML + CW, y + rh);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6);
+      ST(DK);
+      doc.text(item[0], pCX[0] + 1, y + 4.3);
+      doc.setFontSize(6);
+      ST(MD);
+      doc.text(item[1], pCX[1] + 1, y + 4.3);
+      doc.text(item[2], pCX[2] + 1, y + 4.3);
+      chip(pCX[3] + 1, y + 1.8, item[3], phase.bg, phase.col);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6);
+      ST(GR);
+      doc.text(item[4], pCX[4] + 1, y + 4.3);
+      y += rh + 0.3;
+    });
+    y += 4;
+  });
+
+  // 12-Month Score Projection
+  needY(30);
+  sectionHead("12-Month Score Projection");
+  const prjX = [ML, ML + 44, ML + 84, ML + 114, ML + 144];
+  SF(DK);
+  doc.rect(ML, y, CW, 5.5, "F");
+  ["Module", "Now (Mar 26)", "Month 6", "Month 9", "Month 12 Target"].forEach(
+    (h, i) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
+      ST(WH);
+      doc.text(h, prjX[i] + 2, y + 3.8);
+    },
+  );
+  y += 5.5;
+  [
+    { mod: "SEO", now: 70, m6: 84, m9: 88, m12: "92/100 (A)" },
+    { mod: "AEO", now: 79, m6: 89, m9: 92, m12: "95/100 (A+)" },
+    { mod: "GEO", now: 72, m6: 85, m9: 89, m12: "92/100 (A)" },
+    { mod: "OVERALL", now: 74, m6: 86, m9: 90, m12: "93/100 (A+)" },
+  ].forEach((r) => {
+    needY(7);
+    const isOv = r.mod === "OVERALL";
+    SF(isOv ? BG2 : WH);
+    doc.rect(ML, y, CW, 6.5, "F");
+    SD(BD);
+    doc.setLineWidth(0.07);
+    doc.line(ML, y + 6.5, ML + CW, y + 6.5);
+    doc.setFont("helvetica", isOv ? "bold" : "normal");
+    doc.setFontSize(7);
+    ST(DK);
+    doc.text(r.mod, prjX[0] + 2, y + 4.3);
+    [r.now, r.m6, r.m9].forEach((v, i) => {
+      const bg = v >= 80 ? GRB : v >= 70 ? YLB : RDB,
+        fg = v >= 80 ? GR : v >= 70 ? YL : RD;
+      chip(prjX[i + 1] + 2, y + 1.3, v + "/100", bg, fg, 18);
+    });
+    SF(DK);
+    doc.roundedRect(prjX[4] + 2, y + 1.3, 22, 4, 1, 1, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    ST(WH);
+    doc.text(r.m12, prjX[4] + 13, y + 4.3, "center");
+    y += 6.5;
+  });
+  y += 5;
+  sectionHead(
+    "SECTION 12: COMPETITOR ANALYSIS",
+    "6 key competitors — India + Global digital marketing agency landscape",
+  );
+  const compX = [
+    ML,
+    ML + 30,
+    ML + 42,
+    ML + 52,
+    ML + 78,
+    ML + 93,
+    ML + 108,
+    ML + 123,
+  ];
+  SF(DK);
+  doc.rect(ML, y, CW, 5, "F");
+  ["Agency", "Est.", "Team", "HQ", "SEO", "AEO", "GEO", "Pricing"].forEach(
+    (h, i) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(5.5);
+      ST(WH);
+      doc.text(h, compX[i] + 1, y + 3.5);
+    },
+  );
+  y += 5;
+  COMPETITORS.forEach((c, ii) => {
+    needY(7);
+    SF(ii % 2 === 0 ? WH : BG2);
+    doc.rect(ML, y, CW, 7, "F");
+    SD(BD);
+    doc.setLineWidth(0.07);
+    doc.line(ML, y + 7, ML + CW, y + 7);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
+    ST(DK);
+    doc.text(c.name, compX[0] + 1, y + 4.5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6);
+    ST(MD);
+    [String(c.est), c.team].forEach((v, i) =>
+      doc.text(v, compX[i + 1] + 1, y + 4.5),
+    );
+    const hqL = doc.splitTextToSize(c.hq, 24);
+    hqL.forEach((ln, li) => doc.text(ln, compX[3] + 1, y + 2.5 + li * 3));
+    [
+      [c.seo, SEO],
+      [c.aeo, AEO],
+      [c.geo, GEO],
+    ].forEach(([n, col], i) => {
+      doc.setFontSize(5.5);
+      ST(col);
+      doc.text("●".repeat(n) + "○".repeat(5 - n), compX[4 + i] + 1, y + 4.5);
+    });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6);
+    ST(DK);
+    doc.text(c.pricing, compX[7] + 1, y + 4.5);
+    y += 7;
+  });
+  y += 3;
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(5.8);
+  ST(LT);
+  doc.text(
+    "●●●●● = Industry-leading  ●●●●○ = Strong  ●●●○○ = Moderate  ●●○○○ = Weak  ●○○○○ = Minimal",
+    ML,
+    y + 4,
+  );
+  y += 7;
+
+  COMPETITORS.forEach((c, ci) => {
+    needY(34);
+    SF(DK);
+    doc.roundedRect(ML, y, CW, 7.5, 1, 1, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    ST(WH);
+    doc.text(`${ci + 1}. ${c.name} (${c.domain})`, ML + 4, y + 5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    ST(LT);
+    doc.text(
+      `Clutch: ${c.clutch} · Est. ${c.est} · Team: ${c.team}`,
+      PW - MR,
+      y + 5,
+      "right",
+    );
+    y += 9.5;
+    [
+      [
+        "HQ / Market",
+        c.hq + " | " + c.market + " | Est. " + c.est + " | Team: " + c.team,
+      ],
+      ["Pricing", c.pricing + " | Clutch: " + c.clutch],
+      ["Strengths", c.strengths],
+      ["Weaknesses", c.weaknesses],
+      ["Our Opportunity", c.opp],
+    ].forEach(([lbl, val]) => {
+      const vL = doc.splitTextToSize(val, CW - 35 - 3);
+      const rh = Math.max(7, vL.length * 3.2 + 2.5);
+      needY(rh + 0.5);
+      SF(BG2);
+      doc.rect(ML, y, 35, rh, "F");
+      SF(WH);
+      doc.rect(ML + 35, y, CW - 35, rh, "F");
+      SD(BD);
+      doc.setLineWidth(0.1);
+      doc.line(ML, y + rh, ML + CW, y + rh);
+      doc.line(ML + 35, y, ML + 35, y + rh);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.2);
+      ST(DK);
+      doc.text(lbl, ML + 2, y + rh / 2 + 1.5);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.2);
+      ST(DK);
+      vL.forEach((ln, li) => doc.text(ln, ML + 37, y + 3.5 + li * 3.2));
+      y += rh + 0.5;
+    });
+    y += 4;
+  });
+
+  // Keywords
+  ftr();
+  doc.addPage();
+  hdr();
+  sectionHead(
+    "SECTION 13: KEYWORD RECOMMENDATIONS — 62 Keywords",
+    "Primary Commercial · Long-Tail · Local SEO · Global",
+  );
+
+  const kwSections = [
+    [
+      "C.1 — Primary Commercial Keywords (10 Keywords)",
+      "Highest-value keywords for driving qualified leads. High competition — target over 12 months.",
+      KW.primary,
+    ],
+    [
+      "C.2 — Long-Tail Informational Keywords (15 Keywords)",
+      "Lower competition keywords targeting AEO/GEO gaps — drive featured snippets and AI citations.",
+      KW.longtail,
+    ],
+    [
+      "C.3 — Local SEO Keywords — Agra & Near Me (8 Keywords)",
+      "Critical for driving nearby business enquiries — fastest ROI opportunity in the keyword set.",
+      KW.local,
+    ],
+    [
+      "C.4 — Global & International Keywords (8 Keywords)",
+      "Target international clients looking to outsource digital marketing from India.",
+      KW.global,
+    ],
+  ];
+
+  kwSections.forEach(([title, desc, kwList]) => {
+    needY(10);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    ST(DK);
+    doc.text(title, ML, y + 5);
+    y += 7;
+    const dL = doc.splitTextToSize(desc, CW);
+    needY(dL.length * 3.5 + 2);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    ST(MD);
+    dL.forEach((ln, li) => doc.text(ln, ML, y + 4 + li * 3.5));
+    y += dL.length * 3.5 + 4;
+    const kwX2 = [ML, ML + 65, ML + 82, ML + 97, ML + 116, ML + 131];
+    SF(DK);
+    doc.rect(ML, y, CW, 5, "F");
+    [
+      "Keyword",
+      "Volume/mo",
+      "Difficulty",
+      "Intent",
+      "Priority",
+      "Target Page",
+    ].forEach((h, i) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(5.5);
+      ST(WH);
+      doc.text(h, kwX2[i] + 1, y + 3.5);
+    });
+    y += 5;
+    kwList.forEach((kw, ii) => {
+      const pgL = doc.splitTextToSize(kw.page, CW - 131 - 3);
+      const rh = Math.max(7, pgL.length * 3.2 + 2);
+      needY(rh + 0.5);
+      SF(ii % 2 === 0 ? WH : BG2);
+      doc.rect(ML, y, CW, rh, "F");
+      SD(BD);
+      doc.setLineWidth(0.07);
+      doc.line(ML, y + rh, ML + CW, y + rh);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.2);
+      ST(DK);
+      doc.text(kw.kw, kwX2[0] + 1, y + rh / 2 + 1.5);
+      doc.text(kw.vol, kwX2[1] + 1, y + rh / 2 + 1.5);
+      const dc = kw.diff === "HIGH" ? RD : kw.diff === "MEDIUM" ? YL : GR,
+        db = kw.diff === "HIGH" ? RDB : kw.diff === "MEDIUM" ? YLB : GRB;
+      chip(kwX2[2] + 1, y + rh / 2 - 2, kw.diff, db, dc, 14);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6);
+      ST(MD);
+      doc.text(kw.intent, kwX2[3] + 1, y + rh / 2 + 1.5);
+      const pm = {
+        CRITICAL: { bg: RDB, fg: RD },
+        HIGH: { bg: YLB, fg: "#c2410c" },
+        MEDIUM: { bg: "#fef9c3", fg: "#a16207" },
+        LOW: { bg: BG2, fg: LT },
+      };
+      const p = pm[kw.pri] || pm.LOW;
+      chip(kwX2[4] + 1, y + rh / 2 - 2, kw.pri, p.bg, p.fg, 15);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(5.8);
+      ST(GEO);
+      pgL.forEach((ln, li) => doc.text(ln, kwX2[5] + 1, y + 3.5 + li * 3.2));
+      y += rh + 0.5;
+    });
+    y += 5;
+  });
+
+  // Final back page
+  needY(18);
+  SF(DK);
+  doc.roundedRect(ML, y, CW, 16, 2, 2, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  ST(OR);
+  doc.text(
+    "BuimbDigital.com — Complete Digital Marketing Strategy & Audit Report",
+    ML + CW / 2,
+    y + 7,
+    "center",
+  );
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  ST(WH);
+  doc.text(
+    "Prepared by BuimbDigital  |  info@buimbdigital.com  |  buimbdigital.com  |  17 March 2026",
+    ML + CW / 2,
+    y + 12,
+    "center",
+  );
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(6);
+  ST(LT);
+  doc.text(
+    "CONFIDENTIAL — For Internal Distribution Only. Do Not Distribute Without Authorization.",
+    ML + CW / 2,
+    y + 15.5,
+    "center",
+  );
+
+  ftr();
+  doc.save(
+    "BuimbDigital-Complete-Report-" +
+      new Date().toISOString().slice(0, 10) +
+      ".pdf",
+  );
+}

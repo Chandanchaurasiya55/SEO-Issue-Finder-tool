@@ -29,57 +29,67 @@
 <div id="page-hero">
   <div class="hero-inner">
     <h1>SEO · AEO · GEO Site Audit</h1>
-    <p>Analyze your website for SEO issues, AI Engine Optimization gaps, and Generative Engine visibility. Get a prioritized action plan with 85+ checks — no sign-up required.</p>
+    <p>Analyze your website for SEO issues, AI Engine Optimization gaps, and Generative Engine visibility. Get a prioritized action plan with 89 checks — no sign-up required.</p>
     <div class="search-box">
       <input type="text" id="url-input" placeholder="Enter domain or URL — e.g. yoursite.com" autocomplete="off">
       <button class="btn-analyze" id="audit-btn" onclick="startAudit()">Analyze Website</button>
     </div>
     <div class="hero-note">Free audit · No account required · Results in seconds</div>
   </div>
-
-  <!-- How-to steps shown before audit -->
   <div id="how-steps" style="max-width:800px;margin:0 auto">
     <div class="howto-steps">
-      <div class="step-card">
-        <div class="step-num">1</div>
-        <div class="step-title">Enter your domain</div>
-        <div class="step-desc">Type your website URL or domain name in the field above to begin the audit.</div>
-      </div>
-      <div class="step-card">
-        <div class="step-num">2</div>
-        <div class="step-title">Click Analyze Website</div>
-        <div class="step-desc">Our engine scans 85+ SEO, AEO, and GEO signals across your homepage and key pages.</div>
-      </div>
-      <div class="step-card">
-        <div class="step-num">3</div>
-        <div class="step-title">Fix issues & improve</div>
-        <div class="step-desc">Use the prioritized report to address critical issues first and track your progress.</div>
-      </div>
+      <div class="step-card"><div class="step-num">1</div><div class="step-title">Enter your domain</div><div class="step-desc">Type your website URL or domain name in the field above to begin the audit.</div></div>
+      <div class="step-card"><div class="step-num">2</div><div class="step-title">Click Analyze Website</div><div class="step-desc">Our engine scans 89 SEO, AEO, and GEO signals across your homepage and key pages.</div></div>
+      <div class="step-card"><div class="step-num">3</div><div class="step-title">Fix issues &amp; improve</div><div class="step-desc">Use the prioritized report to address critical issues first and track your progress.</div></div>
     </div>
   </div>
 </div>
 
 <!-- LOADING -->
 <div id="loading">
-  <p class="scan-label">Scanning <span class="scan-domain" id="scan-domain-text"></span></p>
-  <div class="scan-steps" id="scan-steps"></div>
-  <div class="prog-wrap">
-    <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
-    <div class="prog-pct" id="prog-pct">0%</div>
+  <div class="loading-inner">
+    <div class="scan-header">
+      <h2>Auditing <span class="scan-domain" id="scan-domain-text"></span></h2>
+      <p>Running 89 checks across SEO · AEO · GEO — crawling all pages on your site</p>
+    </div>
+    <div class="scan-layout">
+      <div class="pages-panel">
+        <div class="pages-panel-head">
+          <div class="pulse"></div>
+          <span>Pages Being Crawled</span>
+          <span id="pages-count" style="margin-left:auto;font-size:11px;color:#ff642d;font-weight:700">0 / 0</span>
+        </div>
+        <div id="pages-list"></div>
+      </div>
+      <div class="steps-panel">
+        <div class="steps-panel-head"><span>Running Audit Checks</span></div>
+        <div id="scan-steps"></div>
+      </div>
+    </div>
+    <div class="scan-live-stats">
+      <div class="sls-card"><div class="sls-val" id="live-checked" style="color:#3b82f6">0</div><div class="sls-lbl">Checks Run</div></div>
+      <div class="sls-card"><div class="sls-val" id="live-errors" style="color:#dc2626">0</div><div class="sls-lbl">Errors Found</div></div>
+      <div class="sls-card"><div class="sls-val" id="live-warnings" style="color:#d97706">0</div><div class="sls-lbl">Warnings</div></div>
+      <div class="sls-card"><div class="sls-val" id="live-passed" style="color:#16a34a">0</div><div class="sls-lbl">Passed</div></div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-info">
+        <span class="prog-label" id="prog-label">Initializing audit engine...</span>
+        <span class="prog-pct" id="prog-pct">0%</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+      <div class="prog-time" id="prog-time">Estimated time: ~55 seconds</div>
+    </div>
   </div>
 </div>
 
 <!-- RESULTS -->
 <div id="results">
-
-  <!-- breadcrumb -->
   <div class="breadcrumb">
     <a href="#" onclick="resetAudit();return false" style="color:#ff642d;text-decoration:none">← New Audit</a>
     <span class="bc-sep">/</span>
     <span id="bc-domain">—</span>
   </div>
-
-  <!-- top bar -->
   <div class="result-topbar">
     <div>
       <div class="result-domain" id="res-domain">—</div>
@@ -90,24 +100,16 @@
       <button class="btn-sm btn-orange" onclick="downloadPDF()">⬇ Download PDF</button>
     </div>
   </div>
-
-  <!-- MODULE TABS -->
   <div class="module-tabs" id="module-tabs"></div>
-
-  <!-- TAB PANELS -->
   <div id="tab-panels"></div>
-
 </div>
 
 <!-- FOOTER -->
 <footer class="page-footer">
-  <div class="pf-inner">
-    <div class="pf-logo">AuditX</div>
-    <div class="pf-text">SEO · AEO · GEO Analysis Platform — 85+ checks across all dimensions of modern search visibility</div>
-  </div>
+  <div class="pf-logo">AuditX</div>
+  <div class="pf-text">SEO · AEO · GEO Analysis Platform — 89 checks across all dimensions of modern search visibility</div>
 </footer>
 
 <script src="script.js"></script>
-
 </body>
 </html>
