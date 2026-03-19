@@ -688,10 +688,10 @@ function buildOverview(data) {
 
   <div class="score-summary-table">
     <div class="sst-header"><div class="sst-hcell">Module</div><div class="sst-hcell">Score</div><div class="sst-hcell">Grade</div><div class="sst-hcell">Status</div></div>
-    <div class="sst-row"><div class="sst-module"><div class="sst-bar" style="background:#ff642d"></div>SEO (Search Engine Optimization)</div><div><span class="sst-score-chip" style="background:#fff0eb;color:#c2410c">70/100</span></div><div><span class="sst-grade-chip grade-ok">B+</span></div><div class="sst-status">Needs Improvement</div></div>
-    <div class="sst-row"><div class="sst-module"><div class="sst-bar" style="background:#10b981"></div>AEO (Answer Engine Optimization)</div><div><span class="sst-score-chip" style="background:#dcfce7;color:#15803d">79/100</span></div><div><span class="sst-grade-chip grade-ok">B+</span></div><div class="sst-status">Good — Minor Gaps</div></div>
-    <div class="sst-row"><div class="sst-module"><div class="sst-bar" style="background:#8b5cf6"></div>GEO (Generative Engine Optimization)</div><div><span class="sst-score-chip" style="background:#f5f3ff;color:#7c3aed">72/100</span></div><div><span class="sst-grade-chip grade-ok">B+</span></div><div class="sst-status">Moderate Gaps</div></div>
-    <div class="sst-row overall"><div class="sst-module"><div class="sst-bar" style="background:#ff642d"></div>Overall Score</div><div><span class="sst-score-chip" style="background:#fff0eb;color:#ff642d">74/100</span></div><div><span class="sst-grade-chip grade-ok">B+</span></div><div class="sst-status">Strong Foundation</div></div>
+    <div class="sst-row"><div class="sst-module"><div class="sst-bar" style="background:#ff642d"></div>SEO (Search Engine Optimization)</div><div><span class="sst-score-chip" style="color:#c2410c">70/100</span></div><div><span class="sst-grade-chip grade-ok">B+</span></div><div class="sst-status">Needs Improvement</div></div>
+    <div class="sst-row"><div class="sst-module"><div class="sst-bar" style="background:#10b981"></div>AEO (Answer Engine Optimization)</div><div><span class="sst-score-chip" style="color:#15803d">79/100</span></div><div><span class="sst-grade-chip grade-ok">B+</span></div><div class="sst-status">Good — Minor Gaps</div></div>
+    <div class="sst-row"><div class="sst-module"><div class="sst-bar" style="background:#8b5cf6"></div>GEO (Generative Engine Optimization)</div><div><span class="sst-score-chip" style="color:#7c3aed">72/100</span></div><div><span class="sst-grade-chip grade-ok">B+</span></div><div class="sst-status">Moderate Gaps</div></div>
+    <div class="sst-row overall"><div class="sst-module"><div class="sst-bar" style="background:#ff642d"></div>Overall Score</div><div><span class="sst-score-chip" style="color:#ff642d">74/100</span></div><div><span class="sst-grade-chip grade-ok">B+</span></div><div class="sst-status">Strong Foundation</div></div>
   </div>
   <div class="gauges-row">`;
 
