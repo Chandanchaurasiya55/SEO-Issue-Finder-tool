@@ -1,0 +1,811 @@
+// ══════════════════════════════════════════════════════
+//  PDF DOWNLOAD — Full 3-Part Report (Screen-Matching)
+// ══════════════════════════════════════════════════════
+function pdfGrade(s) { return s >= 90 ? "A+" : s >= 80 ? "A" : s >= 70 ? "B+" : s >= 60 ? "B" : s >= 50 ? "C" : s >= 40 ? "D" : "F"; }
+function pdfScoreCol(s) { return s >= 65 ? "#21bf6b" : s >= 45 ? "#f59e0b" : "#ef4444"; }
+function h2r(h) {
+  if (typeof h !== "string") return [0, 0, 0];
+  h = h.replace("#", "").replace(/^0x/i, "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  if (h.length !== 6) return [0, 0, 0];
+  return [parseInt(h.slice(0, 2), 16) || 0, parseInt(h.slice(2, 4), 16) || 0, parseInt(h.slice(4, 6), 16) || 0];
+}
+
+async function downloadPDF() {
+  if (!_data) return;
+  const btn = document.querySelector(".btn-orange");
+  if (!btn) return;
+  btn.textContent = "Generating PDF...";
+  btn.disabled = true;
+  try {
+    await new Promise((res, rej) => {
+      if (window.jspdf) { res(); return; }
+      const s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+      s.onload = res;
+      s.onerror = rej;
+      document.head.appendChild(s);
+    });
+    await generatePDFInline();
+  } catch (err) {
+    console.error(err);
+    alert("PDF generation error: " + err.message);
+  }
+  btn.textContent = "Export PDF";
+  btn.disabled = false;
+}
+
+// ══════════════════════════════════════════════════════
+//  PDF FIX PATCH — Add this BEFORE generatePDFInline()
+//  Fixes: BG2, statusColors, statusText, priorityColors, sectionHead undefined errors
+// ══════════════════════════════════════════════════════
+
+// This is the complete corrected generatePDFInline function
+// Replace your existing generatePDFInline() with this one
+
+async function generatePDFInline() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+  const PW = 210, PH = 297, ML = 14, MR = 14, MT = 16, MB = 16;
+  const CW = PW - ML - MR;
+  const BOTTOM = PH - MB - 8;
+
+  const SF = (c) => { if (!c) return; const [r,g,b] = h2r(c); doc.setFillColor(r,g,b); };
+  const SD = (c) => { if (!c) return; const [r,g,b] = h2r(c); doc.setDrawColor(r,g,b); };
+  const ST = (c) => { if (!c) return; const [r,g,b] = h2r(c); doc.setTextColor(r,g,b); };
+
+  // ── Brand Colors ──
+  const BRAND = "#a90006", OR = "#ff642d", AEO_C = "#10b981", GEO_C = "#8b5cf6";
+  const DK = "#1a1a2e", MD = "#6b7280", LT = "#9ca3af", BD = "#e5e7eb";
+  const BG = "#f9fafb", BG2 = "#f8f9fc", WH = "#ffffff";
+  const GR = "#16a34a", GRB = "#dcfce7";
+  const RD = "#dc2626", RDB = "#fee2e2";
+  const YL = "#d97706", YLB = "#fef3c7";
+
+  const d = _data;
+  let y = 0;
+  let _part = "";
+  const domain = _userDomain || d.domain || "buimbdigital.com";
+  const dateStr = new Date().toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
+
+  // ── Helper functions ──
+  function hdr() {
+    SF(BRAND); doc.rect(0, 0, PW, 8, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(8); ST(WH);
+    doc.text("BuimbDigital", ML, 5.5);
+    doc.setFont("helvetica","normal"); doc.setFontSize(6); ST("#ffd4c2");
+    doc.text(domain + " — Digital Marketing Audit Report", ML+26, 5.5);
+    doc.text(dateStr, PW-MR, 5.5, "right");
+    y = MT;
+  }
+
+  function ftr() {
+    const fy = PH - 10;
+    SF(DK); doc.rect(0, fy, PW, 10, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(7); ST(OR);
+    doc.text("BuimbDigital", ML, fy+6);
+    doc.setFont("helvetica","normal"); doc.setFontSize(6); ST(LT);
+    doc.text("info@buimbdigital.com", ML+26, fy+6);
+    if (_part) { ST("#ffd4c2"); doc.text(_part, PW/2, fy+6, "center"); }
+    doc.setFont("helvetica","bold"); doc.setFontSize(6); ST(WH);
+    doc.text("CONFIDENTIAL", PW-MR, fy+6, "right");
+  }
+
+  const needY = (n) => {
+    if (y + n > BOTTOM) { ftr(); doc.addPage(); hdr(); }
+  };
+
+  function sectionHead(title, sub) {
+    needY(10);
+    SF(BRAND); doc.rect(ML, y, CW, 8, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(9); ST(WH);
+    doc.text(title, ML+3, y+5.5);
+    if (sub) {
+      doc.setFont("helvetica","normal"); doc.setFontSize(6); ST("#ffb8b8");
+      doc.text(sub, PW-MR, y+5.5, "right");
+    }
+    y += 10;
+  }
+
+  function infoBox(text, bgColor) {
+    const lines = doc.splitTextToSize(text, CW-8);
+    const bh = lines.length * 4.5 + 5;
+    needY(bh+2);
+    SF(bgColor || "#f0f4ff"); doc.roundedRect(ML, y, CW, bh, 1, 1, "F");
+    SF("#3b82f6"); doc.rect(ML, y, 3, bh, "F");
+    doc.setFont("helvetica","normal"); doc.setFontSize(7); ST(DK);
+    lines.forEach((ln, i) => doc.text(ln, ML+6, y+6+i*4.5));
+    y += bh+3;
+  }
+
+  function chip(cx, cy, label, bg, fg, fixW) {
+    const w = fixW || Math.min(doc.getTextWidth(label)+5, 40);
+    SF(bg); doc.roundedRect(cx, cy, w, 4, 0.8, 0.8, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(6); ST(fg);
+    doc.text(label, cx+w/2, cy+2.9, "center");
+    return w;
+  }
+
+  function statusColors(s) {
+    if (s === "PASS") return { bg: GRB, fg: GR };
+    if (s === "WARN") return { bg: YLB, fg: YL };
+    return { bg: RDB, fg: RD };
+  }
+
+  function statusText(s) {
+    return s === "PASS" ? "PASS" : s === "WARN" ? "WARN" : "FAIL";
+  }
+
+  function priorityColors(p) {
+    const m = {
+      "CRITICAL": { bg: RDB, fg: RD },
+      "HIGH":     { bg: YLB, fg: YL },
+      "MEDIUM":   { bg: "#fef9c3", fg: "#a16207" },
+      "LOW":      { bg: BG2, fg: LT }
+    };
+    return m[p] || { bg: BG2, fg: LT };
+  }
+
+  function stBadge(status, cx, cy) {
+    const cfg = statusColors(status);
+    chip(cx, cy, statusText(status), cfg.bg, cfg.fg, 18);
+  }
+
+  function priBadge(p, cx, cy) {
+    const cfg = priorityColors(p);
+    chip(cx, cy, p, cfg.bg, cfg.fg, p==="CRITICAL"?22:p==="MEDIUM"?20:16);
+  }
+
+  function scChip(score, cx, cy) {
+    const bg = score>=75?GRB:score>=55?YLB:RDB;
+    const fg = score>=75?GR:score>=55?YL:RD;
+    chip(cx, cy, score+"/100 "+pdfGrade(score), bg, fg, 26);
+  }
+
+  // ═══════════════════════════════════════════════════
+  //  PAGE 1: COVER + TABLE OF CONTENTS
+  // ═══════════════════════════════════════════════════
+  _part = "PART 1 — AUDIT REPORT";
+  hdr();
+
+  // Cover banner
+  SF(DK); doc.roundedRect(ML, y, CW, 26, 2, 2, "F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(7); ST(OR);
+  doc.text("BuimbDigital — Complete Digital Marketing Strategy & Audit Report", ML+4, y+6);
+  doc.setFont("helvetica","bold"); doc.setFontSize(13); ST(WH);
+  doc.text(domain, ML+4, y+14);
+  doc.setFont("helvetica","normal"); doc.setFontSize(7); ST(LT);
+  doc.text("SEO + AEO + GEO  |  89 Checks  |  3 Parts  |  "+dateStr, ML+4, y+20);
+  doc.setFont("helvetica","italic"); doc.setFontSize(6); ST("#6b7280");
+  doc.text("CONFIDENTIAL — For Internal Distribution Only", ML+4, y+25);
+  y += 29;
+
+  // 3 part banners
+  const panW3 = (CW-4)/3;
+  [{c:OR,n:"PART 1",t:"SEO / AEO / GEO Audit",s:"74/100 | 89 Checks"},
+   {c:AEO_C,n:"PART 2",t:"Content Calendar",s:"29 Pieces | Apr–Oct 2026"},
+   {c:GEO_C,n:"PART 3",t:"Strategy + Keywords",s:"6 Competitors | 62 Keywords"},
+  ].forEach((p,i) => {
+    const px = ML+i*(panW3+2);
+    SF(p.c); doc.roundedRect(px,y,panW3-1,18,1.5,1.5,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(6.5); ST(WH); doc.text(p.n, px+3, y+5.5);
+    doc.setFontSize(8); doc.text(p.t, px+3, y+11);
+    doc.setFont("helvetica","normal"); doc.setFontSize(6); ST("rgba(255,255,255,0.8)"); doc.text(p.s, px+3, y+16);
+  });
+  y += 21;
+
+  // Stats row
+  const allCks = ["seo","aeo","geo"].flatMap(k => D.mods[k].categories.flatMap(c => c.checks));
+  const tF=allCks.filter(c=>c.status==="FAIL").length;
+  const tW=allCks.filter(c=>c.status==="WARN").length;
+  const tP=allCks.filter(c=>c.status==="PASS").length;
+  const sw3=(CW-6)/4;
+  [{v:tF,l:"ERRORS",c:RD,b:RDB},{v:tW,l:"WARNINGS",c:YL,b:YLB},{v:tP,l:"PASSED",c:GR,b:GRB},{v:89,l:"TOTAL CHECKS",c:"#3b82f6",b:"#dbeafe"}].forEach((s,i) => {
+    const sx = ML+i*(sw3+2);
+    SF(s.b); SD(BD); doc.setLineWidth(0.12); doc.roundedRect(sx,y,sw3,12,1.5,1.5,"FD");
+    doc.setFont("helvetica","bold"); doc.setFontSize(12); ST(s.c); doc.text(String(s.v), sx+sw3/2, y+7.5, "center");
+    doc.setFont("helvetica","normal"); doc.setFontSize(5.5); ST(MD); doc.text(s.l, sx+sw3/2, y+11, "center");
+  });
+  y += 15;
+
+  // Meta bar
+  needY(7);
+  SF(BG2); doc.roundedRect(ML, y, CW, 6, 1, 1, "F");
+  doc.setFont("helvetica","normal"); doc.setFontSize(6.5); ST(MD);
+  doc.text("Audit Date: "+dateStr+"  |  Audited: "+domain+"  |  CONFIDENTIAL — For Internal Distribution Only", ML+CW/2, y+4, "center");
+  y += 9;
+
+  // Table of Contents
+  needY(12);
+  SF(BRAND); doc.rect(ML, y, CW, 8, "F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(10); ST(WH);
+  doc.text("TABLE OF CONTENTS", ML+3, y+5.5);
+  y += 10.5;
+
+  const tocEntries = [
+    { part: "PART 1 — SEO / AEO / GEO AUDIT REPORT", isHeader: true },
+    { num: "1.0", title: "Executive Summary", desc: "Overall scores, key strengths, critical weaknesses" },
+    { num: "2.0", title: "SEO Analysis — Detailed Findings", desc: "On-Page, Technical, Core Web Vitals, Mobile & UX, Backlinks, Local SEO" },
+    { num: "3.0", title: "AEO Analysis — Answer Engine Optimization", desc: "Featured Snippets, Voice Search, Schema, E-E-A-T, NLP & Semantic" },
+    { num: "4.0", title: "GEO Analysis — Generative Engine Optimization", desc: "LLM Content, Brand Citability, AI Coverage, Trust & Metadata" },
+    { num: "5.0", title: "Prioritized Action Plan", desc: "All issues — Critical (2 weeks), High (30 days), Medium (60-90 days)" },
+    { num: "6.0", title: "Team Responsibilities & Timeline", desc: "Developer, Content/SEO, Marketing — 30/60-day targets" },
+    { num: "7.0", title: "Final Notes & Executive Recommendations", desc: "Summary for leadership and 4 immediate actions" },
+    { part: "PART 2 — 6-MONTH CONTENT CALENDAR", isHeader: true },
+    { num: "8.0", title: "Content Calendar Overview & Strategy", desc: "Content mix, audit gap mapping, content type legend" },
+    { num: "9.0", title: "Monthly Calendar: Months 1–6", desc: "Week-by-week topics, keywords, CTAs, owner assignments" },
+    { num: "10.0", title: "Content KPIs & Success Metrics", desc: "8 KPIs, tracking tools, frequency, and 6-month targets" },
+    { part: "PART 3 — SEO STRATEGY, COMPETITORS & KEYWORDS", isHeader: true },
+    { num: "11.0", title: "12-Month SEO Strategy Plan", desc: "4 phases: Fix Foundation → Authority → Scale → Dominate" },
+    { num: "12.0", title: "Competitor Analysis", desc: "6 competitors — strengths, weaknesses, opportunities" },
+    { num: "13.0", title: "Keyword Recommendations", desc: "62 keywords: Primary, Long-Tail, Local, and Global" },
+  ];
+
+  tocEntries.forEach(entry => {
+    if (entry.isHeader) {
+      needY(8);
+      SF("#fff0eb"); doc.roundedRect(ML,y,CW,6,0.5,0.5,"F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(7); ST(OR);
+      doc.text(entry.part, ML+3, y+4.2);
+      y += 8;
+    } else {
+      needY(7);
+      SD(BD); doc.setLineWidth(0.07); doc.line(ML,y+6,ML+CW,y+6);
+      doc.setFont("helvetica","bold"); doc.setFontSize(7); ST(OR); doc.text(entry.num, ML+2, y+4.2);
+      doc.setFont("helvetica","bold"); doc.setFontSize(7); ST(DK); doc.text(entry.title, ML+16, y+4.2);
+      doc.setFont("helvetica","normal"); doc.setFontSize(6); ST(LT);
+      const dL = doc.splitTextToSize(entry.desc, CW-20);
+      doc.text(dL[0], ML+16, y+7.4);
+      y += (dL.length > 1 ? 10 : 7.5);
+    }
+  });
+  y += 4;
+
+  // ═══════════════════════════════════════════════════
+  //  EXECUTIVE SUMMARY
+  // ═══════════════════════════════════════════════════
+  ftr(); doc.addPage(); hdr();
+  _part = "PART 1 — EXECUTIVE SUMMARY";
+
+  infoBox("This report presents a comprehensive search visibility audit of "+domain+", conducted on "+dateStr+". 89 checks evaluated across SEO (traditional search), AEO (answer engines — featured snippets, voice, AI), and GEO (generative engine optimization for ChatGPT, Perplexity, Google AI Overview). Overall score: 74/100 — a solid B+ foundation with clear, actionable gaps.");
+
+  sectionHead("SECTION 1: EXECUTIVE SUMMARY", "Score summary · Strengths · Weaknesses");
+
+  // Score table
+  needY(42);
+  const stX = [ML, ML+82, ML+107, ML+132];
+  SF(BRAND); doc.rect(ML,y,CW,6,"F");
+  ["Module","Score","Grade","Status"].forEach((h,i) => {
+    doc.setFont("helvetica","bold"); doc.setFontSize(7); ST(WH); doc.text(h, stX[i]+2, y+4);
+  });
+  y += 6;
+  [{m:"SEO — Search Engine Optimization",s:70,c:OR,st:"Needs Improvement"},
+   {m:"AEO — Answer Engine Optimization",s:79,c:AEO_C,st:"Good — Minor Gaps"},
+   {m:"GEO — Generative Engine Optimization",s:72,c:GEO_C,st:"Moderate Gaps"},
+   {m:"Overall Score",s:74,c:OR,st:"Strong Foundation",bold:true},
+  ].forEach((r,ri) => {
+    needY(8); SF(ri%2===0?WH:BG2); doc.rect(ML,y,CW,7,"F");
+    SF(r.c); doc.rect(ML,y,3,7,"F");
+    SD(BD); doc.setLineWidth(0.08); doc.line(ML,y+7,ML+CW,y+7);
+    doc.setFont("helvetica",r.bold?"bold":"normal"); doc.setFontSize(7.5); ST(DK);
+    doc.text(r.m, ML+6, y+4.8);
+    scChip(r.s, stX[1]+1, y+1.5);
+    chip(stX[2]+1, y+1.5, pdfGrade(r.s), r.s>=75?GRB:YLB, r.s>=75?GR:YL, 12);
+    doc.setFont("helvetica","normal"); doc.setFontSize(6.5); ST(MD); doc.text(r.st, stX[3]+2, y+4.8);
+    y += 7;
+  });
+  y += 5;
+
+  // Score gauges
+  needY(38);
+  [{l:"SEO",s:70,c:OR},{l:"AEO",s:79,c:AEO_C},{l:"GEO",s:72,c:GEO_C},{l:"Overall",s:74,c:OR}].forEach((g,i) => {
+    const gx = ML+22+i*46, r2 = 12;
+    SD(BD); doc.setLineWidth(4);
+    for (let k=0;k<60;k++){const a1=-Math.PI/2+(k/60)*2*Math.PI,a2=-Math.PI/2+((k+1)/60)*2*Math.PI; doc.line(gx+r2*Math.cos(a1),y+14+r2*Math.sin(a1),gx+r2*Math.cos(a2),y+14+r2*Math.sin(a2));}
+    SD(g.c); doc.setLineWidth(4);
+    for (let k=0;k<Math.round((g.s/100)*60);k++){const a1=-Math.PI/2+(k/60)*2*Math.PI,a2=-Math.PI/2+((k+1)/60)*2*Math.PI; doc.line(gx+r2*Math.cos(a1),y+14+r2*Math.sin(a1),gx+r2*Math.cos(a2),y+14+r2*Math.sin(a2));}
+    doc.setFont("helvetica","bold"); doc.setFontSize(12); ST(DK); doc.text(String(g.s),gx,y+16,"center");
+    doc.setFont("helvetica","normal"); doc.setFontSize(6); ST(LT); doc.text("/100",gx,y+20,"center");
+    doc.setFont("helvetica","bold"); doc.setFontSize(7.5); ST(DK); doc.text(g.l,gx,y+28,"center");
+    const gc=g.s>=65?GR:g.s>=45?YL:RD, gb=g.s>=65?GRB:g.s>=45?YLB:RDB;
+    chip(gx-6, y+30, pdfGrade(g.s), gb, gc, 12);
+  });
+  y += 38;
+
+  // Key Strengths
+  needY(8); SF(GR); doc.rect(ML,y,CW,7,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(9); ST(WH); doc.text("KEY STRENGTHS", ML+4, y+5); y+=9;
+  ["Voice Search Optimization — 100/100 PERFECT. Conversational keywords, question phrases, local signals and Speakable schema all well-implemented.",
+   "NLP & Semantic SEO — 90/100. Semantically rich content, clear topic sentences and comprehensive entity coverage.",
+   "LLM-Ready Content & AI Topical Coverage — both 90/100. Well-structured for AI tools to parse, cite and use.",
+   "Backlinks & Off-Page SEO — 90/100. Strong domain authority and quality external link signals.",
+   "Technical SEO fundamentals — 83/100. HTTPS, XML sitemap, robots.txt, URL structure and redirect hygiene in order.",
+  ].forEach(s => {
+    const lines = doc.splitTextToSize(s, CW-9), rh = lines.length*4.2+4; needY(rh+1);
+    SF(GRB); doc.roundedRect(ML,y,CW,rh,1,1,"F"); SF(GR); doc.rect(ML,y,3,rh,"F");
+    doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(21,128,61);
+    lines.forEach((ln,li) => doc.text(ln,ML+6,y+4.5+li*4.2)); y+=rh+1;
+  });
+  y += 3;
+
+  // Weaknesses
+  needY(8); SF(RD); doc.rect(ML,y,CW,7,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(9); ST(WH); doc.text("CRITICAL WEAKNESSES — Fix Immediately", ML+4, y+5); y+=9;
+  ["Mobile Responsiveness — 38/100. THE LOWEST SCORE IN THE ENTIRE AUDIT. Site is not fully responsive. Fix in Week 1.",
+   "Page Load Speed — CRITICAL FAILURE. Slow TTFB and load time increase bounce rate and reduce rankings.",
+   "HTTPS Security (GEO) — CRITICAL. Mixed content / HTTP flagged. AI systems deprioritize HTTP pages.",
+   "Machine-Readable Metadata — 50/100 (lowest category). Organization Schema missing, OG tags incomplete.",
+   "E-E-A-T Signals — 60/100. No trust badges, no client testimonials, no publication dates on content.",
+  ].forEach(s => {
+    const lines = doc.splitTextToSize(s, CW-9), rh = lines.length*4.2+4; needY(rh+1);
+    SF(RDB); doc.roundedRect(ML,y,CW,rh,1,1,"F"); SF(RD); doc.rect(ML,y,3,rh,"F");
+    doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(153,27,27);
+    lines.forEach((ln,li) => doc.text(ln,ML+6,y+4.5+li*4.2)); y+=rh+1;
+  });
+
+  // ═══════════════════════════════════════════════════
+  //  SEO / AEO / GEO ANALYSIS
+  // ═══════════════════════════════════════════════════
+  const modColMap = { seo:OR, aeo:AEO_C, geo:GEO_C };
+  const modSecMap = { seo:"SECTION 2", aeo:"SECTION 3", geo:"SECTION 4" };
+
+  ["seo","aeo","geo"].forEach(mk => {
+    ftr(); doc.addPage(); hdr();
+    _part = "PART 1 — "+mk.toUpperCase()+" ANALYSIS";
+    const mod = D.mods[mk];
+    const modColor = modColMap[mk];
+    const allC2 = mod.categories.flatMap(c=>c.checks);
+    const f2=allC2.filter(c=>c.status==="FAIL").length;
+    const w2=allC2.filter(c=>c.status==="WARN").length;
+    const p2=allC2.filter(c=>c.status==="PASS").length;
+
+    sectionHead(modSecMap[mk]+": "+mod.label+" ANALYSIS — Detailed Findings",
+      "Score: "+mod.score+"/100 · Grade: "+pdfGrade(mod.score)+" · "+f2+" errors · "+w2+" warnings · "+p2+" passed");
+
+    if (mod.intro) infoBox(mod.intro);
+    if (mk==="seo") infoBox("The SEO section evaluates 6 core categories covering 40 checks. Composite SEO score: 70/100 (Grade B+).");
+
+    // Score cards
+    needY(16);
+    const scW=(CW-9)/4;
+    [{l:mod.label+" Score",v:mod.score+"/100",c:modColor,b:modColor+"22"},{l:"Errors",v:String(f2),c:RD,b:RDB},{l:"Warnings",v:String(w2),c:YL,b:YLB},{l:"Passed",v:String(p2),c:GR,b:GRB}].forEach((s,i) => {
+      const sx=ML+i*(scW+3);
+      SF(s.b); SD(BD); doc.setLineWidth(0.12); doc.roundedRect(sx,y,scW,13,1.5,1.5,"FD");
+      doc.setFont("helvetica","bold"); doc.setFontSize(12); ST(s.c); doc.text(s.v, sx+scW/2, y+8, "center");
+      doc.setFont("helvetica","normal"); doc.setFontSize(5.5); ST(MD); doc.text(s.l, sx+scW/2, y+11.5, "center");
+    });
+    y += 16;
+
+    mod.categories.forEach(cat => {
+      const catF=cat.checks.filter(c=>c.status==="FAIL").length;
+      const catW=cat.checks.filter(c=>c.status==="WARN").length;
+      const catP=cat.checks.filter(c=>c.status==="PASS").length;
+      needY(11);
+      SF(BG2); SD(BD); doc.setLineWidth(0.12); doc.roundedRect(ML,y,CW,9,1,1,"FD");
+      SF(modColor); doc.roundedRect(ML,y,3.5,9,0,0,"F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(8.5); ST(DK);
+      doc.text(cat.sectionNum+" "+cat.name+(cat.note?"  ★"+cat.note:""), ML+6, y+6);
+      scChip(cat.score, PW-MR-40, y+2.5);
+      doc.setFont("helvetica","normal"); doc.setFontSize(6); ST(LT);
+      doc.text("Pass: "+catP+"  Warn: "+catW+"  Fail: "+catF, PW-MR-72, y+6);
+      y += 11;
+
+      if (cat.intro) {
+        const ciL=doc.splitTextToSize(cat.intro,CW-6), cih=ciL.length*4+5; needY(cih+1);
+        SF("#fffbeb"); doc.roundedRect(ML,y,CW,cih,1,1,"F"); SF("#f59e0b"); doc.rect(ML,y,3,cih,"F");
+        doc.setFont("helvetica","italic"); doc.setFontSize(6.8); ST(DK);
+        ciL.forEach((ln,li) => doc.text(ln,ML+6,y+5+li*4)); y+=cih+2;
+      }
+
+      const cX=[ML,ML+38,ML+56,ML+114,ML+136];
+      needY(6); SF(BRAND); doc.rect(ML,y,CW,5.5,"F");
+      ["Check","Status","Finding","Priority","Action Required"].forEach((h,i) => {
+        doc.setFont("helvetica","bold"); doc.setFontSize(6); ST(WH); doc.text(h, cX[i]+1, y+3.8);
+      });
+      y += 5.5;
+
+      cat.checks.forEach(ck => {
+        const fL=doc.splitTextToSize(ck.finding,56);
+        const aL=doc.splitTextToSize(ck.action,CW-136-2);
+        const nL=doc.splitTextToSize(ck.n,36);
+        const rh=Math.max(8, Math.max(nL.length,fL.length,aL.length)*3.8+3);
+        needY(rh+0.5);
+        SF(ck.status==="FAIL"?"#fff5f5":ck.status==="WARN"?"#fffbf0":WH); doc.rect(ML,y,CW,rh,"F");
+        SD(BD); doc.setLineWidth(0.07); doc.line(ML,y+rh,ML+CW,y+rh);
+        doc.setFont("helvetica","bold"); doc.setFontSize(6.5); ST(DK);
+        nL.forEach((ln,li) => doc.text(ln,cX[0]+1,y+4.5+li*3.8));
+        stBadge(ck.status, cX[1]+1, y+rh/2-2);
+        doc.setFont("helvetica","normal"); doc.setFontSize(6); ST(MD);
+        fL.forEach((ln,li) => doc.text(ln,cX[2]+1,y+4.5+li*3.8));
+        priBadge(ck.priority, cX[3]+1, y+rh/2-2);
+        doc.setFont("helvetica","normal"); doc.setFontSize(6); ST(DK);
+        aL.forEach((ln,li) => doc.text(ln,cX[4]+1,y+4.5+li*3.8));
+        y += rh+0.5;
+      });
+      y += 4;
+    });
+  });
+
+  // ═══════════════════════════════════════════════════
+  //  ACTION PLAN
+  // ═══════════════════════════════════════════════════
+  ftr(); doc.addPage(); hdr();
+  _part = "PART 1 — ACTION PLAN";
+
+  const allIss=[];
+  ["seo","aeo","geo"].forEach(k => D.mods[k].categories.forEach(cat => cat.checks.filter(c=>c.status!=="PASS").forEach(c => allIss.push({...c,module:k.toUpperCase()}))));
+  allIss.sort((a,b) => ["CRITICAL","HIGH","MEDIUM","LOW"].indexOf(a.priority)-["CRITICAL","HIGH","MEDIUM","LOW"].indexOf(b.priority));
+
+  sectionHead("SECTION 5: PRIORITIZED ACTION PLAN", allIss.length+" issues — Critical · High · Medium · Low");
+
+  const priGroups=[
+    {k:"CRITICAL",l:"Critical — Fix Within 2 Weeks",bc:RD,bg:RDB},
+    {k:"HIGH",l:"High Priority — Fix Within 30 Days",bc:YL,bg:YLB},
+    {k:"MEDIUM",l:"Medium Priority — Fix Within 60-90 Days",bc:"#d97706",bg:"#fef9c3"},
+    {k:"LOW",l:"Low Priority",bc:LT,bg:BG2},
+  ];
+  let actNum=1;
+
+  priGroups.forEach(pg => {
+    const items=allIss.filter(c=>c.priority===pg.k); if (!items.length) return;
+    needY(10); SF(pg.bg); SD(pg.bc); doc.setLineWidth(0.3); doc.roundedRect(ML,y,CW,6,1,1,"FD");
+    doc.setFont("helvetica","bold"); doc.setFontSize(8); ST(pg.bc);
+    doc.text(pg.l+"  ("+items.length+" issues)", ML+4, y+4.2); y+=8;
+    const aX=[ML,ML+8,ML+56,ML+70,ML+92];
+    needY(6); SF(BRAND); doc.rect(ML,y,CW,5.5,"F");
+    ["#","Issue / Finding","Module","Priority","Recommended Fix"].forEach((h,i) => {
+      doc.setFont("helvetica","bold"); doc.setFontSize(6); ST(WH); doc.text(h, aX[i]+1, y+3.8);
+    });
+    y += 5.5;
+    items.forEach(item => {
+      const fL=doc.splitTextToSize(item.finding,46);
+      const fixL=doc.splitTextToSize(item.action,CW-92-2);
+      const rh=Math.max(8,Math.max(1+fL.length,fixL.length)*3.8+2);
+      needY(rh+0.5);
+      SF(item.status==="FAIL"?"#fff5f5":YLB); doc.rect(ML,y,CW,rh,"F");
+      SD(BD); doc.setLineWidth(0.07); doc.line(ML,y+rh,ML+CW,y+rh);
+      doc.setFont("helvetica","bold"); doc.setFontSize(7.5); ST(pg.bc);
+      doc.text(String(actNum++), ML+5, y+rh/2+1.5, "center");
+      doc.setFont("helvetica","bold"); doc.setFontSize(6.5); ST(DK); doc.text(item.n, aX[1]+1, y+4.5);
+      doc.setFont("helvetica","normal"); doc.setFontSize(5.8); ST(MD);
+      fL.forEach((ln,li) => doc.text(ln, aX[1]+1, y+8+li*3.5));
+      const mC={SEO:OR,AEO:AEO_C,GEO:GEO_C}[item.module]||OR;
+      const mB={SEO:"#fff0eb",AEO:"#f0fdf4",GEO:"#f5f3ff"}[item.module]||"#fff0eb";
+      chip(aX[2]+1, y+rh/2-2, item.module, mB, mC, 14);
+      priBadge(item.priority, aX[3]+1, y+rh/2-2);
+      doc.setFont("helvetica","normal"); doc.setFontSize(6); ST(DK);
+      fixL.forEach((ln,li) => doc.text(ln, aX[4]+1, y+4.5+li*3.8));
+      y += rh+0.5;
+    });
+    y += 4;
+  });
+
+  // ═══════════════════════════════════════════════════
+  //  TEAM RESPONSIBILITIES
+  // ═══════════════════════════════════════════════════
+  ftr(); doc.addPage(); hdr();
+  _part = "PART 1 — TEAM & MILESTONES";
+  sectionHead("SECTION 6: TEAM RESPONSIBILITIES & TIMELINE", "30/60-day targets by team");
+
+  [{n:"Developer / Technical Team",c:"#3b82f6",tasks:["Fix HTTPS / mixed content warnings — Week 1","Add viewport meta tag to all pages — Week 1","Implement Organization JSON-LD schema sitewide — Week 1","Remove noindex tags from key pages — Week 1","Fix TTFB: enable caching, CDN, server optimization — Week 1-2","Improve page load speed: minify, compress, lazy-load — Week 1-2","Create custom 404 error page — Week 2","Add HowTo, QAPage, BreadcrumbList, and Person schema — Week 3-4","Add Open Graph and Twitter Card meta tags — Week 3-4","Add canonical tags to all pages — Week 3-4"]},
+   {n:"Content / SEO Team",c:OR,tasks:["Audit and rewrite all title tags — Week 1-2","Write unique meta descriptions for all pages — Week 1-2","Add primary keywords to first 100 words of all service pages — Week 2","Add definition sections to all service pages — Week 2-3","Create FAQ sections for all key pages — Week 2-3","Add publication and 'Last Updated' dates — Week 2-3","Expand thin content pages to 800+ words — Week 3-6","Create 3-5 use case landing pages — Week 4-8"]},
+   {n:"Marketing / Brand Team",c:AEO_C,tasks:["Audit brand name consistency across all pages — Week 1","Collect trust badges, certifications, partner logos — Week 2-3","Gather and publish 10+ client testimonials — Week 2-4","Create 3-5 detailed case studies — Week 3-8","Submit brand to Clutch, GoodFirms, DesignRush — Week 2-3","Optimize Google Business Profile — Week 1-2","Pursue press mentions and digital PR — Ongoing"]},
+  ].forEach(t => {
+    needY(12); SF(DK); doc.roundedRect(ML,y,CW,7,1,1,"F"); SF(t.c); doc.rect(ML,y,3.5,7,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(8); ST(WH); doc.text(t.n, ML+6, y+4.8); y+=9;
+    t.tasks.forEach(task => {
+      const lines=doc.splitTextToSize(task,CW-9), rh=Math.max(6,lines.length*3.8+2); needY(rh+0.5);
+      SF(BG2); doc.roundedRect(ML,y,CW,rh,0.5,0.5,"F"); SD(BD); doc.setLineWidth(0.07); doc.line(ML,y+rh,ML+CW,y+rh);
+      SF(t.c); doc.circle(ML+4,y+rh/2,1.2,"F");
+      doc.setFont("helvetica","normal"); doc.setFontSize(6.8); ST(DK);
+      lines.forEach((ln,li) => doc.text(ln,ML+8,y+4+li*3.8)); y+=rh+0.5;
+    });
+    y += 4;
+  });
+
+  needY(36); sectionHead("30/60-Day Score Milestone Targets");
+  const msX=[ML,ML+55,ML+100,ML+145];
+  SF(BRAND); doc.rect(ML,y,CW,6,"F");
+  ["Module","Current Score","30-Day Target","60-Day Target"].forEach((h,i) => {
+    doc.setFont("helvetica","bold"); doc.setFontSize(7); ST(WH); doc.text(h, msX[i]+2, y+4);
+  });
+  y += 6;
+  [{m:"SEO Overall",now:70,d30:80,d60:87},{m:"AEO Overall",now:79,d30:86,d60:91},{m:"GEO Overall",now:72,d30:82,d60:88},{m:"Overall Score",now:74,d30:83,d60:89,bold:true}].forEach((r,ri) => {
+    needY(8); SF(ri%2===0?WH:BG2); doc.rect(ML,y,CW,7,"F"); SD(BD); doc.setLineWidth(0.08); doc.line(ML,y+7,ML+CW,y+7);
+    doc.setFont("helvetica",r.bold?"bold":"normal"); doc.setFontSize(7.5); ST(DK); doc.text(r.m, msX[0]+2, y+4.8);
+    scChip(r.now, msX[1]+2, y+1.5);
+    chip(msX[2]+2, y+1.5, r.d30+"/100", YLB, YL, 20);
+    chip(msX[3]+2, y+1.5, r.d60+"/100", GRB, GR, 20);
+    y += 7;
+  });
+  y += 6;
+
+  sectionHead("SECTION 7: FINAL NOTES & EXECUTIVE RECOMMENDATIONS");
+  [domain+" is performing at a B+ level across all three dimensions of modern search visibility. Core strengths — strong backlinks, perfect voice search optimization, and well-structured AI-ready content — provide a competitive foundation that many agencies lack.",
+   "The two most revenue-impactful issues are mobile responsiveness (38/100) and page load speed (CRITICAL failure). Fixing these alone could produce measurable ranking improvements within 30-60 days.",
+  ].forEach(para => {
+    const pL=doc.splitTextToSize(para,CW-6), ph=pL.length*4.2+6; needY(ph+2);
+    SF(BG2); doc.roundedRect(ML,y,CW,ph,1,1,"F");
+    doc.setFont("helvetica","normal"); doc.setFontSize(7.5); ST(DK);
+    pL.forEach((ln,li) => doc.text(ln,ML+4,y+5+li*4.2)); y+=ph+3;
+  });
+
+  ["Assign a developer sprint in the next 5-7 days focused on the 8 critical technical items.",
+   "Schedule a content audit meeting to review all pages missing FAQs, definitions, and trust signals.",
+   "Begin collecting client testimonials and case study approvals this week.",
+   "Set a re-audit date 30 days from today to measure progress against baseline scores.",
+  ].forEach((a,i) => {
+    const lines=doc.splitTextToSize(a,CW-15), rh=Math.max(10,lines.length*4+4); needY(rh+2);
+    SF(WH); SD(BD); doc.setLineWidth(0.12); doc.roundedRect(ML,y,CW,rh,1.5,1.5,"FD");
+    SF(OR); doc.roundedRect(ML+2,y+rh/2-4,8,8,1,1,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(8); ST(WH); doc.text(String(i+1),ML+6,y+rh/2+1.5,"center");
+    doc.setFont("helvetica","normal"); doc.setFontSize(7); ST(DK);
+    lines.forEach((ln,li) => doc.text(ln,ML+13,y+5+li*4)); y+=rh+2;
+  });
+
+  // ═══════════════════════════════════════════════════
+  //  PART 2: CONTENT CALENDAR
+  // ═══════════════════════════════════════════════════
+  ftr(); doc.addPage(); hdr();
+  _part = "PART 2 — CONTENT CALENDAR";
+  SF(AEO_C); doc.rect(ML,y,CW,24,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(7); ST("#d1fae5"); doc.text("PART 2", ML+4, y+7);
+  doc.setFontSize(14); ST(WH); doc.text("6-MONTH CONTENT CALENDAR", ML+4, y+16);
+  doc.setFont("helvetica","normal"); doc.setFontSize(7); ST("#d1fae5");
+  doc.text("April – October 2026  |  29 Content Pieces  |  Weekly Breakdown", ML+4, y+22);
+  y += 27;
+
+  sectionHead("SECTION 8: CONTENT CALENDAR — Strategy & Overview");
+  infoBox("This content calendar is built directly from the audit gaps. Every piece is mapped to a specific optimization goal — fixing thin content, capturing featured snippets, building E-E-A-T trust signals, improving AI citability, or targeting high-value commercial keywords.", "#f0fdf4");
+
+  needY(8); SF(DK); doc.roundedRect(ML,y,CW,6,1,1,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(7.5); ST(WH);
+  doc.text("Audit Gap Mapping — Why Each Content Type Matters", ML+4, y+4.2); y+=8;
+  [{c:AEO_C,t:"Definition pages",d:"Fixes AEO gap: No definition sections found",i:"+8pts AEO"},
+   {c:AEO_C,t:"FAQ pages",d:"Fixes AEO gap: No FAQ sections on pages",i:"+6pts AEO"},
+   {c:AEO_C,t:"Case studies",d:"Fixes E-E-A-T gap: No trust signals or social proof",i:"+10pts AEO"},
+   {c:GEO_C,t:"Use case pages",d:"Fixes GEO gap: Limited use-case content",i:"+5pts GEO"},
+   {c:OR,t:"Service page expansions",d:"Fixes SEO gap: Thin content on key pages",i:"+8pts SEO"},
+   {c:GEO_C,t:"GEO/AI blog posts",d:"Improves LLM citability and AI topical authority",i:"+5pts GEO"},
+  ].forEach((item,ii) => {
+    needY(7); SF(ii%2===0?WH:BG2); doc.roundedRect(ML,y,CW,6.5,0.5,0.5,"F");
+    SD(BD); doc.setLineWidth(0.07); doc.line(ML,y+6.5,ML+CW,y+6.5);
+    SF(item.c); doc.circle(ML+4,y+3.2,1.5,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(7); ST(DK); doc.text(item.t, ML+9, y+4);
+    doc.setFont("helvetica","normal"); doc.setFontSize(6.5); ST(MD);
+    doc.text(" → "+item.d, ML+9+doc.getTextWidth(item.t)+1, y+4);
+    chip(PW-MR-32, y+1.3, item.i, GRB, GR, 30); y+=7;
+  });
+  y += 4;
+
+  sectionHead("SECTION 9: 6-MONTH WEEKLY CALENDAR");
+  const calX=[ML,ML+10,ML+32,ML+90,ML+130,ML+158];
+
+  CALENDAR.forEach(month => {
+    needY(14); SF(DK); doc.roundedRect(ML,y,CW,8,1,1,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(8.5); ST(AEO_C); doc.text(month.month, ML+4, y+5.5);
+    doc.setFont("helvetica","italic"); doc.setFontSize(6.5); ST(LT); doc.text("Theme: "+month.theme, PW-MR, y+5.5, "right");
+    y += 10;
+    if (month.focusText) {
+      const fL=doc.splitTextToSize(month.focusText,CW-8), fh=fL.length*3.8+5; needY(fh+1);
+      SF("#fffbeb"); doc.roundedRect(ML,y,CW,fh,0.5,0.5,"F"); SF("#f59e0b"); doc.rect(ML,y,3,fh,"F");
+      doc.setFont("helvetica","italic"); doc.setFontSize(6.5); ST(DK);
+      fL.forEach((ln,li) => doc.text(ln,ML+6,y+4+li*3.8)); y+=fh+2;
+    }
+    needY(6); SF(BRAND); doc.rect(ML,y,CW,5.5,"F");
+    ["Wk","Type","Title / Topic","Keywords","Goal","Owner"].forEach((h,i) => {
+      doc.setFont("helvetica","bold"); doc.setFontSize(5.8); ST(WH); doc.text(h, calX[i]+1, y+3.8);
+    });
+    y += 5.5;
+    month.items.forEach((item,ii) => {
+      const tL=doc.splitTextToSize(item.title,56), kL=doc.splitTextToSize(item.keywords,38), gL=doc.splitTextToSize(item.goal,26);
+      const rh=Math.max(8,Math.max(tL.length,kL.length,gL.length)*3.5+3);
+      needY(rh+0.5);
+      SF(ii%2===0?WH:BG2); doc.rect(ML,y,CW,rh,"F"); SD(BD); doc.setLineWidth(0.07); doc.line(ML,y+rh,ML+CW,y+rh);
+      doc.setFont("helvetica","bold"); doc.setFontSize(6.5); ST(AEO_C); doc.text(item.week, calX[0]+5, y+rh/2+1.5, "center");
+      const tTypeCol={"Blog Post":"#3b82f6","Service Page":OR,"Case Study":GEO_C,"Social Post":AEO_C,"FAQ Page":YL,"Use Case Page":"#7c3aed","Definition Page":"#0891b2"}[item.type]||DK;
+      const tTypeBg={"Blog Post":"#dbeafe","Service Page":"#fff0eb","Case Study":"#f5f3ff","Social Post":"#ecfdf5","FAQ Page":YLB,"Use Case Page":"#ede9fe","Definition Page":"#ecfeff"}[item.type]||BG2;
+      const shortT=item.type.length>10?item.type.slice(0,9)+".":item.type;
+      chip(calX[1]+1, y+rh/2-2, shortT, tTypeBg, tTypeCol, 20);
+      doc.setFont("helvetica","bold"); doc.setFontSize(6); ST(DK); tL.forEach((ln,li) => doc.text(ln,calX[2]+1,y+4+li*3.5));
+      doc.setFont("helvetica","normal"); doc.setFontSize(5.8); ST(MD); kL.forEach((ln,li) => doc.text(ln,calX[3]+1,y+4+li*3.5));
+      ST(DK); gL.forEach((ln,li) => doc.text(ln,calX[4]+1,y+4+li*3.5));
+      chip(calX[5]+1, y+rh/2-2, item.owner, {SEO:"#fff0eb",Content:"#f5f3ff",Marketing:"#ecfdf5"}[item.owner]||BG2, {SEO:OR,Content:GEO_C,Marketing:AEO_C}[item.owner]||DK, 17);
+      y += rh+0.5;
+    });
+    y += 5;
+  });
+
+  // KPIs
+  ftr(); doc.addPage(); hdr();
+  sectionHead("SECTION 10: CONTENT KPIs & SUCCESS METRICS", "Track monthly · GA4 + Search Console + Ahrefs");
+  const kpiX=[ML,ML+42,ML+88,ML+128,ML+150];
+  SF(BRAND); doc.rect(ML,y,CW,6,"F");
+  ["KPI Metric","Starting Point","Tracking Tool","Frequency","6-Month Target"].forEach((h,i) => {
+    doc.setFont("helvetica","bold"); doc.setFontSize(6.5); ST(WH); doc.text(h, kpiX[i]+1, y+4);
+  });
+  y += 6;
+  [["Organic Traffic","Baseline Month 0","Google Analytics 4","Monthly","+15% by M3, +40% by M6"],
+   ["Keyword Rankings","Track 20 keywords","Search Console","Weekly","5+ in Top 10 by Month 3"],
+   ["Blog Pageviews","Baseline Month 0","GA4 / GSC","Monthly","2x by Month 6"],
+   ["Case Study Leads","0 currently","CRM / Forms","Monthly","3+ leads by Month 4"],
+   ["Social Engagement","Baseline this week","LinkedIn / Meta","Weekly","+20% engagement by M2"],
+   ["AI Citation Appearances","Manual audit","Perplexity / ChatGPT","Monthly","Brand in 5+ AI queries by M6"],
+   ["Domain Authority","Current score","Ahrefs / Moz","Monthly","+5 DA points by Month 6"],
+   ["Backlinks Earned","Baseline","Ahrefs","Monthly","10+ new domains by Month 6"],
+  ].forEach((r,ii) => {
+    const tgL=doc.splitTextToSize(r[4],CW-150-2), rh=Math.max(7,tgL.length*3.8+3); needY(rh+0.5);
+    SF(ii%2===0?WH:BG2); doc.rect(ML,y,CW,rh,"F"); SD(BD); doc.setLineWidth(0.07); doc.line(ML,y+rh,ML+CW,y+rh);
+    doc.setFont("helvetica","bold"); doc.setFontSize(7); ST(DK); doc.text(r[0], kpiX[0]+1, y+rh/2+1.5);
+    doc.setFont("helvetica","normal"); doc.setFontSize(6.5); ST(MD); doc.text(r[1], kpiX[1]+1, y+rh/2+1.5); doc.text(r[2], kpiX[2]+1, y+rh/2+1.5);
+    chip(kpiX[3]+1, y+rh/2-2, r[3], "#dbeafe", "#1d4ed8", 20);
+    doc.setFont("helvetica","bold"); doc.setFontSize(6); ST(GR); tgL.forEach((ln,li) => doc.text(ln,kpiX[4]+1,y+4+li*3.8));
+    y += rh+0.5;
+  });
+
+  // ═══════════════════════════════════════════════════
+  //  PART 3: STRATEGY + COMPETITORS + KEYWORDS
+  // ═══════════════════════════════════════════════════
+  ftr(); doc.addPage(); hdr();
+  _part = "PART 3 — SEO STRATEGY, COMPETITORS & KEYWORDS";
+  SF(GEO_C); doc.rect(ML,y,CW,24,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(7); ST("#ede9fe"); doc.text("PART 3", ML+4, y+7);
+  doc.setFontSize(14); ST(WH); doc.text("SEO STRATEGY · COMPETITORS · KEYWORDS", ML+4, y+16);
+  doc.setFont("helvetica","normal"); doc.setFontSize(7); ST("#ede9fe");
+  doc.text("12-Month Plan  |  6 Competitor Profiles  |  62 Keyword Recommendations", ML+4, y+22);
+  y += 27;
+
+  sectionHead("SECTION 11: 12-MONTH SEO STRATEGY PLAN", "4 Phases: Fix Foundation → Authority → Scale → Dominate");
+  infoBox("This plan is structured into four quarterly phases. Fix all critical audit issues within 90 days, build authority over months 4-6, scale internationally in months 7-9, and consolidate the site as a top-ranked digital marketing agency in India and globally by Month 12.", "#f5f3ff");
+
+  // Phase tables
+  const phX=[ML,ML+56,ML+76,ML+96,ML+116];
+  [{n:"Phase 1 — Months 1-3: Fix the Foundation",f:"Technical fixes, on-page corrections, schema, local SEO",c:RD,hb:"#450a0a",
+    items:[["Viewport meta tag + responsive CSS fix","Dev","Week 1","Mobile fix","+15% rankings"],["Fix HTTPS / mixed content","Dev","Week 1","GEO HTTPS","+AI trust"],["Remove noindex from key pages","Dev/SEO","Week 1","Tech SEO","Pages indexed"],["Unique title tags + meta descriptions","SEO","Weeks 1-2","On-Page","+20% CTR"],["Page speed: GZIP, CDN, WebP","Dev","Weeks 1-2","CWV fix","+Core Vitals"],["Org + FAQPage + BreadcrumbList schema","Dev","Week 2","GEO schema","Rich results"],["Claim + optimise Google Business Profile","Mktg","Week 1-2","Local SEO","Local Pack"],["Expand thin content to 800-1200 words","Content","Weeks 2-6","Content fix","+Rankings"],["Add definition sections + FAQ blocks","Content","Weeks 2-6","AEO fix","+PAA capture"]]},
+   {n:"Phase 2 — Months 4-6: Authority & Content Build",f:"Content clusters, E-E-A-T trust signals, link acquisition",c:YL,hb:"#451a03",
+    items:[["Publish 6-month content calendar","Content","Month 4","Content fix","Featured snippets"],["Launch 3 use case pages","SEO+Content","Month 4-5","GEO fix","Niche traffic"],["Publish 2 case studies","Mktg","Month 4-5","E-E-A-T fix","Trust signals"],["Build 10+ quality backlinks","SEO","Month 4-6","Authority","+DA"],["Submit to Clutch, GoodFirms, DesignRush","Mktg","Month 4","GEO fix","Citations"],["10+ testimonials + trust badges","Mktg","Month 4-5","E-E-A-T","Social proof"],["Achieve 83/100 overall score","All Teams","Month 6","Milestone","Score target"]]},
+   {n:"Phase 3 — Months 7-9: Scale & Brand Authority",f:"International targeting, PR outreach, AI citation building",c:AEO_C,hb:"#052e16",
+    items:[["International pages (white-label, outsource)","SEO+Dev","Month 7","Global kws","Intl leads"],["3 more case studies","Mktg","Month 7-8","E-E-A-T","+Trust"],["Expand HowTo & QAPage schema","Dev","Month 7","AEO fix","Rich results"],["Link building: DA60+ domains","SEO","Month 7-9","Authority","+10 domains"],["Press outreach: 3-5 media mentions","Mktg","Month 7-9","Domain auth","+3 links"]]},
+   {n:"Phase 4 — Months 10-12: Dominate & Sustain",f:"Top 3 keyword push, 2027 AI search preparation",c:GEO_C,hb:"#2e1065",
+    items:[["Refresh all 2026 blog posts for 2027","Content","Month 10-11","Freshness","Posts updated"],["Push top 10 keywords toward Top 3","SEO","Month 10-12","Revenue kws","5+ in Top 3"],["Expand to 2 new niche verticals","SEO+Content","Month 10","Vertical auth","2 new pages"],["Full re-audit: target 93/100","SEO Lead","Month 12","Benchmark","93+ overall"],["2027 predictions + strategy update","Content+SEO","Month 11-12","Thought lead","2027 kws"]]},
+  ].forEach(phase => {
+    needY(13); SF(phase.hb); doc.roundedRect(ML,y,CW,8,1,1,"F"); SF(phase.c); doc.rect(ML,y,3.5,8,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(8); ST(WH); doc.text(phase.n, ML+6, y+5.5);
+    doc.setFont("helvetica","italic"); doc.setFontSize(6); ST(LT); doc.text(phase.f, PW-MR, y+5.5, "right");
+    y += 10;
+    SF(BRAND); doc.rect(ML,y,CW,5,"F");
+    ["Deliverable","Owner","Timeline","Audit Fix","Expected Impact"].forEach((h,i) => {
+      doc.setFont("helvetica","bold"); doc.setFontSize(5.8); ST(WH); doc.text(h, phX[i]+1, y+3.4);
+    });
+    y += 5;
+    phase.items.forEach((item,ii) => {
+      const dL=doc.splitTextToSize(item[0],53), rh=Math.max(7,dL.length*3.5+2.5); needY(rh+0.3);
+      SF(ii%2===0?WH:BG2); doc.rect(ML,y,CW,rh,"F"); SD(BD); doc.setLineWidth(0.07); doc.line(ML,y+rh,ML+CW,y+rh);
+      doc.setFont("helvetica","normal"); doc.setFontSize(6.2); ST(DK); dL.forEach((ln,li) => doc.text(ln,phX[0]+1,y+4+li*3.5));
+      doc.setFontSize(6); ST(MD); doc.text(item[1],phX[1]+1,y+rh/2+1.5); doc.text(item[2],phX[2]+1,y+rh/2+1.5);
+      chip(phX[3]+1, y+rh/2-2, item[3], BG2, phase.c, 18);
+      doc.setFont("helvetica","bold"); doc.setFontSize(6); ST(GR); doc.text(item[4],phX[4]+1,y+rh/2+1.5);
+      y += rh+0.3;
+    });
+    y += 4;
+  });
+
+  // Score Projection
+  needY(36); sectionHead("12-Month Score Projection");
+  const prX=[ML,ML+44,ML+84,ML+116,ML+148];
+  SF(BRAND); doc.rect(ML,y,CW,6,"F");
+  ["Module","Now (Mar 26)","Month 6","Month 9","Month 12 Target"].forEach((h,i) => {
+    doc.setFont("helvetica","bold"); doc.setFontSize(6.5); ST(WH); doc.text(h, prX[i]+2, y+4);
+  });
+  y += 6;
+  [{m:"SEO",now:70,m6:84,m9:88,m12:"92/100 (A)"},{m:"AEO",now:79,m6:89,m9:92,m12:"95/100 (A+)"},{m:"GEO",now:72,m6:85,m9:89,m12:"92/100 (A)"},{m:"OVERALL",now:74,m6:86,m9:90,m12:"93/100 (A+)",bold:true}].forEach((r,ri) => {
+    needY(7); SF(ri%2===0?WH:BG2); doc.rect(ML,y,CW,7,"F"); SD(BD); doc.setLineWidth(0.07); doc.line(ML,y+7,ML+CW,y+7);
+    doc.setFont("helvetica",r.bold?"bold":"normal"); doc.setFontSize(7.5); ST(DK); doc.text(r.m, prX[0]+2, y+4.8);
+    scChip(r.now, prX[1]+2, y+1.5); chip(prX[2]+2,y+1.5,r.m6+"/100",GRB,GR,20); chip(prX[3]+2,y+1.5,r.m9+"/100",GRB,GR,20);
+    SF(DK); doc.roundedRect(prX[4]+2,y+1.5,28,4,1,1,"F"); doc.setFont("helvetica","bold"); doc.setFontSize(6.5); ST(WH); doc.text(r.m12,prX[4]+16,y+4.5,"center");
+    y += 7;
+  });
+  y += 5;
+
+  // ═══════════════════════════════════════════════════
+  //  COMPETITORS
+  // ═══════════════════════════════════════════════════
+  ftr(); doc.addPage(); hdr();
+  _part = "PART 3 — COMPETITOR ANALYSIS";
+  sectionHead("SECTION 12: COMPETITOR ANALYSIS", "6 key competitors — India + Global digital marketing landscape");
+
+  const cpX=[ML,ML+26,ML+36,ML+46,ML+78,ML+92,ML+106,ML+120];
+  SF(BRAND); doc.rect(ML,y,CW,6,"F");
+  ["Agency","Est.","Team","HQ","SEO","AEO","GEO","Pricing/mo"].forEach((h,i) => {
+    doc.setFont("helvetica","bold"); doc.setFontSize(5.8); ST(WH); doc.text(h, cpX[i]+1, y+4);
+  });
+  y += 6;
+  COMPETITORS.forEach((c,ii) => {
+    needY(8); SF(ii%2===0?WH:BG2); doc.rect(ML,y,CW,7.5,"F");
+    SD(BD); doc.setLineWidth(0.07); doc.line(ML,y+7.5,ML+CW,y+7.5);
+    doc.setFont("helvetica","bold"); doc.setFontSize(6.5); ST(DK); doc.text(c.name, cpX[0]+1, y+5);
+    doc.setFont("helvetica","normal"); doc.setFontSize(6); ST(MD);
+    doc.text(String(c.est),cpX[1]+1,y+5); doc.text(c.team,cpX[2]+1,y+5);
+    doc.text(c.hq.split(",")[0], cpX[3]+1, y+5);
+    [[c.seo,OR],[c.aeo,AEO_C],[c.geo,GEO_C]].forEach(([n,col],i) => {
+      doc.setFontSize(5.5); ST(col); doc.text("●".repeat(n)+"○".repeat(5-n), cpX[4+i]+1, y+5);
+    });
+    doc.setFontSize(6.5); ST(DK); doc.text(c.pricing, cpX[7]+1, y+5); y+=7.5;
+  });
+  y += 3;
+  doc.setFont("helvetica","italic"); doc.setFontSize(5.5); ST(LT);
+  doc.text("●●●●● = Industry-leading  ●●●●○ = Strong  ●●●○○ = Moderate  ●●○○○ = Weak  ●○○○○ = Minimal", ML, y); y+=6;
+
+  COMPETITORS.forEach((c,ci) => {
+    needY(38); SF(DK); doc.roundedRect(ML,y,CW,7,1,1,"F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(8); ST(WH);
+    doc.text((ci+1)+". "+c.name+"  ("+c.domain+")", ML+4, y+5);
+    doc.setFont("helvetica","normal"); doc.setFontSize(6); ST(LT);
+    doc.text("Clutch: "+c.clutch+" · Est. "+c.est+" · Team: "+c.team, PW-MR, y+5, "right");
+    y += 9;
+    [["HQ / Market",c.hq+" | "+c.market+" | Est. "+c.est+" | Team: "+c.team],["Pricing",c.pricing+" | Clutch: "+c.clutch],["Strengths",c.strengths],["Weaknesses",c.weaknesses],["Our Opportunity",c.opp]].forEach(([lbl,val]) => {
+      const vL=doc.splitTextToSize(val,CW-40-2), rh=Math.max(7,vL.length*3.8+2.5); needY(rh+0.5);
+      SF(BG2); doc.rect(ML,y,40,rh,"F"); SF(WH); doc.rect(ML+40,y,CW-40,rh,"F");
+      SD(BD); doc.setLineWidth(0.08); doc.line(ML,y+rh,ML+CW,y+rh); doc.line(ML+40,y,ML+40,y+rh);
+      doc.setFont("helvetica","bold"); doc.setFontSize(6.5); ST(DK); doc.text(lbl, ML+2, y+rh/2+1.5);
+      doc.setFont("helvetica","normal"); doc.setFontSize(6.5); ST(lbl==="Our Opportunity"?GEO_C:DK);
+      vL.forEach((ln,li) => doc.text(ln,ML+42,y+4+li*3.8)); y+=rh+0.5;
+    });
+    y += 4;
+  });
+
+  // ═══════════════════════════════════════════════════
+  //  KEYWORDS
+  // ═══════════════════════════════════════════════════
+  ftr(); doc.addPage(); hdr();
+  _part = "PART 3 — KEYWORD RECOMMENDATIONS";
+  sectionHead("SECTION 13: KEYWORD RECOMMENDATIONS — 62 Keywords", "Primary Commercial · Long-Tail · Local SEO · Global");
+
+  const kwX=[ML,ML+58,ML+76,ML+92,ML+112,ML+134];
+
+  function kwTable2(title, desc, kwList) {
+    needY(12); doc.setFont("helvetica","bold"); doc.setFontSize(8.5); ST(DK); doc.text(title, ML, y+5); y+=7;
+    if (desc) {
+      const dL=doc.splitTextToSize(desc,CW); needY(dL.length*4);
+      doc.setFont("helvetica","normal"); doc.setFontSize(6.5); ST(MD);
+      dL.forEach((ln,li) => doc.text(ln,ML,y+4+li*4)); y+=dL.length*4+4;
+    }
+    needY(6); SF(BRAND); doc.rect(ML,y,CW,5.5,"F");
+    ["Keyword","Vol/mo","Difficulty","Intent","Priority","Target Page"].forEach((h,i) => {
+      doc.setFont("helvetica","bold"); doc.setFontSize(5.8); ST(WH); doc.text(h, kwX[i]+1, y+3.8);
+    });
+    y += 5.5;
+    kwList.forEach((kw,ii) => {
+      const pgL=doc.splitTextToSize(kw.page,CW-134-2), rh=Math.max(7,pgL.length*3.8+2.5); needY(rh+0.5);
+      SF(ii%2===0?WH:BG2); doc.rect(ML,y,CW,rh,"F"); SD(BD); doc.setLineWidth(0.07); doc.line(ML,y+rh,ML+CW,y+rh);
+      doc.setFont("helvetica","normal"); doc.setFontSize(6.5); ST(DK); doc.text(kw.kw, kwX[0]+1, y+rh/2+1.5);
+      doc.text(kw.vol, kwX[1]+1, y+rh/2+1.5);
+      const dc={HIGH:{bg:RDB,fg:RD},MEDIUM:{bg:YLB,fg:YL},LOW:{bg:GRB,fg:GR}}[kw.diff]||{bg:BG2,fg:MD};
+      chip(kwX[2]+1, y+rh/2-2, kw.diff, dc.bg, dc.fg, 16);
+      doc.setFontSize(6); ST(MD); doc.text(kw.intent, kwX[3]+1, y+rh/2+1.5);
+      const pc=priorityColors(kw.pri); chip(kwX[4]+1, y+rh/2-2, kw.pri, pc.bg, pc.fg, kw.pri==="CRITICAL"?22:kw.pri==="MEDIUM"?20:16);
+      doc.setFont("helvetica","bold"); doc.setFontSize(6); ST(GEO_C); pgL.forEach((ln,li) => doc.text(ln,kwX[5]+1,y+4+li*3.8));
+      y += rh+0.5;
+    });
+    y += 6;
+  }
+
+  kwTable2("C.1 — Primary Commercial Keywords (10)", "Highest-value keywords for driving qualified leads. High competition — target over 12 months.", KW.primary);
+  kwTable2("C.2 — Long-Tail Informational Keywords (15)", "Lower competition — drive featured snippets and AI citations.", KW.longtail);
+  kwTable2("C.3 — Local SEO Keywords — Agra & Near Me (8)", "Critical for nearby business enquiries — fastest ROI opportunity.", KW.local);
+  kwTable2("C.4 — Global & International Keywords (8)", "Target international clients looking to outsource digital marketing from India.", KW.global);
+
+  // Back cover
+  needY(16);
+  SF(DK); doc.roundedRect(ML,y,CW,14,2,2,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(9); ST(OR);
+  doc.text(domain+" — Complete Digital Marketing Strategy & Audit Report", ML+CW/2, y+7, "center");
+  doc.setFont("helvetica","normal"); doc.setFontSize(7); ST(WH);
+  doc.text("Audited: "+domain+"  ·  "+dateStr+"  ·  info@buimbdigital.com", ML+CW/2, y+12, "center");
+  doc.setFont("helvetica","italic"); doc.setFontSize(6); ST(LT);
+  doc.text("CONFIDENTIAL — For Internal Distribution Only", ML+CW/2, y+15, "center");
+
+  ftr();
+  doc.save("BuimbDigital-Complete-Report-"+new Date().toISOString().slice(0,10)+".pdf");
+}
