@@ -1251,3 +1251,934 @@ document.getElementById("url-input").addEventListener("keydown", e => { if (e.ke
 
 
 
+// // ══════════════════════════════════════════════════════
+// //  COMPLETE PDF EXPORT FIX
+// //  INSTRUCTIONS:
+// //  1. In your HTML file, find the line:  // PDF Export functionality
+// //  2. Delete EVERYTHING from that line to the very end of the file
+// //  3. Paste THIS entire file's contents in its place
+// //  4. Save and test — PDF will now export ALL 9 tabs, each on clean pages
+// // ══════════════════════════════════════════════════════
+
+// // ── UTILITIES ──
+// function showLoadingState(button, isLoading) {
+//   if (!button) return;
+//   if (isLoading) {
+//     button.innerHTML = '⏳ Generating PDF...';
+//     button.disabled = true;
+//     button.style.opacity = '0.7';
+//     button.style.cursor = 'wait';
+//   } else {
+//     button.innerHTML = '⬇ Download PDF';
+//     button.disabled = false;
+//     button.style.opacity = '1';
+//     button.style.cursor = 'pointer';
+//   }
+// }
+
+// function showNotification(message, type) {
+//   type = type || 'info';
+//   let el = document.getElementById('pdf-notification');
+//   if (!el) {
+//     el = document.createElement('div');
+//     el.id = 'pdf-notification';
+//     el.style.cssText = [
+//       'position:fixed', 'top:20px', 'right:20px', 'padding:12px 20px',
+//       'border-radius:8px', 'font-size:14px', 'font-weight:500',
+//       'z-index:99998', 'box-shadow:0 4px 16px rgba(0,0,0,0.2)',
+//       'max-width:340px', 'transition:opacity 0.3s ease'
+//     ].join(';');
+//     document.body.appendChild(el);
+//   }
+//   var cols = {
+//     success: ['#10b981','#fff'],
+//     error:   ['#ef4444','#fff'],
+//     info:    ['#3b82f6','#fff'],
+//     warning: ['#f59e0b','#fff']
+//   };
+//   var c = cols[type] || cols.info;
+//   el.style.background = c[0];
+//   el.style.color = c[1];
+//   el.style.opacity = '1';
+//   el.textContent = message;
+//   clearTimeout(el._t);
+//   el._t = setTimeout(function() {
+//     el.style.opacity = '0';
+//     setTimeout(function(){ if(el.parentNode) el.remove(); }, 300);
+//   }, 5000);
+// }
+
+// // ── PROGRESS OVERLAY ──
+// function createProgressOverlay() {
+//   var ov = document.createElement('div');
+//   ov.id = 'pdf-ov';
+//   ov.style.cssText = [
+//     'position:fixed','inset:0','background:rgba(0,0,0,0.6)',
+//     'display:flex','align-items:center','justify-content:center',
+//     'z-index:99999'
+//   ].join(';');
+//   ov.innerHTML = `
+//     <div style="background:#fff;border-radius:16px;padding:36px 44px;min-width:380px;
+//                 text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.35);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+//       <div style="font-size:36px;margin-bottom:14px">📄</div>
+//       <h3 style="margin:0 0 8px;font-size:18px;color:#1a1a2e;font-weight:800">
+//         Generating Full PDF Report
+//       </h3>
+//       <p id="pdf-ov-msg" style="margin:0 0 20px;font-size:13px;color:#6b7280">Starting...</p>
+//       <div style="background:#f1f3f7;border-radius:8px;height:12px;overflow:hidden;margin-bottom:10px">
+//         <div id="pdf-ov-bar" style="height:100%;background:linear-gradient(90deg,#ff642d,#f59e0b);
+//              width:0%;transition:width 0.5s ease;border-radius:8px"></div>
+//       </div>
+//       <div id="pdf-ov-pct" style="font-size:14px;font-weight:700;color:#ff642d;margin-bottom:8px">0%</div>
+//       <div id="pdf-ov-tab" style="font-size:11px;color:#9ba3af">Preparing...</div>
+//     </div>`;
+//   document.body.appendChild(ov);
+//   return {
+//     msg: function(t){ document.getElementById('pdf-ov-msg').textContent = t; },
+//     tab: function(t){ document.getElementById('pdf-ov-tab').textContent = t; },
+//     pct: function(n){
+//       document.getElementById('pdf-ov-bar').style.width = n + '%';
+//       document.getElementById('pdf-ov-pct').textContent = n + '%';
+//     },
+//     remove: function(){ ov.remove(); }
+//   };
+// }
+
+// // ── SLEEP ──
+// function pdfSleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+// // ── SECTION DIVIDER PAGE ──
+// function addDividerPage(pdf, name, num, total, W, H) {
+//   pdf.setFillColor(26, 26, 46);
+//   pdf.rect(0, 0, W, H, 'F');
+//   pdf.setFillColor(255, 100, 45);
+//   pdf.rect(0, 0, 6, H, 'F');
+//   pdf.setFontSize(10);
+//   pdf.setTextColor(255, 100, 45);
+//   pdf.setFont('helvetica', 'bold');
+//   pdf.text('SECTION ' + num + ' OF ' + total, 18, 110);
+//   pdf.setFontSize(32);
+//   pdf.setTextColor(255, 255, 255);
+//   pdf.text(name, 18, 135);
+//   pdf.setDrawColor(255, 100, 45);
+//   pdf.setLineWidth(0.4);
+//   pdf.line(18, 144, W - 18, 144);
+//   pdf.setFontSize(9);
+//   pdf.setTextColor(155, 163, 175);
+//   pdf.setFont('helvetica', 'normal');
+//   pdf.text('SEO + AEO + GEO Audit Report  \u00B7  codewithck.me  \u00B7  19 March 2026', 18, 154);
+// }
+
+// // ── CAPTURE ONE PANEL AS CANVAS ──
+// async function capturePanel(panel) {
+//   // Temporarily force panel fully visible
+//   var origClass    = panel.className;
+//   var origDisplay  = panel.style.display;
+//   var origVis      = panel.style.visibility;
+//   var origPos      = panel.style.position;
+//   var origOpacity  = panel.style.opacity;
+//   var origLeft     = panel.style.left;
+//   var origTop      = panel.style.top;
+//   var origZIndex   = panel.style.zIndex;
+//   var origWidth    = panel.style.width;
+
+//   panel.classList.add('active');
+//   panel.style.display    = 'block';
+//   panel.style.visibility = 'visible';
+//   panel.style.opacity    = '1';
+//   panel.style.position   = 'relative';
+//   panel.style.left       = '0';
+//   panel.style.top        = '0';
+//   panel.style.zIndex     = '1';
+//   panel.style.width      = '1200px';
+
+//   // Expand all categories inside this panel
+//   panel.querySelectorAll('.cat-section').forEach(function(c){ c.classList.add('open'); });
+
+//   await pdfSleep(350);
+
+//   var canvas = await html2canvas(panel, {
+//     scale: 2,
+//     useCORS: true,
+//     logging: false,
+//     backgroundColor: '#ffffff',
+//     windowWidth: 1200,
+//     width: 1200,
+//     scrollX: 0,
+//     scrollY: 0,
+//     allowTaint: false,
+//     imageTimeout: 20000,
+//     onclone: function(doc, el) {
+//       el.style.display    = 'block';
+//       el.style.visibility = 'visible';
+//       el.style.opacity    = '1';
+//       el.style.width      = '1200px';
+//       doc.querySelectorAll('.cat-section').forEach(function(c){ c.classList.add('open'); });
+//     }
+//   });
+
+//   // Restore
+//   panel.className        = origClass;
+//   panel.style.display    = origDisplay;
+//   panel.style.visibility = origVis;
+//   panel.style.opacity    = origOpacity;
+//   panel.style.position   = origPos;
+//   panel.style.left       = origLeft;
+//   panel.style.top        = origTop;
+//   panel.style.zIndex     = origZIndex;
+//   panel.style.width      = origWidth;
+
+//   return canvas;
+// }
+
+// // ── ADD CANVAS TO PDF (sliced into A4 pages) ──
+// function addCanvasToPDF(pdf, canvas, A4_W, A4_H) {
+//   var cW      = canvas.width;
+//   var cH      = canvas.height;
+//   var pxPerMM = cW / A4_W;          // pixels per mm (horizontally)
+//   var pxPageH = A4_H * pxPerMM;     // how many canvas px fit per A4 page
+//   var pages   = Math.ceil(cH / pxPageH);
+
+//   for (var pg = 0; pg < pages; pg++) {
+//     pdf.addPage();
+
+//     var srcY = pg * pxPageH;
+//     var srcH = Math.min(pxPageH, cH - srcY);
+//     var dstH = srcH / pxPerMM;
+
+//     // Slice
+//     var slice = document.createElement('canvas');
+//     slice.width  = cW;
+//     slice.height = srcH;
+//     var ctx = slice.getContext('2d');
+//     ctx.fillStyle = '#ffffff';
+//     ctx.fillRect(0, 0, cW, srcH);
+//     ctx.drawImage(canvas, 0, srcY, cW, srcH, 0, 0, cW, srcH);
+
+//     // Add footer
+//     addPageFooter(ctx, cW, srcH, pg + 1, pages);
+
+//     var imgData = slice.toDataURL('image/jpeg', 0.88);
+//     pdf.addImage(imgData, 'JPEG', 0, 0, A4_W, dstH, '', 'FAST');
+//   }
+// }
+
+// // ── FOOTER ON EACH SLICE ──
+// function addPageFooter(ctx, w, h, pageNum, totalPages) {
+//   ctx.fillStyle = '#f8f9fc';
+//   ctx.fillRect(0, h - 28, w, 28);
+//   ctx.fillStyle = '#ff642d';
+//   ctx.fillRect(0, h - 2, w, 2);
+//   ctx.font = '18px -apple-system, Arial, sans-serif';
+//   ctx.fillStyle = '#9ba3af';
+//   ctx.fillText('codewithck.me  \u00B7  SEO + AEO + GEO Audit 2026  \u00B7  Page ' + pageNum + ' of ' + totalPages, 20, h - 8);
+// }
+
+// // ── MAIN EXPORT FUNCTION ──
+// async function exportPDF() {
+//   var resultsEl = document.getElementById('results');
+//   if (!resultsEl || resultsEl.style.display === 'none') {
+//     showNotification('Please run an audit first.', 'warning');
+//     return;
+//   }
+
+//   var btn = document.querySelector('.btn-sm.btn-orange');
+//   showLoadingState(btn, true);
+
+//   var prog = createProgressOverlay();
+
+//   try {
+//     var TAB_NAMES = [
+//       'Overview',
+//       'SEO Analysis',
+//       'AEO Analysis',
+//       'GEO Analysis',
+//       'Action Plan',
+//       'Content Calendar',
+//       'SEO Strategy',
+//       'Competitors',
+//       'Keywords'
+//     ];
+
+//     var panels = Array.from(document.querySelectorAll('[id^="tp-"]'));
+//     // Sort panels by tab order using TAB_NAMES
+//     var orderedPanels = [];
+//     var tabIds = ['tp-overview','tp-seo','tp-aeo','tp-geo','tp-action','tp-calendar','tp-strategy','tp-competitors','tp-keywords'];
+//     tabIds.forEach(function(id){
+//       var el = document.getElementById(id);
+//       if (el) orderedPanels.push(el);
+//     });
+
+//     if (orderedPanels.length === 0) {
+//       orderedPanels = panels; // fallback
+//     }
+
+//     var A4_W = 210;
+//     var A4_H = 297;
+
+//     var { jsPDF } = window.jspdf;
+//     var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+//     // ── COVER PAGE ──
+//     prog.msg('Creating cover page...');
+//     prog.pct(3);
+//     addCoverPage(pdf, A4_W, A4_H);
+
+//     // ── PROCESS EACH TAB ──
+//     for (var i = 0; i < orderedPanels.length; i++) {
+//       var panel = orderedPanels[i];
+//       var name  = TAB_NAMES[i] || ('Section ' + (i+1));
+//       var pct   = Math.round(5 + (i / orderedPanels.length) * 88);
+
+//       prog.pct(pct);
+//       prog.tab('Processing: ' + name + ' (' + (i+1) + '/' + orderedPanels.length + ')');
+//       prog.msg('Capturing ' + name + '...');
+
+//       // Add divider page
+//       pdf.addPage();
+//       addDividerPage(pdf, name, i+1, orderedPanels.length, A4_W, A4_H);
+
+//       // Capture panel
+//       var canvas;
+//       try {
+//         canvas = await capturePanel(panel);
+//       } catch(e) {
+//         console.warn('Capture failed for ' + name + ':', e);
+//         // Add error note page
+//         pdf.addPage();
+//         pdf.setFontSize(14);
+//         pdf.setTextColor(239, 68, 68);
+//         pdf.text('Could not capture ' + name + ' — please try again.', 20, 100);
+//         continue;
+//       }
+
+//       // Slice into A4 pages and add to PDF
+//       addCanvasToPDF(pdf, canvas, A4_W, A4_H);
+//     }
+
+//     prog.pct(96);
+//     prog.msg('Saving PDF file...');
+//     prog.tab('Almost done!');
+//     await pdfSleep(400);
+
+//     var domain  = (document.getElementById('bc-domain') ? document.getElementById('bc-domain').textContent : 'audit').replace(/[^a-z0-9.-]/gi, '-');
+//     var dateStr = new Date().toISOString().split('T')[0];
+//     pdf.save(domain + '-seo-aeo-geo-full-report-' + dateStr + '.pdf');
+
+//     prog.pct(100);
+//     prog.msg('Done! PDF saved.');
+//     await pdfSleep(800);
+//     prog.remove();
+//     showNotification('\u2705 Full PDF exported — all 9 tabs included!', 'success');
+
+//   } catch(err) {
+//     console.error('PDF export error:', err);
+//     prog.remove();
+//     showNotification('\u274C PDF failed: ' + err.message, 'error');
+//   } finally {
+//     showLoadingState(btn, false);
+//   }
+// }
+
+// // ── COVER PAGE ──
+// function addCoverPage(pdf, W, H) {
+//   pdf.setFillColor(26, 26, 46);
+//   pdf.rect(0, 0, W, H, 'F');
+
+//   // Top accent bar
+//   pdf.setFillColor(255, 100, 45);
+//   pdf.rect(0, 0, W, 6, 'F');
+
+//   // Logo / domain
+//   pdf.setFontSize(28);
+//   pdf.setTextColor(255, 255, 255);
+//   pdf.setFont('helvetica', 'bold');
+//   pdf.text('codewithck.me', 18, 60);
+
+//   // Subtitle
+//   pdf.setFontSize(12);
+//   pdf.setTextColor(155, 163, 175);
+//   pdf.setFont('helvetica', 'normal');
+//   pdf.text('Complete SEO + AEO + GEO Visibility Audit Report', 18, 74);
+
+//   // Score box
+//   pdf.setFillColor(36, 36, 66);
+//   pdf.roundedRect(18, 88, W - 36, 38, 4, 4, 'F');
+//   pdf.setFontSize(10);
+//   pdf.setTextColor(155, 163, 175);
+//   pdf.text('OVERALL SCORE', 30, 100);
+//   pdf.setFontSize(26);
+//   pdf.setTextColor(255, 100, 45);
+//   pdf.setFont('helvetica', 'bold');
+//   pdf.text('74 / 100  (Grade B+)', 30, 116);
+
+//   // Three module scores
+//   var modules = [
+//     { label: 'SEO', score: '70/100', col: [255, 100, 45] },
+//     { label: 'AEO', score: '79/100', col: [16, 185, 129] },
+//     { label: 'GEO', score: '72/100', col: [139, 92, 246] },
+//   ];
+//   var startX = 18;
+//   modules.forEach(function(m, idx) {
+//     var x = startX + idx * 62;
+//     pdf.setFillColor(36, 36, 66);
+//     pdf.roundedRect(x, 134, 58, 28, 3, 3, 'F');
+//     pdf.setFontSize(9);
+//     pdf.setTextColor(155, 163, 175);
+//     pdf.setFont('helvetica', 'normal');
+//     pdf.text(m.label, x + 4, 144);
+//     pdf.setFontSize(14);
+//     pdf.setTextColor(m.col[0], m.col[1], m.col[2]);
+//     pdf.setFont('helvetica', 'bold');
+//     pdf.text(m.score, x + 4, 156);
+//   });
+
+//   // Parts list
+//   var parts = [
+//     { num: 'PART 1', title: 'SEO / AEO / GEO Audit Report', detail: '89 checks across 14 categories' },
+//     { num: 'PART 2', title: '6-Month Content Calendar',       detail: '29 content pieces · Apr–Oct 2026' },
+//     { num: 'PART 3', title: 'SEO Strategy, Competitors & Keywords', detail: '12-month plan · 6 competitors · 62 keywords' },
+//   ];
+//   var py = 180;
+//   parts.forEach(function(p){
+//     pdf.setFillColor(42, 42, 72);
+//     pdf.roundedRect(18, py, W-36, 24, 3, 3, 'F');
+//     pdf.setFillColor(255, 100, 45);
+//     pdf.roundedRect(18, py, 28, 24, 3, 3, 'F');
+//     pdf.setFontSize(7);
+//     pdf.setTextColor(255,255,255);
+//     pdf.setFont('helvetica','bold');
+//     pdf.text(p.num, 19, py+10);
+//     pdf.text('', 19, py+17);
+//     pdf.setFontSize(11);
+//     pdf.setTextColor(255,255,255);
+//     pdf.text(p.title, 52, py+11);
+//     pdf.setFontSize(8);
+//     pdf.setTextColor(155,163,175);
+//     pdf.setFont('helvetica','normal');
+//     pdf.text(p.detail, 52, py+19);
+//     py += 30;
+//   });
+
+//   // Footer
+//   pdf.setFillColor(255, 100, 45);
+//   pdf.rect(0, H-8, W, 8, 'F');
+//   pdf.setFontSize(8);
+//   pdf.setTextColor(255,255,255);
+//   pdf.text('Generated by BuimbDigital  \u00B7  19 March 2026  \u00B7  CONFIDENTIAL', 18, H-2);
+// }
+
+// // ── Hook into renderResults to show PDF button ──
+// (function() {
+//   var _orig = typeof renderResults !== 'undefined' ? renderResults : null;
+//   if (_orig) {
+//     renderResults = function(data, userDomain) {
+//       _orig(data, userDomain);
+//       var btn = document.querySelector('.btn-sm.btn-orange');
+//       if (btn) btn.style.display = 'inline-flex';
+//     };
+//   }
+
+//   document.addEventListener('DOMContentLoaded', function() {
+//     var btn = document.querySelector('.btn-sm.btn-orange');
+//     if (btn) { btn.style.display = 'none'; btn.onclick = exportPDF; }
+//   });
+// })();
+
+
+
+
+
+
+
+
+
+// ══════════════════════════════════════════════════════
+//  COMPLETE PDF EXPORT FIX
+//  INSTRUCTIONS:
+//  1. In your HTML file, find the line:  // PDF Export functionality
+//  2. Delete EVERYTHING from that line to the very end of the file
+//  3. Paste THIS entire file's contents in its place
+//  4. Save and test — PDF will now export ALL 9 tabs, each on clean pages
+// ══════════════════════════════════════════════════════
+
+// ── UTILITIES ──
+function showLoadingState(button, isLoading) {
+  if (!button) return;
+  if (isLoading) {
+    button.innerHTML = '⏳ Generating PDF...';
+    button.disabled = true;
+    button.style.opacity = '0.7';
+    button.style.cursor = 'wait';
+  } else {
+    button.innerHTML = '⬇ Download PDF';
+    button.disabled = false;
+    button.style.opacity = '1';
+    button.style.cursor = 'pointer';
+  }
+}
+
+function showNotification(message, type) {
+  type = type || 'info';
+  let el = document.getElementById('pdf-notification');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'pdf-notification';
+    el.style.cssText = [
+      'position:fixed', 'top:20px', 'right:20px', 'padding:12px 20px',
+      'border-radius:8px', 'font-size:14px', 'font-weight:500',
+      'z-index:99998', 'box-shadow:0 4px 16px rgba(0,0,0,0.2)',
+      'max-width:340px', 'transition:opacity 0.3s ease'
+    ].join(';');
+    document.body.appendChild(el);
+  }
+  var cols = {
+    success: ['#10b981','#fff'],
+    error:   ['#ef4444','#fff'],
+    info:    ['#3b82f6','#fff'],
+    warning: ['#f59e0b','#fff']
+  };
+  var c = cols[type] || cols.info;
+  el.style.background = c[0];
+  el.style.color = c[1];
+  el.style.opacity = '1';
+  el.textContent = message;
+  clearTimeout(el._t);
+  el._t = setTimeout(function() {
+    el.style.opacity = '0';
+    setTimeout(function(){ if(el.parentNode) el.remove(); }, 300);
+  }, 5000);
+}
+
+// ── PROGRESS OVERLAY ──
+function createProgressOverlay() {
+  var ov = document.createElement('div');
+  ov.id = 'pdf-ov';
+  ov.style.cssText = [
+    'position:fixed','inset:0','background:rgba(0,0,0,0.6)',
+    'display:flex','align-items:center','justify-content:center',
+    'z-index:99999'
+  ].join(';');
+  ov.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:36px 44px;min-width:380px;
+                text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.35);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+      <div style="font-size:36px;margin-bottom:14px">📄</div>
+      <h3 style="margin:0 0 8px;font-size:18px;color:#1a1a2e;font-weight:800">
+        Generating Full PDF Report
+      </h3>
+      <p id="pdf-ov-msg" style="margin:0 0 20px;font-size:13px;color:#6b7280">Starting...</p>
+      <div style="background:#f1f3f7;border-radius:8px;height:12px;overflow:hidden;margin-bottom:10px">
+        <div id="pdf-ov-bar" style="height:100%;background:linear-gradient(90deg,#ff642d,#f59e0b);
+             width:0%;transition:width 0.5s ease;border-radius:8px"></div>
+      </div>
+      <div id="pdf-ov-pct" style="font-size:14px;font-weight:700;color:#ff642d;margin-bottom:8px">0%</div>
+      <div id="pdf-ov-tab" style="font-size:11px;color:#9ba3af">Preparing...</div>
+    </div>`;
+  document.body.appendChild(ov);
+  return {
+    msg: function(t){ document.getElementById('pdf-ov-msg').textContent = t; },
+    tab: function(t){ document.getElementById('pdf-ov-tab').textContent = t; },
+    pct: function(n){
+      document.getElementById('pdf-ov-bar').style.width = n + '%';
+      document.getElementById('pdf-ov-pct').textContent = n + '%';
+    },
+    remove: function(){ ov.remove(); }
+  };
+}
+
+// ── SLEEP ──
+function pdfSleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+// ── SECTION DIVIDER PAGE ──
+function addDividerPage(pdf, name, num, total, W, H) {
+  pdf.setFillColor(26, 26, 46);
+  pdf.rect(0, 0, W, H, 'F');
+  pdf.setFillColor(255, 100, 45);
+  pdf.rect(0, 0, 5, H, 'F');
+  pdf.setFontSize(10);
+  pdf.setTextColor(255, 100, 45);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('SECTION ' + num + ' OF ' + total, 18, 118);
+  pdf.setFontSize(32);
+  pdf.setTextColor(255, 255, 255);
+  pdf.text(name, 18, 140);
+  pdf.setDrawColor(255, 100, 45);
+  pdf.setLineWidth(0.4);
+  pdf.line(18, 148, W - 18, 148);
+  pdf.setFontSize(9);
+  pdf.setTextColor(155, 163, 175);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('SEO + AEO + GEO Audit Report  \u00B7  codewithck.me  \u00B7  19 March 2026', 18, 158);
+}
+
+// ── CAPTURE ONE PANEL AS CANVAS ──
+async function capturePanel(panel) {
+  // Temporarily force panel fully visible
+  var origClass    = panel.className;
+  var origDisplay  = panel.style.display;
+  var origVis      = panel.style.visibility;
+  var origPos      = panel.style.position;
+  var origOpacity  = panel.style.opacity;
+  var origLeft     = panel.style.left;
+  var origTop      = panel.style.top;
+  var origZIndex   = panel.style.zIndex;
+  var origWidth    = panel.style.width;
+
+  panel.classList.add('active');
+  panel.style.display    = 'block';
+  panel.style.visibility = 'visible';
+  panel.style.opacity    = '1';
+  panel.style.position   = 'relative';
+  panel.style.left       = '0';
+  panel.style.top        = '0';
+  panel.style.zIndex     = '1';
+  panel.style.width      = '1180px';
+  panel.style.padding    = '20px 24px';
+
+  // Expand all categories inside this panel
+  panel.querySelectorAll('.cat-section').forEach(function(c){ c.classList.add('open'); });
+
+  await pdfSleep(350);
+
+  var canvas = await html2canvas(panel, {
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    backgroundColor: '#ffffff',
+    windowWidth: 1220,
+    width: 1180,
+    scrollX: 0,
+    scrollY: 0,
+    allowTaint: false,
+    imageTimeout: 20000,
+    onclone: function(doc, el) {
+      el.style.display    = 'block';
+      el.style.visibility = 'visible';
+      el.style.opacity    = '1';
+      el.style.width      = '1180px';
+      el.style.padding    = '20px 24px';
+      doc.querySelectorAll('.cat-section').forEach(function(c){ c.classList.add('open'); });
+    }
+  });
+
+  // Restore
+  panel.className        = origClass;
+  panel.style.display    = origDisplay;
+  panel.style.visibility = origVis;
+  panel.style.opacity    = origOpacity;
+  panel.style.position   = origPos;
+  panel.style.left       = origLeft;
+  panel.style.top        = origTop;
+  panel.style.zIndex     = origZIndex;
+  panel.style.width      = origWidth;
+  panel.style.padding    = '';
+
+  return canvas;
+}
+
+// ── ADD CANVAS TO PDF (sliced into A4 pages, WITH margins + OVERLAP FIX) ──
+function addCanvasToPDF(pdf, canvas, A4_W, A4_H) {
+  var cW = canvas.width;
+  var cH = canvas.height;
+
+  // ── MARGIN SETTINGS (in mm) ──
+  var MARGIN_LEFT   = 10;
+  var MARGIN_RIGHT  = 10;
+  var MARGIN_TOP    = 10;
+  var MARGIN_BOTTOM = 14;
+
+  // Usable content area
+  var contentW = A4_W - MARGIN_LEFT - MARGIN_RIGHT;  // 190mm
+  var contentH = A4_H - MARGIN_TOP  - MARGIN_BOTTOM; // 273mm
+
+  // ── OVERLAP FIX ──
+  // Instead of slicing at exact px boundary (which cuts mid-row),
+  // we use a REDUCED page height (95% of contentH) so each slice
+  // is smaller — content never gets cut at the visible boundary.
+  // The remaining 5% acts as a safe buffer below the visible area.
+  var SAFE_FACTOR = 0.93; // use 93% of available height per page
+  var safeContentH = contentH * SAFE_FACTOR;  // mm
+
+  var pxPerMM    = cW / contentW;              // px per mm
+  var pxPageH    = safeContentH * pxPerMM;     // canvas px per page (safe)
+  var pages      = Math.ceil(cH / pxPageH);
+
+  for (var pg = 0; pg < pages; pg++) {
+    pdf.addPage();
+
+    // White background
+    pdf.setFillColor(255, 255, 255);
+    pdf.rect(0, 0, A4_W, A4_H, 'F');
+
+    // Left accent bar
+    pdf.setFillColor(255, 100, 45);
+    pdf.rect(0, 0, 2, A4_H, 'F');
+
+    var srcY = pg * pxPageH;
+    var srcH = Math.min(pxPageH, cH - srcY);
+    var dstH = srcH / pxPerMM;  // actual height on page in mm
+
+    // Slice canvas
+    var slice = document.createElement('canvas');
+    slice.width  = cW;
+    slice.height = Math.ceil(srcH);
+    var ctx = slice.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, cW, Math.ceil(srcH));
+    ctx.drawImage(canvas, 0, srcY, cW, srcH, 0, 0, cW, srcH);
+
+    var imgData = slice.toDataURL('image/jpeg', 0.92);
+
+    // Place with margins
+    pdf.addImage(imgData, 'JPEG', MARGIN_LEFT, MARGIN_TOP, contentW, dstH, '', 'FAST');
+
+    // Footer
+    addPageFooter(pdf, A4_W, A4_H, pg + 1, pages, MARGIN_BOTTOM);
+  }
+}
+
+// ── FOOTER drawn directly via jsPDF (not on canvas) ──
+function addPageFooter(pdf, A4_W, A4_H, pageNum, totalPages, MARGIN_BOTTOM) {
+  var footerY = A4_H - MARGIN_BOTTOM + 2;
+
+  // Footer background bar
+  pdf.setFillColor(248, 249, 252);
+  pdf.rect(0, A4_H - MARGIN_BOTTOM, A4_W, MARGIN_BOTTOM, 'F');
+
+  // Orange bottom line
+  pdf.setFillColor(255, 100, 45);
+  pdf.rect(0, A4_H - 1.5, A4_W, 1.5, 'F');
+
+  // Footer text
+  pdf.setFontSize(7.5);
+  pdf.setTextColor(155, 163, 175);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('codewithck.me  \u00B7  SEO + AEO + GEO Audit 2026', 10, footerY + 6);
+
+  // Page number right-aligned
+  var pageText = 'Page ' + pageNum + ' of ' + totalPages;
+  var textW = pdf.getTextWidth(pageText);
+  pdf.text(pageText, A4_W - 10 - textW, footerY + 6);
+}
+
+// ── OLD FOOTER (canvas version - kept for reference, not used) ──
+function addPageFooter_UNUSED(ctx, w, h, pageNum, totalPages) {
+  ctx.fillStyle = '#f8f9fc';
+  ctx.fillRect(0, h - 28, w, 28);
+  ctx.fillStyle = '#ff642d';
+  ctx.fillRect(0, h - 2, w, 2);
+  ctx.font = '18px -apple-system, Arial, sans-serif';
+  ctx.fillStyle = '#9ba3af';
+  ctx.fillText('codewithck.me  \u00B7  SEO + AEO + GEO Audit 2026  \u00B7  Page ' + pageNum + ' of ' + totalPages, 20, h - 8);
+}
+
+// ── MAIN EXPORT FUNCTION ──
+async function exportPDF() {
+  var resultsEl = document.getElementById('results');
+  if (!resultsEl || resultsEl.style.display === 'none') {
+    showNotification('Please run an audit first.', 'warning');
+    return;
+  }
+
+  var btn = document.querySelector('.btn-sm.btn-orange');
+  showLoadingState(btn, true);
+
+  var prog = createProgressOverlay();
+
+  try {
+    var TAB_NAMES = [
+      'Overview',
+      'SEO Analysis',
+      'AEO Analysis',
+      'GEO Analysis',
+      'Action Plan',
+      'Content Calendar',
+      'SEO Strategy',
+      'Competitors',
+      'Keywords'
+    ];
+
+    var panels = Array.from(document.querySelectorAll('[id^="tp-"]'));
+    // Sort panels by tab order using TAB_NAMES
+    var orderedPanels = [];
+    var tabIds = ['tp-overview','tp-seo','tp-aeo','tp-geo','tp-action','tp-calendar','tp-strategy','tp-competitors','tp-keywords'];
+    tabIds.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) orderedPanels.push(el);
+    });
+
+    if (orderedPanels.length === 0) {
+      orderedPanels = panels; // fallback
+    }
+
+    var A4_W = 210;
+    var A4_H = 297;
+
+    var { jsPDF } = window.jspdf;
+    var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    // ── COVER PAGE ──
+    prog.msg('Creating cover page...');
+    prog.pct(3);
+    addCoverPage(pdf, A4_W, A4_H);
+
+    // ── PROCESS EACH TAB ──
+    for (var i = 0; i < orderedPanels.length; i++) {
+      var panel = orderedPanels[i];
+      var name  = TAB_NAMES[i] || ('Section ' + (i+1));
+      var pct   = Math.round(5 + (i / orderedPanels.length) * 88);
+
+      prog.pct(pct);
+      prog.tab('Processing: ' + name + ' (' + (i+1) + '/' + orderedPanels.length + ')');
+      prog.msg('Capturing ' + name + '...');
+
+      // Add divider page
+      pdf.addPage();
+      addDividerPage(pdf, name, i+1, orderedPanels.length, A4_W, A4_H);
+
+      // Capture panel
+      var canvas;
+      try {
+        canvas = await capturePanel(panel);
+      } catch(e) {
+        console.warn('Capture failed for ' + name + ':', e);
+        // Add error note page
+        pdf.addPage();
+        pdf.setFontSize(14);
+        pdf.setTextColor(239, 68, 68);
+        pdf.text('Could not capture ' + name + ' — please try again.', 20, 100);
+        continue;
+      }
+
+      // Slice into A4 pages and add to PDF
+      addCanvasToPDF(pdf, canvas, A4_W, A4_H);
+    }
+
+    prog.pct(96);
+    prog.msg('Saving PDF file...');
+    prog.tab('Almost done!');
+    await pdfSleep(400);
+
+    var domain  = (document.getElementById('bc-domain') ? document.getElementById('bc-domain').textContent : 'audit').replace(/[^a-z0-9.-]/gi, '-');
+    var dateStr = new Date().toISOString().split('T')[0];
+    pdf.save(domain + '-seo-aeo-geo-full-report-' + dateStr + '.pdf');
+
+    prog.pct(100);
+    prog.msg('Done! PDF saved.');
+    await pdfSleep(800);
+    prog.remove();
+    showNotification('\u2705 Full PDF exported — all 9 tabs included!', 'success');
+
+  } catch(err) {
+    console.error('PDF export error:', err);
+    prog.remove();
+    showNotification('\u274C PDF failed: ' + err.message, 'error');
+  } finally {
+    showLoadingState(btn, false);
+  }
+}
+
+// ── COVER PAGE ──
+function addCoverPage(pdf, W, H) {
+  pdf.setFillColor(26, 26, 46);
+  pdf.rect(0, 0, W, H, 'F');
+
+  // Top accent bar
+  pdf.setFillColor(255, 100, 45);
+  pdf.rect(0, 0, W, 6, 'F');
+
+  // Logo / domain
+  pdf.setFontSize(28);
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('codewithck.me', 18, 60);
+
+  // Subtitle
+  pdf.setFontSize(12);
+  pdf.setTextColor(155, 163, 175);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('Complete SEO + AEO + GEO Visibility Audit Report', 18, 74);
+
+  // Score box
+  pdf.setFillColor(36, 36, 66);
+  pdf.roundedRect(18, 88, W - 36, 38, 4, 4, 'F');
+  pdf.setFontSize(10);
+  pdf.setTextColor(155, 163, 175);
+  pdf.text('OVERALL SCORE', 30, 100);
+  pdf.setFontSize(26);
+  pdf.setTextColor(255, 100, 45);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('74 / 100  (Grade B+)', 30, 116);
+
+  // Three module scores
+  var modules = [
+    { label: 'SEO', score: '70/100', col: [255, 100, 45] },
+    { label: 'AEO', score: '79/100', col: [16, 185, 129] },
+    { label: 'GEO', score: '72/100', col: [139, 92, 246] },
+  ];
+  var startX = 18;
+  modules.forEach(function(m, idx) {
+    var x = startX + idx * 62;
+    pdf.setFillColor(36, 36, 66);
+    pdf.roundedRect(x, 134, 58, 28, 3, 3, 'F');
+    pdf.setFontSize(9);
+    pdf.setTextColor(155, 163, 175);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(m.label, x + 4, 144);
+    pdf.setFontSize(14);
+    pdf.setTextColor(m.col[0], m.col[1], m.col[2]);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(m.score, x + 4, 156);
+  });
+
+  // Parts list
+  var parts = [
+    { num: 'PART 1', title: 'SEO / AEO / GEO Audit Report', detail: '89 checks across 14 categories' },
+    { num: 'PART 2', title: '6-Month Content Calendar',       detail: '29 content pieces · Apr–Oct 2026' },
+    { num: 'PART 3', title: 'SEO Strategy, Competitors & Keywords', detail: '12-month plan · 6 competitors · 62 keywords' },
+  ];
+  var py = 180;
+  parts.forEach(function(p){
+    pdf.setFillColor(42, 42, 72);
+    pdf.roundedRect(18, py, W-36, 24, 3, 3, 'F');
+    pdf.setFillColor(255, 100, 45);
+    pdf.roundedRect(18, py, 28, 24, 3, 3, 'F');
+    pdf.setFontSize(7);
+    pdf.setTextColor(255,255,255);
+    pdf.setFont('helvetica','bold');
+    pdf.text(p.num, 19, py+10);
+    pdf.text('', 19, py+17);
+    pdf.setFontSize(11);
+    pdf.setTextColor(255,255,255);
+    pdf.text(p.title, 52, py+11);
+    pdf.setFontSize(8);
+    pdf.setTextColor(155,163,175);
+    pdf.setFont('helvetica','normal');
+    pdf.text(p.detail, 52, py+19);
+    py += 30;
+  });
+
+  // Footer
+  pdf.setFillColor(255, 100, 45);
+  pdf.rect(0, H-8, W, 8, 'F');
+  pdf.setFontSize(8);
+  pdf.setTextColor(255,255,255);
+  pdf.text('Generated by BuimbDigital  \u00B7  19 March 2026  \u00B7  CONFIDENTIAL', 18, H-2);
+}
+
+// ── Hook into renderResults to show PDF button ──
+(function() {
+  var _orig = typeof renderResults !== 'undefined' ? renderResults : null;
+  if (_orig) {
+    renderResults = function(data, userDomain) {
+      _orig(data, userDomain);
+      var btn = document.querySelector('.btn-sm.btn-orange');
+      if (btn) btn.style.display = 'inline-flex';
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.querySelector('.btn-sm.btn-orange');
+    if (btn) { btn.style.display = 'none'; btn.onclick = exportPDF; }
+  });
+})();

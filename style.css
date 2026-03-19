@@ -1983,6 +1983,97 @@ svg {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* PDF-friendly styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #results, #results * {
+    visibility: visible;
+  }
+  #results {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: white;
+  }
+  
+  /* Ensure page breaks don't cut content */
+  .cat-section, .phase-table, .cal-month, .comp-profile, .kw-table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  .doc-section-head {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  
+  /* Add page break before major sections */
+  .doc-section-head {
+    page-break-before: auto;
+  }
+  
+  h2, h3 {
+    page-break-after: avoid;
+  }
+  
+  table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  /* Ensure tables don't overflow */
+  .table-scroll {
+    overflow: visible !important;
+    max-width: 100%;
+  }
+  
+  table {
+    width: 100% !important;
+    table-layout: fixed;
+  }
+  
+  td, th {
+    word-wrap: break-word;
+  }
+}
+
+/* Screen styles */
+.cat-section {
+  transition: all 0.3s ease;
+}
+
+.cat-section.open .cat-toggle {
+  transform: rotate(180deg);
+}
+
+
+
+
+
+
+
 /* =========================
    MOBILE RESPONSIVE
 ========================= */
