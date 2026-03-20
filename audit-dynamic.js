@@ -24,7 +24,7 @@ Rules:
 - overall = SEO*0.4 + AEO*0.3 + GEO*0.3
 - PASS/WARN/FAIL must be realistic and varied
 - All text must reference ${domain} specifically
-- EXACTLY 6 competitors, 10 primary kw, 15 longtail kw, 8 local kw, 8 global kw, 6 calendar months (4-5 items each)
+- EXACTLY 6 competitors, 10 primary kw, 15 long-tail kw, 8 local kw, 8 global kw, 6 calendar months (4-5 items each)
 
 JSON structure (fill ALL fields with real data for ${domain}):
 {
@@ -637,7 +637,6 @@ function renderResults(data, userDomain) {
     { key: "aeo",          label: "AEO Analysis" },
     { key: "geo",          label: "GEO Analysis" },
     { key: "action",       label: "Action Plan" },
-    { key: "calendar",     label: "Content Calendar" },
     { key: "strategy",     label: "SEO Strategy" },
     { key: "competitors",  label: "Competitors" },
     { key: "keywords",     label: "Keywords" }
@@ -678,7 +677,6 @@ function buildPanel(key, data) {
   if (key === "aeo")         return buildModulePanel(data.mods.aeo, data);
   if (key === "geo")         return buildModulePanel(data.mods.geo, data);
   if (key === "action")      return buildActionPlan(data);
-  if (key === "calendar")    return buildCalendar(data);
   if (key === "strategy")    return buildStrategy(data);
   if (key === "competitors") return buildCompetitors(data);
   if (key === "keywords")    return buildKeywords(data);
