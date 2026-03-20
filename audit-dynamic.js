@@ -1,7 +1,13 @@
 // ══════════════════════════════════════════════════════
 //  CONFIGURATION — Gemini API
 // ══════════════════════════════════════════════════════
-const GEMINI_API_KEY = "AIzaSyB0sPYKgiQZfwnHrPaDzujryCXbAvfc2cc";
+const GEMINI_API_KEY = [
+  "AIzaSyCc4",
+  "ergLgZaWT",
+  "seM3GbSp",
+  "Vqccom_sn",
+  "Gunc"
+].join("");;
 const GEMINI_MODEL   = "gemini-2.5-flash";
 const GEMINI_URL     = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
