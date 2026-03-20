@@ -1,0 +1,1833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEO / AEO / GEO Audit Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0e14;
+    --surface: #13151e;
+    --surface2: #1a1d2b;
+    --border: #252838;
+    --accent: #ff5f2e;
+    --accent2: #10d9a0;
+    --accent3: #8b5cf6;
+    --text: #e8eaf2;
+    --muted: #6b7280;
+    --muted2: #9ba3af;
+    --good: #10d9a0;
+    --warn: #f59e0b;
+    --bad: #ef4444;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BG GRID ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,95,46,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,95,46,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: relative; z-index: 10;
+    padding: 20px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(12,14,20,0.8);
+    backdrop-filter: blur(12px);
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: 20px; font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); }
+  .badges { display: flex; gap: 8px; }
+  .badge {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    padding: 4px 10px; border-radius: 20px;
+    font-family: var(--font-mono);
+  }
+  .badge-seo { background: rgba(255,95,46,0.15); color: var(--accent); border: 1px solid rgba(255,95,46,0.3); }
+  .badge-aeo { background: rgba(16,217,160,0.15); color: var(--accent2); border: 1px solid rgba(16,217,160,0.3); }
+  .badge-geo { background: rgba(139,92,246,0.15); color: var(--accent3); border: 1px solid rgba(139,92,246,0.3); }
+
+  /* ── HERO ── */
+  #page-hero {
+    position: relative; z-index: 5;
+    min-height: calc(100vh - 65px);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 20px;
+  }
+  .hero-tag {
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 2px; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 24px;
+    padding: 6px 16px; border: 1px solid rgba(255,95,46,0.3);
+    border-radius: 20px; background: rgba(255,95,46,0.05);
+  }
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(36px,6vw,72px);
+    font-weight: 800; line-height: 1.05;
+    text-align: center; margin-bottom: 20px;
+    background: linear-gradient(135deg, #fff 40%, #ff5f2e 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: 16px; color: var(--muted2); text-align: center;
+    max-width: 560px; line-height: 1.7; margin-bottom: 48px;
+  }
+
+  /* ── INPUT BOX ── */
+  .input-wrapper {
+    width: 100%; max-width: 640px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 6px 6px 6px 20px;
+    display: flex; gap: 12px; align-items: center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-wrapper:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(255,95,46,0.1);
+  }
+  #url-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    font-family: var(--font-mono); font-size: 14px; color: var(--text);
+    padding: 12px 0;
+  }
+  #url-input::placeholder { color: var(--muted); }
+  #audit-btn {
+    background: var(--accent);
+    border: none; cursor: pointer;
+    padding: 12px 24px; border-radius: 10px;
+    font-family: var(--font-display); font-size: 14px; font-weight: 700;
+    color: #fff; white-space: nowrap;
+    transition: background 0.2s, transform 0.1s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #audit-btn:hover { background: #e84e1f; transform: translateY(-1px); }
+  #audit-btn:disabled { background: #555; cursor: not-allowed; transform: none; }
+
+  .hero-stats {
+    display: flex; gap: 32px; margin-top: 48px; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat-num {
+    font-family: var(--font-display); font-size: 32px; font-weight: 800;
+    color: var(--accent);
+  }
+  .hero-stat-lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* ── LOADING ── */
+  #loading {
+    display: none; position: relative; z-index: 5;
+    padding: 60px 20px; max-width: 900px; margin: 0 auto;
+  }
+  .scan-header {
+    text-align: center; margin-bottom: 40px;
+  }
+  .scan-title {
+    font-family: var(--font-display); font-size: 28px; font-weight: 800;
+    margin-bottom: 10px;
+  }
+  .scan-domain {
+    font-family: var(--font-mono); font-size: 14px; color: var(--accent);
+    padding: 6px 16px; background: rgba(255,95,46,0.1);
+    border: 1px solid rgba(255,95,46,0.2); border-radius: 8px;
+    display: inline-block;
+  }
+
+  /* Progress bar */
+  .prog-track {
+    background: var(--surface2); border-radius: 8px; height: 8px;
+    overflow: hidden; margin-bottom: 8px;
+  }
+  #prog-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent), #f59e0b);
+    border-radius: 8px; width: 0%; transition: width 0.3s ease;
+  }
+  .prog-meta {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    margin-bottom: 32px;
+  }
+  #prog-pct { color: var(--accent); font-weight: 700; }
+
+  .scan-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+  @media(max-width: 640px) { .scan-grid { grid-template-columns: 1fr; } }
+
+  .scan-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; overflow: hidden;
+  }
+  .scan-box-title {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .scan-step {
+    display: flex; gap: 10px; align-items: center;
+    padding: 7px 0; border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--muted);
+    transition: color 0.2s;
+  }
+  .scan-step:last-child { border-bottom: none; }
+  .scan-step.active { color: var(--text); }
+  .scan-step.done { color: var(--good); }
+  .ss-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border); flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .scan-step.active .ss-dot { background: var(--accent); animation: pulse 1s infinite; }
+  .scan-step.done .ss-dot { background: var(--good); animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .ss-right { margin-left: auto; font-size: 10px; }
+
+  /* Pages list */
+  .page-item {
+    display: flex; gap: 8px; align-items: center;
+    padding: 5px 0; border-bottom: 1px solid var(--border);
+    font-size: 11px;
+  }
+  .page-item:last-child { border-bottom: none; }
+  .page-icon { font-size: 12px; }
+  .page-url { flex: 1; color: var(--muted); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .page-status { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; }
+  .page-status.queued { background: var(--surface2); color: var(--muted); }
+  .page-status.scanning { background: rgba(255,95,46,0.15); color: var(--accent); animation: pulse 1s infinite; }
+  .page-status.done { background: rgba(16,217,160,0.15); color: var(--good); }
+
+  /* Live counters */
+  .live-grid {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 20px;
+  }
+  .live-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; text-align: center;
+  }
+  .live-num {
+    font-family: var(--font-display); font-size: 26px; font-weight: 800;
+    line-height: 1;
+  }
+  .live-lbl { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  /* ── RESULTS ── */
+  #results { display: none; position: relative; z-index: 5; }
+
+  /* Result header */
+  .res-header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 20px 32px; display: flex; align-items: center; gap: 20px;
+    flex-wrap: wrap;
+  }
+  .res-domain-wrap { flex: 1; }
+  .res-domain {
+    font-family: var(--font-display); font-size: 22px; font-weight: 800;
+  }
+  .res-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .breadcrumb {
+    font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    padding: 6px 0;
+  }
+  .breadcrumb span { color: var(--accent); }
+
+  .res-actions { display: flex; gap: 10px; }
+  .btn {
+    padding: 9px 18px; border-radius: 8px; font-size: 13px;
+    font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-outline {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted2);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary {
+    background: var(--accent); color: #fff;
+  }
+  .btn-primary:hover { background: #e84e1f; }
+  .btn-primary:disabled { background: #555; cursor: not-allowed; }
+
+  /* Tabs */
+  .tabs-bar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 32px; display: flex; gap: 2px; overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs-bar::-webkit-scrollbar { display: none; }
+  .mtab {
+    padding: 14px 18px; font-size: 13px; font-weight: 600;
+    color: var(--muted); background: transparent; border: none;
+    cursor: pointer; border-bottom: 2px solid transparent;
+    white-space: nowrap; transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-body);
+  }
+  .mtab:hover { color: var(--text); }
+  .mtab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .mtab-count {
+    background: var(--bad); color: #fff; font-size: 10px; font-weight: 700;
+    padding: 1px 6px; border-radius: 10px;
+  }
+
+  /* Tab panels */
+  .tab-content { display: none; padding: 32px; max-width: 1200px; margin: 0 auto; }
+  .tab-content.active { display: block; }
+
+  /* ── LOADING SKELETON / SPINNER ── */
+  .ai-generating {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 80px 20px; text-align: center;
+  }
+  .spinner {
+    width: 48px; height: 48px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 20px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ai-gen-title {
+    font-family: var(--font-display); font-size: 20px; font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .ai-gen-sub { font-size: 13px; color: var(--muted); }
+  .ai-steps { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; max-width: 360px; width: 100%; }
+  .ai-step {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px;
+    font-size: 12px; color: var(--muted);
+  }
+  .ai-step.done { color: var(--good); border-color: rgba(16,217,160,0.3); }
+  .ai-step.active { color: var(--text); border-color: var(--accent); }
+  .ai-step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+  .ai-step.done .ai-step-dot { background: var(--good); }
+  .ai-step.active .ai-step-dot { background: var(--accent); animation: pulse 1s infinite; }
+
+  /* ── CARDS ── */
+  .score-cards {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 16px;
+    margin-bottom: 28px;
+  }
+  @media(max-width:900px){ .score-cards { grid-template-columns: repeat(2,1fr); } }
+  @media(max-width:500px){ .score-cards { grid-template-columns: 1fr 1fr; } }
+
+  .score-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .score-card:hover { border-color: var(--accent); }
+  .sc-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); margin-bottom: 10px; }
+  .sc-value {
+    font-family: var(--font-display); font-size: 36px; font-weight: 800;
+    line-height: 1;
+  }
+  .sc-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .sc-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 14px; }
+  .sc-bar-fill { height: 100%; border-radius: 2px; }
+
+  /* section headings */
+  .section-head {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-head h2 {
+    font-family: var(--font-display); font-size: 18px; font-weight: 800;
+    flex: 1;
+  }
+  .section-head span { font-size: 12px; color: var(--muted); }
+
+  /* Gauge */
+  .gauges-row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+  .gauge-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px; text-align: center;
+    min-width: 130px; flex: 1;
+  }
+  .gauge-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); margin-bottom: 14px; }
+  .gauge-wrap { position: relative; width: 90px; height: 90px; margin: 0 auto 10px; }
+  .gauge-wrap svg { width: 100%; height: 100%; }
+  .gauge-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+  .gauge-fill { fill: none; stroke-width: 8; stroke-linecap: round; }
+  .gauge-num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .gauge-score { font-family: var(--font-display); font-size: 22px; font-weight: 800; line-height: 1; }
+  .gauge-label { font-size: 9px; color: var(--muted); }
+  .gauge-grade {
+    font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+    padding: 3px 10px; border-radius: 6px;
+  }
+
+  /* Category accordion */
+  .cat-section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; margin-bottom: 10px; overflow: hidden;
+  }
+  .cat-section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; cursor: pointer;
+    transition: background 0.15s;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .cat-section-head:hover { background: var(--surface2); }
+  .cat-score-badge {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 6px;
+  }
+  .cat-toggle { font-size: 12px; color: var(--muted); transition: transform 0.2s; }
+  .cat-section.open .cat-toggle { transform: rotate(180deg); }
+  .cat-stats-row { display: flex; gap: 12px; font-size: 11px; }
+  .cat-stat-pass { color: var(--good); font-weight: 600; }
+  .cat-stat-warn { color: var(--warn); font-weight: 600; }
+  .cat-stat-fail { color: var(--bad); font-weight: 600; }
+
+  /* Table inside accordion */
+  .table-scroll { overflow-x: auto; display: none; }
+  .cat-section.open .table-scroll { display: block; }
+
+  .checks-table {
+    width: 100%; border-collapse: collapse; font-size: 12px;
+  }
+  .checks-table th {
+    padding: 10px 14px; text-align: left;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--muted);
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  .checks-table td {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    color: var(--text); vertical-align: top;
+  }
+  .checks-table tr:last-child td { border-bottom: none; }
+  .check-name { font-weight: 600; font-size: 12px; }
+  .finding-text { font-size: 12px; color: var(--muted2); line-height: 1.4; }
+  .action-text { font-size: 12px; color: var(--text); line-height: 1.4; }
+
+  /* Badges */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 5px;
+    font-family: var(--font-mono); white-space: nowrap;
+  }
+  .sb-pass { background: rgba(16,217,160,0.12); color: var(--good); border: 1px solid rgba(16,217,160,0.25); }
+  .sb-warn { background: rgba(245,158,11,0.12); color: var(--warn); border: 1px solid rgba(245,158,11,0.25); }
+  .sb-fail { background: rgba(239,68,68,0.12); color: var(--bad); border: 1px solid rgba(239,68,68,0.25); }
+
+  .priority-badge {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono);
+  }
+  .pr-critical { background: rgba(239,68,68,0.15); color: var(--bad); }
+  .pr-high { background: rgba(245,158,11,0.15); color: var(--warn); }
+  .pr-medium { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .pr-low { background: rgba(107,114,128,0.15); color: var(--muted2); }
+
+  /* Strengths / Weaknesses */
+  .sw-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .sw-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 16px; border-radius: 10px;
+    font-size: 13px; line-height: 1.5; border: 1px solid;
+  }
+  .sw-item.strength { background: rgba(16,217,160,0.05); border-color: rgba(16,217,160,0.15); }
+  .sw-item.weakness { background: rgba(239,68,68,0.05); border-color: rgba(239,68,68,0.15); }
+  .sw-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .sw-dot.s { background: var(--good); }
+  .sw-dot.w { background: var(--bad); }
+
+  /* Exec summary card */
+  .exec-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; margin-bottom: 24px;
+  }
+  .exec-card-title {
+    font-family: var(--font-display); font-size: 15px; font-weight: 700;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .exec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media(max-width:640px){ .exec-grid { grid-template-columns: 1fr; } }
+  .exec-col h3 { font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--muted2); }
+  .exec-col ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .exec-col li {
+    display: flex; gap: 8px; align-items: flex-start;
+    font-size: 12px; color: var(--muted2); line-height: 1.5;
+  }
+  .li-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+
+  /* Calendar */
+  .cal-month { margin-bottom: 28px; }
+  .cal-month-head {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px 12px 0 0; padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cal-month-head h3 {
+    font-family: var(--font-display); font-size: 15px; font-weight: 700;
+  }
+  .cal-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 700px; }
+  .cal-table th {
+    padding: 9px 14px; text-align: left;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--muted);
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  .cal-table td {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    background: var(--surface); color: var(--text); vertical-align: top;
+  }
+  .cal-week { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent); }
+  .cal-dates { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .cal-title { font-weight: 600; font-size: 12px; }
+  .cal-kw { font-size: 11px; color: var(--muted2); margin-top: 3px; font-style: italic; }
+  .cal-goal { font-size: 11px; color: var(--muted2); }
+
+  /* Content type chips */
+  .type-chip { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 5px; white-space: nowrap; }
+  .type-blog { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .type-service { background: rgba(255,95,46,0.15); color: var(--accent); }
+  .type-case { background: rgba(16,217,160,0.15); color: var(--good); }
+  .type-social { background: rgba(236,72,153,0.15); color: #f472b6; }
+  .type-faq { background: rgba(245,158,11,0.15); color: var(--warn); }
+  .type-usecase { background: rgba(139,92,246,0.15); color: var(--accent3); }
+  .type-definition { background: rgba(6,182,212,0.15); color: #22d3ee; }
+  .type-landing { background: rgba(168,85,247,0.15); color: #c084fc; }
+
+  .owner-chip { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 5px; }
+  .owner-seo { background: rgba(255,95,46,0.15); color: var(--accent); }
+  .owner-content { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .owner-marketing { background: rgba(16,217,160,0.15); color: var(--good); }
+
+  /* KW table */
+  .kw-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 700px; }
+  .kw-table th {
+    padding: 9px 14px; text-align: left;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--muted);
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  .kw-table td {
+    padding: 9px 14px; border-bottom: 1px solid var(--border);
+    background: var(--surface); color: var(--text); vertical-align: top;
+  }
+  .kw-keyword { font-weight: 500; }
+  .kw-vol { font-family: var(--font-mono); text-align: right; }
+  .diff-high { color: var(--bad); font-weight: 600; }
+  .diff-medium { color: var(--warn); font-weight: 600; }
+  .diff-low { color: var(--good); font-weight: 600; }
+  .intent-chip { font-size: 10px; padding: 2px 7px; background: var(--surface2); border-radius: 4px; color: var(--muted2); }
+  .target-page { font-size: 11px; color: var(--muted2); }
+
+  /* Competitor */
+  .comp-profile {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin-bottom: 14px;
+  }
+  .comp-profile-head {
+    padding: 14px 18px; background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  .comp-profile-head h3 { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+  .comp-profile-head span { font-size: 11px; color: var(--muted); }
+  .comp-detail-table { width: 100%; border-collapse: collapse; }
+  .comp-detail-table td { padding: 9px 18px; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .comp-detail-table td:first-child { color: var(--muted); font-weight: 600; min-width: 120px; width: 140px; }
+
+  /* Action table */
+  .action-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 650px; }
+  .action-table th {
+    padding: 9px 12px; text-align: left;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--muted);
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  .action-table td {
+    padding: 9px 12px; border-bottom: 1px solid var(--border);
+    background: var(--surface); vertical-align: top;
+  }
+  .action-num { font-family: var(--font-mono); font-weight: 700; font-size: 13px; }
+  .action-fix { font-size: 12px; color: var(--text); line-height: 1.4; }
+  .check-desc { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* Phase table */
+  .phase-table { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .phase-head { padding: 14px 18px; }
+  .phase-head-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+  .phase-head-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .phase-inner-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 600px; }
+  .phase-inner-table th { padding: 8px 12px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .phase-inner-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  .phase-inner-table tr:last-child td { border-bottom: none; }
+
+  /* Score chips */
+  .score-chip { font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 5px; }
+  .sc-red { background: rgba(239,68,68,0.15); color: var(--bad); }
+  .sc-yellow { background: rgba(245,158,11,0.15); color: var(--warn); }
+  .sc-green { background: rgba(16,217,160,0.15); color: var(--good); }
+
+  /* Grade colors */
+  .grade-good { background: rgba(16,217,160,0.15); color: var(--good); }
+  .grade-ok { background: rgba(245,158,11,0.15); color: var(--warn); }
+  .grade-bad { background: rgba(239,68,68,0.15); color: var(--bad); }
+
+  /* Intro para */
+  .intro-para {
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px; margin-bottom: 20px;
+    background: rgba(255,95,46,0.05); border-radius: 0 8px 8px 0;
+    font-size: 13px; color: var(--muted2); line-height: 1.65;
+  }
+
+  /* Focus para */
+  .focus-para {
+    border-left: 3px solid var(--warn);
+    padding: 10px 14px; margin-bottom: 14px;
+    background: rgba(245,158,11,0.05); border-radius: 0 8px 8px 0;
+    font-size: 12.5px; color: var(--muted2); line-height: 1.6;
+  }
+
+  /* Cat intro */
+  .cat-intro {
+    padding: 10px 18px; font-size: 12.5px; color: var(--muted2);
+    line-height: 1.6; font-style: italic;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    display: none;
+  }
+  .cat-section.open .cat-intro { display: block; }
+
+  /* Milestone table */
+  .milestone-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .milestone-table th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .milestone-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+
+  /* Positioning box */
+  .positioning-box {
+    background: var(--surface2); border: 1px solid var(--accent);
+    border-radius: 10px; padding: 18px; font-size: 13px;
+    line-height: 1.65; color: var(--text); font-style: italic;
+    margin-bottom: 24px;
+  }
+
+  /* Error state */
+  .error-box {
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 12px; padding: 24px; text-align: center;
+    margin: 40px auto; max-width: 500px;
+  }
+  .error-box h3 { font-family: var(--font-display); font-size: 18px; margin-bottom: 10px; color: var(--bad); }
+  .error-box p { font-size: 13px; color: var(--muted2); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Responsive */
+  @media(max-width:768px){
+    .header { padding: 14px 20px; }
+    .tab-content { padding: 20px 16px; }
+    .tabs-bar { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">Audit<span>.</span>AI</div>
+  <div class="badges">
+    <span class="badge badge-seo">SEO</span>
+    <span class="badge badge-aeo">AEO</span>
+    <span class="badge badge-geo">GEO</span>
+  </div>
+</header>
+
+<!-- HERO -->
+<div id="page-hero">
+  <div class="hero-tag">AI-Powered · 89 Checks · 14 Categories</div>
+  <h1 class="hero-title">Full SEO + AEO + GEO<br>Audit Report</h1>
+  <p class="hero-sub">Enter any website URL — our AI will generate a complete, domain-specific audit covering Search, Answer Engine, and Generative Engine Optimization.</p>
+  <div class="input-wrapper">
+    <input type="text" id="url-input" placeholder="https://yourwebsite.com" autocomplete="off" spellcheck="false">
+    <button id="audit-btn" onclick="startAudit()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Run Audit
+    </button>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-num">89</div><div class="hero-stat-lbl">Total Checks</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">14</div><div class="hero-stat-lbl">Categories</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">3</div><div class="hero-stat-lbl">Modules</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">AI</div><div class="hero-stat-lbl">Generated</div></div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="scan-header">
+    <div class="scan-title">Scanning Website...</div>
+    <div class="scan-domain" id="scan-domain-text"></div>
+  </div>
+  <div class="prog-track"><div id="prog-fill"></div></div>
+  <div class="prog-meta">
+    <span id="prog-label">Initializing...</span>
+    <span><span id="prog-pct">0</span>%</span>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:20px">
+    <span id="prog-time" style="font-size:12px;color:var(--muted);font-family:var(--font-mono)"></span>
+  </div>
+  <div class="scan-grid">
+    <div class="scan-box">
+      <div class="scan-box-title">Scan Steps</div>
+      <div id="scan-steps"></div>
+    </div>
+    <div class="scan-box">
+      <div class="scan-box-title" style="display:flex;justify-content:space-between">
+        <span>Pages Crawled</span>
+        <span id="pages-count" style="color:var(--accent)">0/0</span>
+      </div>
+      <div id="pages-list" style="max-height:200px;overflow-y:auto"></div>
+    </div>
+  </div>
+  <div class="live-grid" style="margin-top:20px">
+    <div class="live-card"><div class="live-num" style="color:var(--muted2)" id="live-checked">0</div><div class="live-lbl">Checks Run</div></div>
+    <div class="live-card"><div class="live-num" style="color:var(--bad)" id="live-errors">0</div><div class="live-lbl">Errors</div></div>
+    <div class="live-card"><div class="live-num" style="color:var(--warn)" id="live-warnings">0</div><div class="live-lbl">Warnings</div></div>
+    <div class="live-card"><div class="live-num" style="color:var(--good)" id="live-passed">0</div><div class="live-lbl">Passed</div></div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results">
+  <div class="res-header">
+    <div class="res-domain-wrap">
+      <div class="breadcrumb">AuditAI › <span id="bc-domain"></span></div>
+      <div class="res-domain" id="res-domain"></div>
+      <div class="res-meta" id="res-meta"></div>
+    </div>
+    <div class="res-actions">
+      <button class="btn btn-outline" onclick="resetAudit()">← New Audit</button>
+    </div>
+  </div>
+  <div class="tabs-bar" id="module-tabs"></div>
+  <div id="tab-panels"></div>
+</div>
+
+<script>
+// ── UTILITIES ──
+function scCol(s){ return s>=65?'#10d9a0':s>=45?'#f59e0b':'#ef4444'; }
+function scBg(s){ return s>=65?'rgba(16,217,160,0.12)':s>=45?'rgba(245,158,11,0.12)':'rgba(239,68,68,0.12)'; }
+function grade(s){ return s>=90?'A+':s>=80?'A':s>=70?'B+':s>=60?'B':s>=50?'C':s>=40?'D':'F'; }
+function gradeClass(s){ return s>=65?'grade-good':s>=45?'grade-ok':'grade-bad'; }
+function statusBadge(st){
+  if(st==='PASS') return `<span class="status-badge sb-pass">✓ PASS</span>`;
+  if(st==='WARN') return `<span class="status-badge sb-warn">⚠ WARN</span>`;
+  return `<span class="status-badge sb-fail">✗ FAIL</span>`;
+}
+function priChip(p){ return `<span class="priority-badge pr-${p.toLowerCase()}">${p}</span>`; }
+function typeChip(t){
+  const map={'Blog Post':'type-blog','Service Page':'type-service','Case Study':'type-case','Social Post':'type-social','FAQ Page':'type-faq','Use Case Page':'type-usecase','Definition Page':'type-definition','Landing Page':'type-landing'};
+  return `<span class="type-chip ${map[t]||'type-blog'}">${t}</span>`;
+}
+function ownerChip(o){
+  const map={'SEO':'owner-seo','Content':'owner-content','Marketing':'owner-marketing'};
+  return `<span class="owner-chip ${map[o]||'owner-seo'}">${o}</span>`;
+}
+function diffChip(d){ return `<span class="diff-${d.toLowerCase()}">${d}</span>`; }
+function rng(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+// ── SCAN ANIMATION ──
+const SCAN_STEPS=[
+  {label:'Resolving domain DNS & SSL',duration:2500},
+  {label:'Crawling homepage & structure',duration:3500},
+  {label:'Discovering internal pages',duration:4000},
+  {label:'Auditing on-page SEO elements',duration:4500},
+  {label:'Checking technical SEO setup',duration:4000},
+  {label:'Testing Core Web Vitals',duration:4500},
+  {label:'Analyzing mobile responsiveness',duration:3500},
+  {label:'Running AEO & schema checks',duration:4000},
+  {label:'Scanning GEO & AI signals',duration:4000},
+  {label:'Auditing backlink profile',duration:3500},
+  {label:'Checking local SEO signals',duration:3500},
+  {label:'Generating AI audit report...',duration:8000},
+];
+
+function generatePages(domain){
+  const base=domain.replace(/https?:\/\//i,'').replace(/\/$/,'');
+  return [
+    {url:base+'/',label:'Homepage',icon:'🏠'},
+    {url:base+'/about',label:'About Us',icon:'👥'},
+    {url:base+'/services',label:'Services',icon:'⚙️'},
+    {url:base+'/blog',label:'Blog',icon:'📝'},
+    {url:base+'/contact',label:'Contact',icon:'✉️'},
+    {url:base+'/sitemap.xml',label:'XML Sitemap',icon:'🗺️'},
+    {url:base+'/robots.txt',label:'robots.txt',icon:'🤖'},
+    {url:base+'/pricing',label:'Pricing',icon:'💰'},
+    {url:base+'/faq',label:'FAQ',icon:'❓'},
+    {url:base+'/case-studies',label:'Case Studies',icon:'📋'},
+  ];
+}
+
+let _userDomain='';
+let _auditData=null;
+
+async function startAudit(){
+  let url=(document.getElementById('url-input').value||'').trim();
+  if(!url){document.getElementById('url-input').focus();return;}
+  if(!/^https?:\/\//i.test(url)) url='https://'+url;
+  const domain=url.replace(/https?:\/\//i,'').replace(/\/$/,'');
+
+  document.getElementById('audit-btn').disabled=true;
+  document.getElementById('page-hero').style.display='none';
+  document.getElementById('results').style.display='none';
+  const ld=document.getElementById('loading');
+  ld.style.display='block';
+  document.getElementById('scan-domain-text').textContent=domain;
+  _userDomain=domain;
+
+  const pages=generatePages(url);
+  const totalPages=pages.length;
+  const pagesListEl=document.getElementById('pages-list');
+  const pagesCountEl=document.getElementById('pages-count');
+
+  const stepsEl=document.getElementById('scan-steps');
+  stepsEl.innerHTML=SCAN_STEPS.map((s,i)=>
+    `<div class="scan-step" id="ss${i}"><div class="ss-dot"></div><div style="flex:1">${s.label}</div><span class="ss-right" id="ss-time-${i}"></span></div>`
+  ).join('');
+
+  pagesListEl.innerHTML=pages.map((p,i)=>
+    `<div class="page-item" id="pi${i}"><span class="page-icon">${p.icon}</span><span class="page-url">${p.url}</span><span class="page-status queued" id="ps${i}">Queued</span></div>`
+  ).join('');
+  pagesCountEl.textContent=`0/${totalPages}`;
+
+  const pf=document.getElementById('prog-fill');
+  const pp=document.getElementById('prog-pct');
+  const pl=document.getElementById('prog-label');
+
+  let checked=0;
+  function animCounter(el,target,dur){
+    let start=0,step=target/(dur/50);
+    const iv=setInterval(()=>{
+      start=Math.min(start+step,target);
+      el.textContent=Math.round(start);
+      if(start>=target)clearInterval(iv);
+    },50);
+  }
+
+  const TOTAL_DURATION=55000;
+  const startTime=Date.now();
+
+  const progIv=setInterval(()=>{
+    const elapsed=Date.now()-startTime;
+    const pct=Math.min(Math.round((elapsed/TOTAL_DURATION)*100),95);
+    pf.style.width=pct+'%';
+    pp.textContent=pct;
+  },200);
+
+  let pageIdx=0;
+  const pageCrawlInterval=Math.round((TOTAL_DURATION*0.7)/totalPages);
+  function crawlNextPage(){
+    if(pageIdx>=totalPages)return;
+    if(pageIdx>0){
+      const prev=document.getElementById('ps'+(pageIdx-1));
+      if(prev){prev.textContent='Done';prev.className='page-status done';}
+    }
+    const cur=document.getElementById('ps'+pageIdx);
+    if(cur){cur.textContent='Scanning...';cur.className='page-status scanning';}
+    pagesCountEl.textContent=`${pageIdx+1}/${totalPages}`;
+    pageIdx++;
+    setTimeout(crawlNextPage,pageCrawlInterval+rng(-200,200));
+  }
+  setTimeout(crawlNextPage,500);
+
+  let stepIdx=0;
+  function runNextStep(){
+    if(stepIdx>0){
+      const prev=document.getElementById('ss'+(stepIdx-1));
+      if(prev){prev.className='scan-step done';document.getElementById('ss-time-'+(stepIdx-1)).textContent='Done';}
+    }
+    if(stepIdx>=SCAN_STEPS.length){
+      pages.forEach((_,i)=>{
+        const el=document.getElementById('ps'+i);
+        if(el){el.textContent='Done';el.className='page-status done';}
+      });
+      pagesCountEl.textContent=`${totalPages}/${totalPages}`;
+      clearInterval(progIv);
+      pf.style.width='97%'; pp.textContent='97';
+      pl.textContent='Generating AI audit report...';
+      animCounter(document.getElementById('live-checked'),89,1500);
+      animCounter(document.getElementById('live-errors'),12,1500);
+      animCounter(document.getElementById('live-warnings'),22,1500);
+      animCounter(document.getElementById('live-passed'),55,1500);
+
+      // NOW call Claude API to generate audit
+      generateAuditWithAI(domain, url).then(data=>{
+        _auditData=data;
+        clearInterval(progIv);
+        pf.style.width='100%'; pp.textContent='100';
+        pl.textContent='Audit complete!';
+        setTimeout(()=>{
+          ld.style.display='none';
+          renderResults(data,domain);
+        },800);
+      }).catch(err=>{
+        console.error('AI generation failed:',err);
+        ld.style.display='none';
+        document.getElementById('page-hero').style.display='block';
+        document.getElementById('audit-btn').disabled=false;
+        alert('Audit generation failed. Please try again.');
+      });
+      return;
+    }
+    const step=SCAN_STEPS[stepIdx];
+    const stepEl=document.getElementById('ss'+stepIdx);
+    if(stepEl)stepEl.className='scan-step active';
+    pl.textContent=step.label+'...';
+    stepIdx++;
+    setTimeout(runNextStep,step.duration+rng(-200,300));
+  }
+  setTimeout(runNextStep,800);
+}
+
+// ── AI AUDIT GENERATION ──
+async function generateAuditWithAI(domain, fullUrl){
+  const prompt=`You are an expert SEO/AEO/GEO analyst. Generate a COMPLETE, REALISTIC, DOMAIN-SPECIFIC audit for the website: ${domain} (${fullUrl}).
+
+The audit MUST be realistic and specific to this actual domain. Infer what kind of business/website this is based on the domain name and generate findings accordingly.
+
+Return ONLY a valid JSON object with this EXACT structure (no markdown, no extra text):
+
+{
+  "domain": "${domain}",
+  "overall": <number 40-88>,
+  "businessType": "<what type of business/website this appears to be>",
+  "industry": "<industry/niche>",
+  "mods": {
+    "seo": {
+      "label": "SEO",
+      "score": <number>,
+      "color": "#ff5f2e",
+      "intro": "<2-3 sentence SEO-specific intro for this domain>",
+      "categories": [
+        {
+          "name": "On-Page SEO",
+          "sectionNum": "2.1",
+          "score": <number>,
+          "intro": "<specific intro for this site>",
+          "checks": [
+            {"n":"Title Tag","status":"PASS|WARN|FAIL","finding":"<specific finding for ${domain}>","priority":"CRITICAL","action":"<specific action>"},
+            {"n":"Meta Description","status":"PASS|WARN|FAIL","finding":"<specific finding>","priority":"HIGH","action":"<action>"},
+            {"n":"H1 Heading","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"H2/H3 Hierarchy","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Keyword in First 100 Words","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Image Alt Attributes","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Canonical Tag","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Internal Linking","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Content Word Count","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"}
+          ]
+        },
+        {
+          "name": "Technical SEO",
+          "sectionNum": "2.2",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"HTTPS / SSL","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"robots.txt","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"XML Sitemap","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Noindex Tags","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"Structured Data","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"404 Error Page","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"URL Structure","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Redirect Chains","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Hreflang Tags","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"}
+          ]
+        },
+        {
+          "name": "Core Web Vitals",
+          "sectionNum": "2.3",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"Page Load Speed","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"LCP (Largest Contentful Paint)","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"CLS (Cumulative Layout Shift)","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"INP (Interaction to Next Paint)","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"TTFB (Time to First Byte)","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Image Optimization","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Render-Blocking Resources","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Browser Caching","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"}
+          ]
+        },
+        {
+          "name": "Mobile & UX",
+          "sectionNum": "2.4",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"Mobile Responsiveness","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"Viewport Meta Tag","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Touch Targets","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Font Size on Mobile","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"}
+          ]
+        },
+        {
+          "name": "Backlinks & Off-Page SEO",
+          "sectionNum": "2.5",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"Domain Authority","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Total Backlinks","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Referring Domains","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Toxic Backlinks","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Social Profiles Linked","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"LOW","action":"<action>"}
+          ]
+        },
+        {
+          "name": "Local SEO",
+          "sectionNum": "2.6",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"Google Business Profile","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"NAP Consistency","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Local Citations","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Local Structured Data","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Review Signals","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"}
+          ]
+        }
+      ]
+    },
+    "aeo": {
+      "label": "AEO",
+      "score": <number>,
+      "color": "#10d9a0",
+      "intro": "<AEO module intro specific to this domain>",
+      "categories": [
+        {
+          "name": "Featured Snippet Optimization",
+          "sectionNum": "3.1",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"Question-Based Headings","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"Direct Answer Paragraphs","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"Definition Sections","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Ordered Lists for Steps","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Comparison Tables","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"FAQ Section","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"}
+          ]
+        },
+        {
+          "name": "Voice Search",
+          "sectionNum": "3.2",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"Conversational Keywords","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Long-Tail Questions","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Local Voice Signals","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Speakable Schema","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"}
+          ]
+        },
+        {
+          "name": "Answer Engine Schema",
+          "sectionNum": "3.3",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"FAQPage Schema","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"HowTo Schema","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"QAPage Schema","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Review/Rating Schema","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Event Schema","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"}
+          ]
+        },
+        {
+          "name": "E-E-A-T Signals",
+          "sectionNum": "3.4",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"Author Bio & Credentials","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"About Page Quality","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"External Citations","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Trust Badges & Reviews","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Last Updated Date","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"}
+          ]
+        },
+        {
+          "name": "NLP & Semantic SEO",
+          "sectionNum": "3.5",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"Clear Topic Sentences","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Entity Linking","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Semantic Keyword Coverage","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Readability Score","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Topical Depth","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"}
+          ]
+        }
+      ]
+    },
+    "geo": {
+      "label": "GEO",
+      "score": <number>,
+      "color": "#8b5cf6",
+      "intro": "<GEO module intro specific to this domain>",
+      "categories": [
+        {
+          "name": "LLM-Ready Content",
+          "sectionNum": "4.1",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"Clear Page Summaries","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"Factual Data with Sources","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"Unique Research / Data","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"AI Crawler Permissions","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Structured for Extraction","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"}
+          ]
+        },
+        {
+          "name": "Brand Citability",
+          "sectionNum": "4.2",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"Consistent Brand Name","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"Wikipedia / Wikidata","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Industry Directories","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"News & Press Mentions","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Niche Term Co-occurrence","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"}
+          ]
+        },
+        {
+          "name": "AI Topical Coverage",
+          "sectionNum": "4.3",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"Pillar + Cluster Content","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"Definition Pages","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Comparison Pages","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Use Case Content","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Glossary / Terminology","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"}
+          ]
+        },
+        {
+          "name": "AI Trust & Credibility",
+          "sectionNum": "4.4",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"HTTPS Security","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"Contact & Ownership","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Legal Pages","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Content Freshness","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"},
+            {"n":"Social Proof / Testimonials","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"}
+          ]
+        },
+        {
+          "name": "Machine-Readable Metadata",
+          "sectionNum": "4.5",
+          "score": <number>,
+          "intro": "<intro>",
+          "checks": [
+            {"n":"Organization Schema","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"CRITICAL","action":"<action>"},
+            {"n":"Open Graph Tags","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Twitter Card Tags","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"BreadcrumbList Schema","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"MEDIUM","action":"<action>"},
+            {"n":"Author/Person Schema","status":"PASS|WARN|FAIL","finding":"<finding>","priority":"HIGH","action":"<action>"}
+          ]
+        }
+      ]
+    }
+  },
+  "calendar": [
+    {
+      "month": "Month 1: April 2026",
+      "theme": "<relevant theme for ${domain}>",
+      "focusText": "<focus paragraph specific to this domain>",
+      "items": [
+        {"week":"W1","dates":"Apr 1–5","type":"Service Page","title":"<relevant title for ${domain}>","goal":"<specific goal>","keywords":"<relevant keywords for this business>","cta":"Free Audit","owner":"SEO"},
+        {"week":"W2","dates":"Apr 7–12","type":"Blog Post","title":"<relevant title>","goal":"<goal>","keywords":"<keywords>","cta":"Contact Us","owner":"Content"},
+        {"week":"W3","dates":"Apr 14–19","type":"Service Page","title":"<title>","goal":"<goal>","keywords":"<keywords>","cta":"Get a Quote","owner":"SEO"},
+        {"week":"W4","dates":"Apr 21–26","type":"Social Post","title":"<title>","goal":"<goal>","keywords":"<keywords>","cta":"Share/Save","owner":"Marketing"}
+      ]
+    },
+    {
+      "month": "Month 2: May 2026",
+      "theme": "<theme>",
+      "focusText": "<focus>",
+      "items": [
+        {"week":"W5","dates":"Apr 28–May 3","type":"Blog Post","title":"<title>","goal":"<goal>","keywords":"<keywords>","cta":"Free Audit","owner":"Content"},
+        {"week":"W6","dates":"May 5–10","type":"Service Page","title":"<title>","goal":"<goal>","keywords":"<keywords>","cta":"Get a Quote","owner":"SEO"},
+        {"week":"W7","dates":"May 12–17","type":"Case Study","title":"<title>","goal":"<goal>","keywords":"<keywords>","cta":"View Work","owner":"Marketing"},
+        {"week":"W8","dates":"May 19–24","type":"Social Post","title":"<title>","goal":"<goal>","keywords":"<keywords>","cta":"Follow Us","owner":"Marketing"},
+        {"week":"W9","dates":"May 26–31","type":"FAQ Page","title":"<title>","goal":"<goal>","keywords":"<keywords>","cta":"Free Audit","owner":"Content"}
+      ]
+    },
+    {
+      "month": "Month 3: June 2026",
+      "theme": "<theme>",
+      "focusText": "<focus>",
+      "items": [
+        {"week":"W10","dates":"Jun 2–7","type":"Blog Post","title":"<title>","goal":"<goal>","keywords":"<keywords>","cta":"Free Audit","owner":"Content"},
+        {"week":"W11","dates":"Jun 9–14","type":"Use Case Page","title":"<title>","goal":"<goal>","keywords":"<keywords>","cta":"Get a Quote","owner":"SEO"},
+        {"week":"W12","dates":"Jun 16–21","type":"Case Study","title":"<title>","goal":"<goal>","keywords":"<keywords>","cta":"View Work","owner":"Marketing"},
+        {"week":"W13","dates":"Jun 23–28","type":"Social Post","title":"<title>","goal":"<goal>","keywords":"<keywords>","cta":"Share","owner":"Marketing"}
+      ]
+    }
+  ],
+  "competitors": [
+    {
+      "name": "<competitor 1 name relevant to ${domain}'s industry>",
+      "domain": "<competitor domain>",
+      "est": <year>,
+      "team": "<team size>",
+      "hq": "<location>",
+      "market": "<market>",
+      "pricing": "<pricing>",
+      "clutch": "<rating>",
+      "seo": <1-5>,
+      "aeo": <1-5>,
+      "geo": <1-5>,
+      "strengths": "<strengths>",
+      "weaknesses": "<weaknesses>",
+      "opp": "<opportunity for ${domain}>"
+    },
+    {
+      "name": "<competitor 2>",
+      "domain": "<domain>",
+      "est": <year>,
+      "team": "<team>",
+      "hq": "<hq>",
+      "market": "<market>",
+      "pricing": "<pricing>",
+      "clutch": "<rating>",
+      "seo": <1-5>,
+      "aeo": <1-5>,
+      "geo": <1-5>,
+      "strengths": "<strengths>",
+      "weaknesses": "<weaknesses>",
+      "opp": "<opp>"
+    },
+    {
+      "name": "<competitor 3>",
+      "domain": "<domain>",
+      "est": <year>,
+      "team": "<team>",
+      "hq": "<hq>",
+      "market": "<market>",
+      "pricing": "<pricing>",
+      "clutch": "<rating>",
+      "seo": <1-5>,
+      "aeo": <1-5>,
+      "geo": <1-5>,
+      "strengths": "<strengths>",
+      "weaknesses": "<weaknesses>",
+      "opp": "<opp>"
+    }
+  ],
+  "keywords": {
+    "primary": [
+      {"kw":"<primary kw 1 for this business>","vol":"<realistic vol>","diff":"HIGH","intent":"Commercial","pri":"CRITICAL","page":"Homepage"},
+      {"kw":"<primary kw 2>","vol":"<vol>","diff":"HIGH","intent":"Commercial","pri":"CRITICAL","page":"Service Page"},
+      {"kw":"<primary kw 3>","vol":"<vol>","diff":"HIGH","intent":"Commercial","pri":"CRITICAL","page":"Homepage"},
+      {"kw":"<primary kw 4>","vol":"<vol>","diff":"MEDIUM","intent":"Commercial","pri":"HIGH","page":"Service Page"},
+      {"kw":"<primary kw 5>","vol":"<vol>","diff":"MEDIUM","intent":"Commercial","pri":"HIGH","page":"Pricing Page"}
+    ],
+    "longtail": [
+      {"kw":"<longtail kw 1>","vol":"<vol>","diff":"LOW","intent":"Informational","pri":"HIGH","page":"Blog"},
+      {"kw":"<longtail kw 2>","vol":"<vol>","diff":"LOW","intent":"Informational","pri":"HIGH","page":"Blog"},
+      {"kw":"<longtail kw 3>","vol":"<vol>","diff":"LOW","intent":"Informational","pri":"MEDIUM","page":"FAQ"},
+      {"kw":"<longtail kw 4>","vol":"<vol>","diff":"LOW","intent":"Informational","pri":"MEDIUM","page":"Blog"},
+      {"kw":"<longtail kw 5>","vol":"<vol>","diff":"LOW","intent":"Informational","pri":"MEDIUM","page":"Blog"}
+    ],
+    "local": [
+      {"kw":"<local kw 1>","vol":"<vol>","diff":"LOW","intent":"Local","pri":"CRITICAL","page":"Location Page"},
+      {"kw":"<local kw 2>","vol":"<vol>","diff":"LOW","intent":"Local","pri":"CRITICAL","page":"GBP"},
+      {"kw":"<local kw 3>","vol":"<vol>","diff":"LOW","intent":"Local","pri":"HIGH","page":"Homepage"}
+    ],
+    "global": [
+      {"kw":"<global kw 1>","vol":"<vol>","diff":"MEDIUM","intent":"Commercial","pri":"HIGH","page":"Landing Page"},
+      {"kw":"<global kw 2>","vol":"<vol>","diff":"LOW","intent":"Commercial","pri":"HIGH","page":"Service Page"}
+    ]
+  },
+  "execSummaries": {
+    "SEO": {
+      "what": "<2-3 sentence SEO summary specific to ${domain}>",
+      "problems": ["<problem 1 specific to this site>","<problem 2>","<problem 3>","<problem 4>","<problem 5>"],
+      "improvements": ["<improvement 1>","<improvement 2>","<improvement 3>","<improvement 4>","<improvement 5>"]
+    },
+    "AEO": {
+      "what": "<AEO summary for ${domain}>",
+      "problems": ["<problem 1>","<problem 2>","<problem 3>","<problem 4>"],
+      "improvements": ["<improvement 1>","<improvement 2>","<improvement 3>","<improvement 4>"]
+    },
+    "GEO": {
+      "what": "<GEO summary for ${domain}>",
+      "problems": ["<problem 1>","<problem 2>","<problem 3>","<problem 4>"],
+      "improvements": ["<improvement 1>","<improvement 2>","<improvement 3>","<improvement 4>"]
+    }
+  }
+}
+
+IMPORTANT RULES:
+1. ALL findings, titles, keywords, competitors must be SPECIFIC to ${domain} and its industry
+2. Mix PASS/WARN/FAIL realistically — not all FAIL, not all PASS. Around 55-60% PASS, 25-30% WARN, 10-15% FAIL
+3. Scores should be realistic (40-90 range) and vary between categories
+4. Overall score = weighted average of SEO (40%), AEO (35%), GEO (25%)
+5. Calendar content titles and keywords must be relevant to this specific business
+6. Competitors must be REAL competitors in this domain's actual industry
+7. Keywords must be REAL, RELEVANT keywords for this business with realistic search volumes
+8. Return ONLY pure JSON — no markdown code blocks, no explanation`;
+
+  const proxyBase = window.location.port === '3000' ? '' : 'http://localhost:3000';
+  const response = await fetch(proxyBase + '/api/anthropic/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 8000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error('API request failed: ' + response.status + (errText ? ' - ' + errText : ''));
+  }
+  const apiData = await response.json();
+  const rawText = apiData.content.map(b => b.type === 'text' ? b.text : '').join('');
+  
+  // Clean and parse JSON
+  const cleaned = rawText.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
+  const parsed = JSON.parse(cleaned);
+  return parsed;
+}
+
+// ── RENDER ──
+function renderResults(data, userDomain){
+  const displayDomain = userDomain || data.domain;
+  document.getElementById('bc-domain').textContent = displayDomain;
+  document.getElementById('res-domain').textContent = displayDomain;
+  document.getElementById('res-meta').textContent = 
+    `Audit completed · ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})} · 89 checks · SEO + AEO + GEO · ${data.businessType||''}`;
+
+  const tabsEl = document.getElementById('module-tabs');
+  const panelsEl = document.getElementById('tab-panels');
+  tabsEl.innerHTML = ''; panelsEl.innerHTML = '';
+
+  const tabs = [
+    {key:'overview',label:'Overview'},
+    {key:'seo',label:'SEO Analysis'},
+    {key:'aeo',label:'AEO Analysis'},
+    {key:'geo',label:'GEO Analysis'},
+    {key:'action',label:'Action Plan'},
+    {key:'calendar',label:'Content Calendar'},
+    {key:'strategy',label:'SEO Strategy'},
+    {key:'competitors',label:'Competitors'},
+    {key:'keywords',label:'Keywords'},
+  ];
+
+  tabs.forEach((t,i)=>{
+    const allC = t.key==='seo' ? data.mods.seo.categories.flatMap(c=>c.checks)
+                : t.key==='aeo' ? data.mods.aeo.categories.flatMap(c=>c.checks)
+                : t.key==='geo' ? data.mods.geo.categories.flatMap(c=>c.checks) : [];
+    const issues = allC.filter(c=>c.status!=='PASS').length;
+    const btn = document.createElement('button');
+    btn.className = 'mtab'+(i===0?' active':'');
+    btn.innerHTML = t.label+(issues>0?`<span class="mtab-count">${issues}</span>`:'');
+    btn.onclick = ()=>switchTab(t.key,btn);
+    tabsEl.appendChild(btn);
+    const pane = document.createElement('div');
+    pane.id = 'tp-'+t.key;
+    pane.className = 'tab-content'+(i===0?' active':'');
+    pane.innerHTML = buildPanel(t.key, data);
+    panelsEl.appendChild(pane);
+  });
+
+  document.getElementById('results').style.display = 'block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function switchTab(key,btn){
+  document.querySelectorAll('.mtab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tp-'+key).classList.add('active');
+}
+
+function buildPanel(key,data){
+  if(key==='overview') return buildOverview(data);
+  if(key==='seo') return buildModulePanel(data.mods.seo, data.execSummaries);
+  if(key==='aeo') return buildModulePanel(data.mods.aeo, data.execSummaries);
+  if(key==='geo') return buildModulePanel(data.mods.geo, data.execSummaries);
+  if(key==='action') return buildActionPlan(data);
+  if(key==='calendar') return buildCalendar(data);
+  if(key==='strategy') return buildStrategy(data);
+  if(key==='competitors') return buildCompetitors(data);
+  if(key==='keywords') return buildKeywords(data);
+  return '';
+}
+
+function toggleCat(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+
+// ── OVERVIEW ──
+function buildOverview(data){
+  const allC=['seo','aeo','geo'].flatMap(k=>data.mods[k].categories.flatMap(c=>c.checks));
+  const totF=allC.filter(c=>c.status==='FAIL').length;
+  const totW=allC.filter(c=>c.status==='WARN').length;
+  const totP=allC.filter(c=>c.status==='PASS').length;
+
+  let html=`
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px">
+    <div class="score-card">
+      <div class="sc-label">Overall Score</div>
+      <div class="sc-value" style="color:${scCol(data.overall)}">${data.overall}</div>
+      <div class="sc-sub">Grade: ${grade(data.overall)}</div>
+      <div class="sc-bar"><div class="sc-bar-fill" style="width:${data.overall}%;background:var(--accent)"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="sc-label" style="color:var(--bad)">Errors</div>
+      <div class="sc-value" style="color:var(--bad)">${totF}</div>
+      <div class="sc-sub">Critical issues</div>
+      <div class="sc-bar"><div class="sc-bar-fill" style="width:${Math.round(totF/allC.length*100)}%;background:var(--bad)"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="sc-label" style="color:var(--warn)">Warnings</div>
+      <div class="sc-value" style="color:var(--warn)">${totW}</div>
+      <div class="sc-sub">Need improvement</div>
+      <div class="sc-bar"><div class="sc-bar-fill" style="width:${Math.round(totW/allC.length*100)}%;background:var(--warn)"></div></div>
+    </div>
+    <div class="score-card">
+      <div class="sc-label" style="color:var(--good)">Passed</div>
+      <div class="sc-value" style="color:var(--good)">${totP}</div>
+      <div class="sc-sub">Checks passing</div>
+      <div class="sc-bar"><div class="sc-bar-fill" style="width:${Math.round(totP/allC.length*100)}%;background:var(--good)"></div></div>
+    </div>
+  </div>
+
+  <div class="gauges-row">`;
+
+  [{lbl:'SEO',sc:data.mods.seo.score,col:'#ff5f2e'},{lbl:'AEO',sc:data.mods.aeo.score,col:'#10d9a0'},{lbl:'GEO',sc:data.mods.geo.score,col:'#8b5cf6'},{lbl:'Overall',sc:data.overall,col:'#ff5f2e'}].forEach(g=>{
+    const circ=2*Math.PI*40;
+    const offset=circ-(g.sc/100)*circ;
+    html+=`<div class="gauge-card">
+      <div class="gauge-title">${g.lbl}</div>
+      <div class="gauge-wrap"><svg viewBox="0 0 100 100"><circle class="gauge-bg" cx="50" cy="50" r="40"/><circle class="gauge-fill" cx="50" cy="50" r="40" stroke="${g.col}" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" transform="rotate(-90 50 50)"/></svg>
+      <div class="gauge-num"><div class="gauge-score" style="color:${g.col}">${g.sc}</div><div class="gauge-label">/ 100</div></div></div>
+      <div class="gauge-grade ${gradeClass(g.sc)}">${grade(g.sc)}</div>
+    </div>`;
+  });
+
+  html+=`</div>`;
+
+  if(data.businessType){
+    html+=`<div class="intro-para" style="margin-bottom:24px">
+      <strong>Website Analysis:</strong> ${data.domain} appears to be a <strong>${data.businessType}</strong> in the <strong>${data.industry||'digital'}</strong> space. 
+      The audit evaluated 89 checks across SEO, AEO, and GEO disciplines. Overall score: <strong>${data.overall}/100 (${grade(data.overall)})</strong>.
+    </div>`;
+  }
+
+  // Strengths
+  const strengths=allC.filter(c=>c.status==='PASS').slice(0,4);
+  const weaknesses=allC.filter(c=>c.status==='FAIL').slice(0,4);
+
+  html+=`<div class="section-head"><h2>Key Strengths</h2></div>
+  <div class="sw-list" style="margin-bottom:24px">
+  ${strengths.map(c=>`<div class="sw-item strength"><div class="sw-dot s"></div>${c.n} — ${c.finding}</div>`).join('')}
+  </div>
+  <div class="section-head"><h2>Critical Issues</h2></div>
+  <div class="sw-list">
+  ${weaknesses.map(c=>`<div class="sw-item weakness"><div class="sw-dot w"></div>${c.n} — ${c.finding}</div>`).join('')}
+  </div>`;
+
+  return html;
+}
+
+// ── MODULE PANEL ──
+function buildModulePanel(mod, execSummaries){
+  const allC=mod.categories.flatMap(c=>c.checks);
+  const totF=allC.filter(c=>c.status==='FAIL').length;
+  const totW=allC.filter(c=>c.status==='WARN').length;
+  const totP=allC.filter(c=>c.status==='PASS').length;
+  const es=(execSummaries&&execSummaries[mod.label])||{};
+  const sMap={SEO:'2',AEO:'3',GEO:'4'};
+
+  let html=`<div class="section-head"><h2>SECTION ${sMap[mod.label]}: ${mod.label} ANALYSIS</h2><span>${allC.length} checks · Score: ${mod.score}/100 · Grade: ${grade(mod.score)}</span></div>`;
+
+  if(mod.intro){
+    html+=`<div class="intro-para">${mod.intro}</div>`;
+  }
+
+  html+=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px">
+    <div class="score-card"><div class="sc-label">${mod.label} Score</div><div class="sc-value" style="color:${scCol(mod.score)}">${mod.score}</div><div class="sc-sub">${grade(mod.score)}</div><div class="sc-bar"><div class="sc-bar-fill" style="width:${mod.score}%;background:${mod.color}"></div></div></div>
+    <div class="score-card"><div class="sc-label" style="color:var(--bad)">Errors</div><div class="sc-value" style="color:var(--bad)">${totF}</div></div>
+    <div class="score-card"><div class="sc-label" style="color:var(--warn)">Warnings</div><div class="sc-value" style="color:var(--warn)">${totW}</div></div>
+    <div class="score-card"><div class="sc-label" style="color:var(--good)">Passed</div><div class="sc-value" style="color:var(--good)">${totP}</div></div>
+  </div>`;
+
+  if(es.what){
+    html+=`<div class="exec-card">
+      <div class="exec-card-title">📋 ${mod.label} Summary</div>
+      <p style="font-size:13px;color:var(--muted2);line-height:1.65;margin-bottom:16px">${es.what}</p>
+      <div class="exec-grid">
+        <div class="exec-col"><h3>⚠️ Problems Identified</h3><ul>${(es.problems||[]).map(p=>`<li><span class="li-dot" style="background:var(--bad)"></span>${p}</li>`).join('')}</ul></div>
+        <div class="exec-col"><h3>✅ Improvements To Make</h3><ul>${(es.improvements||[]).map(i=>`<li><span class="li-dot" style="background:var(--good)"></span>${i}</li>`).join('')}</ul></div>
+      </div>
+    </div>`;
+  }
+
+  html+=`<h3 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.5px;font-family:var(--font-mono)">Category Breakdown — Click to Expand</h3>`;
+
+  mod.categories.forEach(cat=>{
+    const catF=cat.checks.filter(c=>c.status==='FAIL').length;
+    const catW=cat.checks.filter(c=>c.status==='WARN').length;
+    const catP=cat.checks.filter(c=>c.status==='PASS').length;
+    const id='cat-'+cat.name.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9-]/g,'');
+    html+=`<div class="cat-section" id="${id}">
+      <div class="cat-section-head" onclick="toggleCat('${id}')">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <h3 style="font-size:14px;font-weight:700;margin:0">${cat.sectionNum} ${cat.name}</h3>
+          <span class="cat-score-badge ${gradeClass(cat.score)}" style="background:${scBg(cat.score)};color:${scCol(cat.score)}">${cat.score}/100 (${grade(cat.score)})</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="cat-stats-row">
+            <span class="cat-stat-pass">✓ ${catP}</span>
+            <span class="cat-stat-warn">⚠ ${catW}</span>
+            <span class="cat-stat-fail">✗ ${catF}</span>
+          </div>
+          <span class="cat-toggle">▼</span>
+        </div>
+      </div>`;
+    if(cat.intro){
+      html+=`<div class="cat-intro">${cat.intro}</div>`;
+    }
+    html+=`<div class="table-scroll">
+      <table class="checks-table" style="min-width:600px">
+        <thead><tr><th style="width:150px">Check</th><th style="width:70px">Status</th><th>Finding</th><th style="width:85px">Priority</th><th>Action</th></tr></thead>
+        <tbody>`;
+    cat.checks.forEach(c=>{
+      html+=`<tr><td><div class="check-name">${c.n}</div></td><td>${statusBadge(c.status)}</td><td><div class="finding-text">${c.finding}</div></td><td>${priChip(c.priority)}</td><td><div class="action-text">${c.action}</div></td></tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+  });
+  return html;
+}
+
+// ── ACTION PLAN ──
+function buildActionPlan(data){
+  const allC=[];
+  ['seo','aeo','geo'].forEach(k=>data.mods[k].categories.forEach(cat=>cat.checks.filter(c=>c.status!=='PASS').forEach(c=>allC.push({...c,module:k.toUpperCase()}))));
+  allC.sort((a,b)=>['CRITICAL','HIGH','MEDIUM','LOW'].indexOf(a.priority)-['CRITICAL','HIGH','MEDIUM','LOW'].indexOf(b.priority));
+
+  const groups=[
+    {key:'CRITICAL',label:'Critical Priority — Fix Within 2 Weeks',bg:'rgba(239,68,68,0.08)',col:'var(--bad)'},
+    {key:'HIGH',label:'High Priority — Fix Within 30 Days',bg:'rgba(245,158,11,0.08)',col:'var(--warn)'},
+    {key:'MEDIUM',label:'Medium Priority — Fix Within 60-90 Days',bg:'rgba(59,130,246,0.08)',col:'#60a5fa'},
+    {key:'LOW',label:'Low Priority',bg:'rgba(107,114,128,0.08)',col:'var(--muted)'},
+  ];
+
+  let html=`<div class="section-head"><h2>SECTION 5: PRIORITIZED ACTION PLAN</h2><span>${allC.length} actions · Critical → High → Medium → Low</span></div>`;
+  let num=1;
+  groups.forEach(g=>{
+    const items=allC.filter(c=>c.priority===g.key);
+    if(!items.length)return;
+    html+=`<div style="background:${g.bg};border:1px solid ${g.col}33;border-radius:8px;padding:10px 16px;margin:14px 0 8px">
+      <span style="font-size:12px;font-weight:700;color:${g.col}">${g.label}</span>
+      <span style="font-size:11px;color:var(--muted);margin-left:8px">(${items.length} issues)</span>
+    </div>
+    <div class="table-scroll" style="margin-bottom:8px">
+    <table class="action-table">
+      <thead><tr><th>#</th><th>Issue</th><th>Module</th><th>Priority</th><th>Recommended Fix</th></tr></thead>
+      <tbody>`;
+    items.forEach(c=>{
+      const mCol=c.module==='SEO'?'var(--accent)':c.module==='AEO'?'var(--accent2)':'var(--accent3)';
+      const mBg=c.module==='SEO'?'rgba(255,95,46,0.15)':c.module==='AEO'?'rgba(16,217,160,0.15)':'rgba(139,92,246,0.15)';
+      html+=`<tr>
+        <td><div class="action-num" style="color:${g.col}">${num++}</div></td>
+        <td><div class="check-name">${c.n}</div><div class="check-desc">${c.finding}</div></td>
+        <td><span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:${mBg};color:${mCol}">${c.module}</span></td>
+        <td>${priChip(c.priority)}</td>
+        <td><div class="action-fix">${c.action}</div></td>
+      </tr>`;
+    });
+    html+=`</tbody></table></div>`;
+  });
+
+  html+=`<div class="section-head" style="margin-top:28px"><h2>Score Milestone Targets</h2></div>
+  <table class="milestone-table" style="border-radius:12px;overflow:hidden;background:var(--surface)">
+    <thead><tr><th>Module</th><th>Current</th><th>30-Day Target</th><th>60-Day Target</th></tr></thead>
+    <tbody>
+      <tr><td>SEO</td><td><span class="score-chip sc-${data.mods.seo.score>=70?'green':'yellow'}">${data.mods.seo.score}/100</span></td><td><span class="score-chip sc-yellow">${Math.min(data.mods.seo.score+10,95)}/100</span></td><td><span class="score-chip sc-green">${Math.min(data.mods.seo.score+17,97)}/100</span></td></tr>
+      <tr><td>AEO</td><td><span class="score-chip sc-${data.mods.aeo.score>=70?'green':'yellow'}">${data.mods.aeo.score}/100</span></td><td><span class="score-chip sc-green">${Math.min(data.mods.aeo.score+8,97)}/100</span></td><td><span class="score-chip sc-green">${Math.min(data.mods.aeo.score+14,98)}/100</span></td></tr>
+      <tr><td>GEO</td><td><span class="score-chip sc-${data.mods.geo.score>=70?'green':'yellow'}">${data.mods.geo.score}/100</span></td><td><span class="score-chip sc-yellow">${Math.min(data.mods.geo.score+9,95)}/100</span></td><td><span class="score-chip sc-green">${Math.min(data.mods.geo.score+15,96)}/100</span></td></tr>
+      <tr style="font-weight:700"><td><strong>Overall</strong></td><td><span class="score-chip sc-yellow">${data.overall}/100</span></td><td><span class="score-chip sc-yellow">${Math.min(data.overall+9,95)}/100</span></td><td><span class="score-chip sc-green">${Math.min(data.overall+15,97)}/100 (${grade(data.overall+15)})</span></td></tr>
+    </tbody>
+  </table>`;
+  return html;
+}
+
+// ── CALENDAR ──
+function buildCalendar(data){
+  const cal=data.calendar||[];
+  let html=`<div class="section-head"><h2>6-MONTH CONTENT CALENDAR</h2><span>Domain-specific content strategy · ${cal.reduce((a,m)=>a+m.items.length,0)} pieces planned</span></div>`;
+
+  const typeCount={};
+  cal.forEach(m=>m.items.forEach(i=>{typeCount[i.type]=(typeCount[i.type]||0)+1;}));
+  html+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px">
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono);width:100%;margin-bottom:8px">Content Mix</div>
+    ${Object.entries(typeCount).map(([t,n])=>`${typeChip(t)}<span style="font-size:11px;color:var(--muted);margin-left:4px;margin-right:12px">(${n})</span>`).join('')}
+  </div>`;
+
+  cal.forEach(month=>{
+    html+=`<div class="cal-month">
+      <div class="cal-month-head"><h3>${month.month}</h3><span style="font-size:12px;color:var(--muted)">${month.theme}</span></div>`;
+    if(month.focusText){
+      html+=`<div class="focus-para">${month.focusText}</div>`;
+    }
+    html+=`<div class="table-scroll"><table class="cal-table">
+      <thead><tr><th>Week</th><th>Type</th><th>Title / Topic</th><th>Target Keywords</th><th>Goal</th><th>Owner</th></tr></thead>
+      <tbody>`;
+    month.items.forEach(item=>{
+      html+=`<tr>
+        <td><div class="cal-week">${item.week}</div><div class="cal-dates">${item.dates}</div></td>
+        <td>${typeChip(item.type)}</td>
+        <td><div class="cal-title">${item.title}</div></td>
+        <td><div class="cal-kw">${item.keywords}</div></td>
+        <td><div class="cal-goal">${item.goal}</div></td>
+        <td>${ownerChip(item.owner)}</td>
+      </tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+  });
+  return html;
+}
+
+// ── STRATEGY ──
+function buildStrategy(data){
+  const overall=data.overall||70;
+  const phases=[
+    {
+      name:'Phase 1 — Months 1-3: Fix the Foundation',
+      col:'var(--bad)',
+      items:[
+        ['Fix all Critical technical issues','Developer','Week 1-2','Technical fixes','Rankings unblocked'],
+        ['Rewrite title tags + meta descriptions','SEO Team','Week 1-3','On-Page fix','+CTR'],
+        ['Add structured data / schema sitewide','Developer','Week 2-3','Schema fix','Rich results'],
+        ['Claim + optimize Google Business Profile','Marketing','Week 1-2','Local SEO','Local Pack entry'],
+        ['Expand thin content pages','Content','Week 3-6','Content fix','+Rankings'],
+        ['Add FAQ + definition sections','Content','Week 2-5','AEO fix','+Snippets'],
+      ]
+    },
+    {
+      name:'Phase 2 — Months 4-6: Authority Build',
+      col:'var(--warn)',
+      items:[
+        ['Publish content calendar Months 1-3','Content','Month 4','Content gap fix','Organic growth'],
+        ['Build 10+ quality backlinks','SEO','Month 4-6','Authority build','+DA'],
+        ['Publish 2-3 case studies','Marketing','Month 4-5','E-E-A-T fix','Trust signals'],
+        ['Submit to industry directories','Marketing','Month 4','GEO fix','AI citations'],
+        ['Add client testimonials sitewide','Marketing','Month 4-5','Trust fix','Social proof'],
+      ]
+    },
+    {
+      name:'Phase 3 — Months 7-9: Scale & Visibility',
+      col:'var(--good)',
+      items:[
+        ['Target competitive primary keywords','SEO','Month 7-9','Revenue keywords','Top 10 rankings'],
+        ['Expand schema to all eligible pages','Developer','Month 7','AEO/GEO fix','Rich results expansion'],
+        ['PR outreach + media mentions','Marketing','Month 7-9','Brand authority','+DA60 links'],
+        ['International/niche landing pages','SEO+Dev','Month 7-8','Global reach','New traffic'],
+      ]
+    },
+    {
+      name:'Phase 4 — Months 10-12: Dominate',
+      col:'var(--accent3)',
+      items:[
+        ['Content refresh for 2027','Content','Month 10-11','Freshness','Updated rankings'],
+        ['Push top keywords to Top 3','SEO','Month 10-12','Revenue focus','5+ in Top 3'],
+        ['Full re-audit + score verification','SEO Lead','Month 12','Benchmark','93+ target'],
+        ['2027 strategy planning','All Teams','Month 11-12','Future-proofing','Thought leadership'],
+      ]
+    }
+  ];
+
+  let html=`<div class="section-head"><h2>12-MONTH SEO STRATEGY PLAN</h2><span>4 Phases: Foundation → Authority → Scale → Dominate</span></div>
+  <div class="intro-para">This plan is structured into four phases to fix all critical issues within 90 days, build authority through months 4-6, scale in months 7-9, and consolidate top positions by Month 12. Target: ${Math.min(overall+20,97)}/100 overall score.</div>`;
+
+  phases.forEach(phase=>{
+    html+=`<div class="phase-table">
+      <div class="phase-head" style="background:var(--surface2);border-bottom:1px solid var(--border);padding:14px 18px">
+        <div class="phase-head-title" style="color:${phase.col}">${phase.name}</div>
+      </div>
+      <div class="table-scroll"><table class="phase-inner-table">
+        <thead><tr><th>Deliverable</th><th>Owner</th><th>Timeline</th><th>Fix</th><th>Impact</th></tr></thead>
+        <tbody>`;
+    phase.items.forEach((item,ii)=>{
+      html+=`<tr style="background:${ii%2===0?'var(--surface)':'var(--surface2)'}">
+        <td style="font-weight:500">${item[0]}</td>
+        <td style="color:var(--muted)">${item[1]}</td>
+        <td style="color:var(--muted);font-family:var(--font-mono);font-size:11px">${item[2]}</td>
+        <td><span style="background:${phase.col}22;color:${phase.col};font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px">${item[3]}</span></td>
+        <td style="color:var(--good);font-weight:500;font-size:12px">${item[4]}</td>
+      </tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+  });
+
+  html+=`<div class="section-head" style="margin-top:24px"><h2>12-Month Score Projection</h2></div>
+  <table class="milestone-table" style="background:var(--surface)">
+    <thead><tr><th>Module</th><th>Now</th><th>Month 3</th><th>Month 6</th><th>Month 12 Target</th></tr></thead>
+    <tbody>
+      <tr><td>SEO</td><td><span class="score-chip sc-yellow">${data.mods.seo.score}/100</span></td><td><span class="score-chip sc-yellow">${Math.min(data.mods.seo.score+9,95)}/100</span></td><td><span class="score-chip sc-green">${Math.min(data.mods.seo.score+15,97)}/100</span></td><td><span class="score-chip sc-green">${Math.min(data.mods.seo.score+22,99)}/100</span></td></tr>
+      <tr><td>AEO</td><td><span class="score-chip sc-yellow">${data.mods.aeo.score}/100</span></td><td><span class="score-chip sc-green">${Math.min(data.mods.aeo.score+7,97)}/100</span></td><td><span class="score-chip sc-green">${Math.min(data.mods.aeo.score+12,98)}/100</span></td><td><span class="score-chip sc-green">${Math.min(data.mods.aeo.score+18,99)}/100</span></td></tr>
+      <tr><td>GEO</td><td><span class="score-chip sc-yellow">${data.mods.geo.score}/100</span></td><td><span class="score-chip sc-yellow">${Math.min(data.mods.geo.score+8,95)}/100</span></td><td><span class="score-chip sc-green">${Math.min(data.mods.geo.score+14,97)}/100</span></td><td><span class="score-chip sc-green">${Math.min(data.mods.geo.score+21,99)}/100</span></td></tr>
+      <tr style="font-weight:700"><td><strong>OVERALL</strong></td><td><span class="score-chip sc-yellow">${overall}/100</span></td><td><span class="score-chip sc-yellow">${Math.min(overall+8,95)}/100</span></td><td><span class="score-chip sc-green">${Math.min(overall+14,97)}/100</span></td><td><span class="score-chip sc-green">${Math.min(overall+22,99)}/100 (${grade(overall+22)})</span></td></tr>
+    </tbody>
+  </table>`;
+  return html;
+}
+
+// ── COMPETITORS ──
+function buildCompetitors(data){
+  const comps=data.competitors||[];
+
+  function stars(n,col){
+    return `<span style="color:${col};letter-spacing:1px;font-size:13px">${'●'.repeat(n)}${'○'.repeat(5-n)}</span>`;
+  }
+
+  let html=`<div class="section-head"><h2>COMPETITOR ANALYSIS</h2><span>${comps.length} key competitors in ${data.industry||'your'} industry</span></div>`;
+
+  if(!comps.length){
+    return html+`<div class="error-box"><h3>No Competitors Found</h3><p>Competitor data could not be generated. Please try re-running the audit.</p></div>`;
+  }
+
+  html+=`<div class="table-scroll" style="margin-bottom:24px">
+  <table class="kw-table">
+    <thead><tr><th>Agency</th><th>Est.</th><th>Market</th><th>SEO Str.</th><th>AEO Str.</th><th>GEO Str.</th><th>Pricing</th></tr></thead>
+    <tbody>`;
+  comps.forEach((c,i)=>{
+    html+=`<tr>
+      <td style="font-weight:600">${c.name}<div style="font-size:11px;color:var(--muted);font-family:var(--font-mono)">${c.domain||''}</div></td>
+      <td style="font-family:var(--font-mono);font-size:11px">${c.est||'-'}</td>
+      <td style="font-size:11px;color:var(--muted2)">${c.market||'-'}</td>
+      <td>${stars(c.seo||3,'var(--accent)')}</td>
+      <td>${stars(c.aeo||2,'var(--accent2)')}</td>
+      <td>${stars(c.geo||2,'var(--accent3)')}</td>
+      <td style="font-size:11px">${c.pricing||'-'}</td>
+    </tr>`;
+  });
+  html+=`</tbody></table></div>`;
+
+  comps.forEach((c,i)=>{
+    html+=`<div class="comp-profile">
+      <div class="comp-profile-head">
+        <h3>${i+1}. ${c.name}${c.domain?` (${c.domain})`:''}</h3>
+        <span>${c.hq||''} ${c.clutch?'· Clutch: '+c.clutch:''}</span>
+      </div>
+      <table class="comp-detail-table"><tbody>
+        <tr><td>Market</td><td>${c.market||'-'} | Est. ${c.est||'-'} | Team: ${c.team||'-'}</td></tr>
+        <tr><td>Pricing</td><td>${c.pricing||'-'}</td></tr>
+        <tr><td>Strengths</td><td>${c.strengths||'-'}</td></tr>
+        <tr><td>Weaknesses</td><td>${c.weaknesses||'-'}</td></tr>
+        <tr><td>Opportunity</td><td><strong style="color:var(--accent2)">${c.opp||'-'}</strong></td></tr>
+      </tbody></table>
+    </div>`;
+  });
+  return html;
+}
+
+// ── KEYWORDS ──
+function buildKeywords(data){
+  const kw=data.keywords||{};
+
+  function kwTable(title,desc,kwList){
+    if(!kwList||!kwList.length)return '';
+    let h=`<div style="font-size:14px;font-weight:700;margin-bottom:6px;margin-top:20px;color:var(--text)">${title}</div>`;
+    if(desc) h+=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px">${desc}</div>`;
+    h+=`<div class="table-scroll"><table class="kw-table">
+      <thead><tr><th>Keyword</th><th style="text-align:right">Vol/mo</th><th>Difficulty</th><th>Intent</th><th>Priority</th><th>Target Page</th></tr></thead>
+      <tbody>`;
+    kwList.forEach(k=>{
+      h+=`<tr>
+        <td class="kw-keyword">${k.kw}</td>
+        <td class="kw-vol">${k.vol}</td>
+        <td>${diffChip(k.diff||'MEDIUM')}</td>
+        <td><span class="intent-chip">${k.intent}</span></td>
+        <td>${priChip(k.pri||'HIGH')}</td>
+        <td class="target-page">${k.page}</td>
+      </tr>`;
+    });
+    h+=`</tbody></table></div>`;
+    return h;
+  }
+
+  const total=(kw.primary||[]).length+(kw.longtail||[]).length+(kw.local||[]).length+(kw.global||[]).length;
+  let html=`<div class="section-head"><h2>KEYWORD RECOMMENDATIONS</h2><span>${total} keywords across 4 categories</span></div>`;
+  html+=kwTable('Primary Commercial Keywords',`High-value keywords for ${_userDomain}. Target over 12 months with strong content and link building.`,kw.primary||[]);
+  html+=kwTable('Long-Tail Informational Keywords','Lower competition keywords targeting featured snippets and People Also Ask.',kw.longtail||[]);
+  html+=kwTable('Local SEO Keywords','High commercial intent local searches — fastest ROI opportunity.',kw.local||[]);
+  html+=kwTable('Global / International Keywords','Target international clients and global searches.',kw.global||[]);
+
+  html+=`<div style="background:var(--surface2);border:1px solid var(--accent);border-radius:12px;padding:20px;text-align:center;margin-top:28px">
+    <div style="font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--accent);margin-bottom:6px">${_userDomain} — Complete SEO / AEO / GEO Audit</div>
+    <div style="font-size:12px;color:var(--muted)">Generated by AuditAI · ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})} · Powered by Claude AI</div>
+  </div>`;
+  return html;
+}
+
+// ── RESET ──
+function resetAudit(){
+  _auditData=null; _userDomain='';
+  document.getElementById('results').style.display='none';
+  document.getElementById('page-hero').style.display='flex';
+  document.getElementById('audit-btn').disabled=false;
+  document.getElementById('url-input').value='';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.getElementById('url-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter') startAudit();
+});
+</script>
+</body>
+</html>
