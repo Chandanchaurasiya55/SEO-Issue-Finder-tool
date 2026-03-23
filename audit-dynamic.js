@@ -2,11 +2,10 @@
 //  CONFIGURATION — Gemini API
 // ══════════════════════════════════════════════════════
 const GEMINI_API_KEY = [
-  "AIzaSyCc4",
-  "ergLgZaWT",
-  "seM3GbSp",
-  "Vqccom_sn",
-  "Gunc",
+  "AIzaSyDfd6",
+  "AjxJ7_op9nA4",
+  "xO4T89pIny",
+  "uwOgZo8"
 ].join("");
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
@@ -285,7 +284,6 @@ async function callGeminiAPI(domain) {
     }),
   });
 
-  // Always parse body first
   const data = await response.json();
 
   if (!response.ok) {
@@ -293,14 +291,12 @@ async function callGeminiAPI(domain) {
     throw new Error("Gemini API Error " + response.status + ": " + errMsg);
   }
 
-  // Extract raw text
   const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
   if (!rawText) {
     const reason = data?.candidates?.[0]?.finishReason || "UNKNOWN";
     throw new Error("Gemini returned empty response. Finish reason: " + reason);
   }
 
-  // Strip markdown fences
   let cleaned = rawText.trim();
   cleaned = cleaned
     .replace(/^```json[\r\n]*/i, "")
@@ -308,36 +304,22 @@ async function callGeminiAPI(domain) {
     .replace(/[\r\n]*```\s*$/i, "")
     .trim();
 
-  // Try direct parse
   try {
     return JSON.parse(cleaned);
   } catch (e) {}
 
-  // JSON may be truncated — repair open structures
   function repairJSON(str) {
     let result = str;
-    // Remove trailing incomplete value after last comma/colon
     result = result.replace(/,\s*$/, "");
     result = result.replace(/:\s*"[^"]*$/, ': ""');
     result = result.replace(/:\s*[^}\],"\s]*$/, ": null");
-    // Walk string and track open structures
     const stack = [];
-    let inStr = false,
-      esc = false;
+    let inStr = false, esc = false;
     for (let i = 0; i < result.length; i++) {
       const c = result[i];
-      if (esc) {
-        esc = false;
-        continue;
-      }
-      if (c === "\\\\" && inStr) {
-        esc = true;
-        continue;
-      }
-      if (c === '"') {
-        inStr = !inStr;
-        continue;
-      }
+      if (esc) { esc = false; continue; }
+      if (c === "\\\\" && inStr) { esc = true; continue; }
+      if (c === '"') { inStr = !inStr; continue; }
       if (inStr) continue;
       if (c === "{") stack.push("}");
       else if (c === "[") stack.push("]");
@@ -371,28 +353,14 @@ function scBg(s) {
   return s >= 65 ? "#dcfce7" : s >= 45 ? "#fef9c3" : "#fee2e2";
 }
 function grade(s) {
-  return s >= 90
-    ? "A+"
-    : s >= 80
-      ? "A"
-      : s >= 70
-        ? "B+"
-        : s >= 60
-          ? "B"
-          : s >= 50
-            ? "C"
-            : s >= 40
-              ? "D"
-              : "F";
+  return s >= 90 ? "A+" : s >= 80 ? "A" : s >= 70 ? "B+" : s >= 60 ? "B" : s >= 50 ? "C" : s >= 40 ? "D" : "F";
 }
 function gradeClass(s) {
   return s >= 65 ? "grade-good" : s >= 45 ? "grade-ok" : "grade-bad";
 }
 function statusBadge(st) {
-  if (st === "PASS")
-    return `<span class="status-badge sb-pass">&#10003; PASS</span>`;
-  if (st === "WARN")
-    return `<span class="status-badge sb-warn">&#9888; WARN</span>`;
+  if (st === "PASS") return `<span class="status-badge sb-pass">&#10003; PASS</span>`;
+  if (st === "WARN") return `<span class="status-badge sb-warn">&#9888; WARN</span>`;
   return `<span class="status-badge sb-fail">&#10005; FAIL</span>`;
 }
 function priChip(p) {
@@ -412,11 +380,7 @@ function typeChip(t) {
   return `<span class="type-chip ${map[t] || "type-blog"}">${t}</span>`;
 }
 function ownerChip(o) {
-  const map = {
-    SEO: "owner-seo",
-    Content: "owner-content",
-    Marketing: "owner-marketing",
-  };
+  const map = { SEO: "owner-seo", Content: "owner-content", Marketing: "owner-marketing" };
   return `<span class="owner-chip ${map[o] || "owner-seo"}">${o}</span>`;
 }
 function diffChip(d) {
@@ -428,232 +392,241 @@ function scoreChip(s) {
 }
 
 // ══════════════════════════════════════════════════════
-//  SCAN ANIMATION
+//  generatePages — Animation + Loading Screen
+//  (Purana naam rakha, andar naya animation hai)
 // ══════════════════════════════════════════════════════
-function rng(a, b) {
-  return Math.floor(Math.random() * (b - a + 1)) + a;
-}
-
-const SCAN_STEPS = [
-  { label: "Resolving domain DNS & SSL", duration: 3000 },
-  { label: "Crawling homepage & structure", duration: 4500 },
-  { label: "Discovering internal pages", duration: 5000 },
-  { label: "Auditing on-page SEO elements", duration: 5500 },
-  { label: "Checking technical SEO setup", duration: 5000 },
-  { label: "Testing Core Web Vitals", duration: 5500 },
-  { label: "Analyzing mobile responsiveness", duration: 4500 },
-  { label: "Running AEO & schema checks", duration: 5000 },
-  { label: "Scanning GEO & AI signals", duration: 5000 },
-  { label: "Auditing backlink profile", duration: 4000 },
-  { label: "Checking local SEO signals", duration: 4000 },
-  { label: "Compiling results & scoring", duration: 5000 },
-];
-
 function generatePages(domain) {
-  const base = domain.replace(/https?:\/\//i, "").replace(/\/$/, "");
-  return [
-    { url: base + "/", label: "Homepage", icon: "🏠" },
-    { url: base + "/about", label: "About Us", icon: "👥" },
-    { url: base + "/services", label: "Services", icon: "⚙️" },
-    { url: base + "/services/web-design", label: "Web Design", icon: "🎨" },
-    { url: base + "/blog", label: "Blog", icon: "📝" },
-    { url: base + "/blog/seo-guide-2026", label: "SEO Guide 2026", icon: "📄" },
-    {
-      url: base + "/blog/digital-marketing-tips",
-      label: "Marketing Tips",
-      icon: "📄",
-    },
-    { url: base + "/contact", label: "Contact", icon: "✉️" },
-    { url: base + "/case-studies", label: "Case Studies", icon: "📋" },
-    { url: base + "/pricing", label: "Pricing", icon: "💰" },
-    { url: base + "/faq", label: "FAQ", icon: "❓" },
-    { url: base + "/sitemap.xml", label: "XML Sitemap", icon: "🗺️" },
+
+  // ── SCAN STEPS ────────────────────────────────────
+  const SCAN_STEPS = [
+    { label: "Resolving DNS & verifying SSL certificate",  detail: "Checking HTTPS, redirect chains and domain health",            checks: 4,  duration: 3000 },
+    { label: "Crawling homepage structure",                detail: "Reading meta tags, H1, canonical, Open Graph",                 checks: 7,  duration: 4500 },
+    { label: "Discovering internal pages",                 detail: "Mapping URL structure, sitemap.xml, robots.txt",               checks: 5,  duration: 5000 },
+    { label: "Auditing on-page SEO elements",              detail: "Title tags, meta descriptions, heading hierarchy, placement",  checks: 9,  duration: 5500 },
+    { label: "Checking technical SEO setup",               detail: "Structured data, hreflang, noindex flags, redirect loops",     checks: 9,  duration: 5000 },
+    { label: "Testing Core Web Vitals",                    detail: "LCP, CLS, INP, TTFB, render-blocking resources",              checks: 8,  duration: 5500 },
+    { label: "Analysing mobile & UX signals",              detail: "Viewport tag, touch targets, font size, responsiveness",      checks: 4,  duration: 4500 },
+    { label: "Running AEO & schema checks",                detail: "FAQ schema, HowTo, E-E-A-T, featured snippet readiness",      checks: 20, duration: 5000 },
+    { label: "Scanning GEO & AI visibility signals",       detail: "LLM-ready content, brand citability, AI crawler access",      checks: 20, duration: 5000 },
+    { label: "Auditing backlink & local SEO profile",      detail: "Domain authority, NAP consistency, Google Business signals",  checks: 10, duration: 4000 },
+    { label: "Compiling scores & building report",         detail: "Weighting SEO×0.4, AEO×0.3, GEO×0.3 for final score",       checks: 89, duration: 5000 },
   ];
+
+  // ── IMPORTANT: bahar accessible banao startAudit ke liye ──
+  window.SCAN_STEPS_REF = SCAN_STEPS;
+
+  // ── STYLES — ek baar inject ───────────────────────
+  if (!document.getElementById("sc-styles")) {
+    const st = document.createElement("style");
+    st.id = "sc-styles";
+    st.textContent = `
+      #loading { display:none; position:fixed; inset:0; background:#fff; z-index:9999; overflow-y:auto; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+      .sc-wrap { max-width:560px; margin:0 auto; padding:48px 24px 40px; }
+      .sc-domain-pill { display:inline-flex; align-items:center; gap:8px; border:0.5px solid #e2e5ed; border-radius:999px; padding:5px 14px; font-size:13px; color:#6b7280; margin-bottom:28px; }
+      .sc-pulse { width:7px; height:7px; border-radius:50%; background:#1D9E75; animation:scPulse 1.2s ease-in-out infinite; }
+      @keyframes scPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.65)} }
+      .sc-title { font-size:20px; font-weight:600; color:#1a1a2e; margin-bottom:5px; }
+      .sc-sub   { font-size:13px; color:#9ba3af; margin-bottom:24px; line-height:1.5; }
+      .sc-prog-row { display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+      .sc-prog-track { flex:1; height:4px; border-radius:2px; background:#f1f3f7; overflow:hidden; }
+      .sc-prog-fill  { height:100%; border-radius:2px; background:#378ADD; transition:width .5s ease; }
+      .sc-prog-pct   { font-size:12px; font-weight:500; color:#6b7280; min-width:32px; text-align:right; }
+      .sc-steps { display:flex; flex-direction:column; gap:0; margin-bottom:28px; position:relative; }
+      .sc-step  { display:flex; align-items:flex-start; gap:12px; padding:10px 0; position:relative; }
+      .sc-connector { position:absolute; left:10px; top:26px; bottom:-10px; width:1px; background:#e9ecef; z-index:0; }
+      .sc-ico-wrap { width:22px; height:22px; flex-shrink:0; margin-top:1px; position:relative; z-index:1; }
+      .sc-circle { width:22px; height:22px; border-radius:50%; border:1.5px solid #e2e5ed; background:#fff; display:flex; align-items:center; justify-content:center; transition:all .3s; }
+      .sc-circle.active { border-color:#378ADD; background:#E6F1FB; }
+      .sc-circle.done   { border-color:#1D9E75; background:#E1F5EE; }
+      .sc-step-body { flex:1; }
+      .sc-step-label { font-size:13px; font-weight:500; color:#9ba3af; line-height:1.4; transition:color .3s; }
+      .sc-step-label.active { color:#1a1a2e; }
+      .sc-step-label.done   { color:#6b7280; }
+      .sc-step-detail { font-size:12px; color:#b0b7c3; margin-top:2px; max-height:0; overflow:hidden; transition:max-height .3s; }
+      .sc-shimmer { height:3px; border-radius:2px; background:#f1f3f7; margin-top:6px; overflow:hidden; display:none; }
+      .sc-shimmer-fill { height:100%; border-radius:2px; background:#378ADD; animation:scShimmer 1.4s ease-in-out infinite; width:38%; }
+      @keyframes scShimmer { 0%{margin-left:-38%} 100%{margin-left:110%} }
+      .sc-step-right { margin-left:auto; font-size:11px; color:#b0b7c3; padding-top:3px; white-space:nowrap; }
+      .sc-step-right.done-ok { color:#0F6E56; font-weight:500; }
+      .sc-cards { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+      .sc-card  { background:#f8f9fc; border-radius:8px; padding:10px 12px; }
+      .sc-card-lbl { font-size:11px; color:#9ba3af; margin-bottom:4px; }
+      .sc-card-val { font-size:20px; font-weight:600; color:#1a1a2e; font-variant-numeric:tabular-nums; }
+      .sc-card-val.blue  { color:#185FA5; }
+      .sc-card-val.amber { color:#854F0B; }
+      .sc-card-val.green { color:#0F6E56; }
+    `;
+    document.head.appendChild(st);
+  }
+
+  // ── LOADING SCREEN HTML ───────────────────────────
+  const base = domain.replace(/https?:\/\//i, "").replace(/\/$/, "");
+  const ld = document.getElementById("loading");
+  ld.innerHTML = `
+    <div class="sc-wrap">
+      <div class="sc-domain-pill"><div class="sc-pulse"></div><span>${base}</span></div>
+      <div class="sc-title">AI audit in progress</div>
+      <div class="sc-sub" id="sc-sub">Gemini is analysing your site across 89 checks — takes about 60 seconds</div>
+      <div class="sc-prog-row">
+        <div class="sc-prog-track"><div class="sc-prog-fill" id="sc-prog" style="width:0%"></div></div>
+        <div class="sc-prog-pct" id="sc-pct">0%</div>
+      </div>
+      <div class="sc-steps" id="sc-steps"></div>
+      <div class="sc-cards">
+        <div class="sc-card"><div class="sc-card-lbl">Checks run</div><div class="sc-card-val blue" id="sc-checks">0</div></div>
+        <div class="sc-card"><div class="sc-card-lbl">Issues found</div><div class="sc-card-val amber" id="sc-issues">—</div></div>
+        <div class="sc-card"><div class="sc-card-lbl">Passed</div><div class="sc-card-val green" id="sc-pass">—</div></div>
+      </div>
+    </div>`;
+
+  // ── STEPS DOM BUILD ───────────────────────────────
+  const stepsWrap = document.getElementById("sc-steps");
+  SCAN_STEPS.forEach((s, i) => {
+    const div = document.createElement("div");
+    div.className = "sc-step";
+    div.id = "scstep" + i;
+    div.innerHTML = `
+      ${i < SCAN_STEPS.length - 1 ? `<div class="sc-connector"></div>` : ""}
+      <div class="sc-ico-wrap">
+        <div class="sc-circle" id="sccirc${i}">
+          <svg width="10" height="10" viewBox="0 0 10 10" id="scico${i}">
+            <circle cx="5" cy="5" r="2.5" fill="#d1d5db"/>
+          </svg>
+        </div>
+      </div>
+      <div class="sc-step-body">
+        <div class="sc-step-label" id="sclbl${i}">${s.label}</div>
+        <div class="sc-step-detail" id="scdet${i}">${s.detail}</div>
+        <div class="sc-shimmer" id="scshim${i}"><div class="sc-shimmer-fill"></div></div>
+      </div>
+      <div class="sc-step-right" id="scrt${i}"></div>`;
+    stepsWrap.appendChild(div);
+  });
+
+  // ── ANIMATION ─────────────────────────────────────
+  const checkSVG = `<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><polyline points="2,5.5 4.5,8 9,3" stroke="#0F6E56" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const spinSVG  = `<svg width="11" height="11" viewBox="0 0 11 11"><circle cx="5.5" cy="5.5" r="3.5" stroke="#185FA5" stroke-width="1.5" stroke-dasharray="14 8" stroke-linecap="round" fill="none"><animateTransform attributeName="transform" type="rotate" from="0 5.5 5.5" to="360 5.5 5.5" dur="0.8s" repeatCount="indefinite"/></circle></svg>`;
+  const TOTAL_DUR = SCAN_STEPS.reduce((a, s) => a + s.duration, 0);
+  let stepIdx = 0, totalChecks = 0, totalIssues = 0;
+
+  function activateStep(i) {
+    document.getElementById("sccirc" + i).className = "sc-circle active";
+    document.getElementById("scico"  + i).outerHTML = `<span id="scico${i}">${spinSVG}</span>`;
+    document.getElementById("sclbl"  + i).className = "sc-step-label active";
+    document.getElementById("scdet"  + i).style.maxHeight = "18px";
+    document.getElementById("scshim" + i).style.display = "block";
+    document.getElementById("scstep" + i).scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+
+  function completeStep(i) {
+    const s = SCAN_STEPS[i];
+    document.getElementById("sccirc" + i).className = "sc-circle done";
+    const ico = document.getElementById("scico" + i);
+    if (ico) ico.outerHTML = `<span id="scico${i}">${checkSVG}</span>`;
+    document.getElementById("sclbl"  + i).className = "sc-step-label done";
+    document.getElementById("scshim" + i).style.display = "none";
+    totalChecks += s.checks;
+    const iFound = i < SCAN_STEPS.length - 1
+      ? Math.floor(s.checks * (0.12 + Math.random() * 0.22)) : 0;
+    totalIssues += iFound;
+    const rt = document.getElementById("scrt" + i);
+    rt.className = "sc-step-right done-ok";
+    rt.textContent = "+" + s.checks + " checks";
+    document.getElementById("sc-checks").textContent = totalChecks;
+    if (totalIssues > 0 || i > 2) {
+      document.getElementById("sc-issues").textContent = totalIssues;
+      document.getElementById("sc-pass").textContent   = totalChecks - totalIssues;
+    }
+  }
+
+  function runStep() {
+    if (stepIdx >= SCAN_STEPS.length) return;
+    const i = stepIdx;
+    activateStep(i);
+    const s = SCAN_STEPS[i];
+    const progStart = SCAN_STEPS.slice(0, i).reduce((a, x) => a + x.duration, 0) / TOTAL_DUR * 100;
+    const progEnd   = SCAN_STEPS.slice(0, i + 1).reduce((a, x) => a + x.duration, 0) / TOTAL_DUR * 100;
+    let pt = 0;
+    const iv = setInterval(() => {
+      pt = Math.min(pt + 80, s.duration);
+      const pct = Math.round(progStart + (pt / s.duration) * (progEnd - progStart));
+      document.getElementById("sc-prog").style.width = pct + "%";
+      document.getElementById("sc-pct").textContent  = pct + "%";
+      if (pt >= s.duration) clearInterval(iv);
+    }, 80);
+    setTimeout(() => {
+      clearInterval(iv);
+      completeStep(i);
+      stepIdx++;
+      setTimeout(runStep, 120);
+    }, s.duration);
+  }
+
+  setTimeout(runStep, 300);
+
+  // purane code ke liye empty array return
+  return [];
 }
 
 // ══════════════════════════════════════════════════════
-//  MAIN startAudit() — Now calls Gemini API
+//  MAIN startAudit() — Clean version
 // ══════════════════════════════════════════════════════
 async function startAudit() {
   let url = (document.getElementById("url-input").value || "").trim();
-  if (!url) {
-    document.getElementById("url-input").focus();
-    return;
-  }
+  if (!url) { document.getElementById("url-input").focus(); return; }
   if (!/^https?:\/\//i.test(url)) url = "https://" + url;
   const domain = url.replace(/https?:\/\//i, "").replace(/\/$/, "");
 
   document.getElementById("audit-btn").disabled = true;
   document.getElementById("page-hero").style.display = "none";
   document.getElementById("results").style.display = "none";
+
   const ld = document.getElementById("loading");
   ld.style.display = "block";
-  document.getElementById("scan-domain-text").textContent = domain;
 
-  const pages = generatePages(url);
-  const totalPages = pages.length;
-  const pagesListEl = document.getElementById("pages-list");
-  const pagesCountEl = document.getElementById("pages-count");
+  // generatePages call — animation shuru hoti hai yahan
+  generatePages(url);
 
-  const stepsEl = document.getElementById("scan-steps");
-  stepsEl.innerHTML = SCAN_STEPS.map(
-    (s, i) =>
-      `<div class="scan-step" id="ss${i}"><div class="ss-dot"></div><div class="ss-text">${s.label}</div><span class="ss-right" id="ss-time-${i}"></span></div>`,
-  ).join("");
+  // Gemini API call parallel mein
+  const geminiPromise = callGeminiAPI(domain);
+  const TOTAL_DURATION = 5000;
 
-  pagesListEl.innerHTML = pages
-    .map(
-      (p, i) =>
-        `<div class="page-item" id="pi${i}"><span class="page-icon">${p.icon}</span><span class="page-url">${p.url}</span><span class="page-status queued" id="ps${i}">Queued</span></div>`,
-    )
-    .join("");
-  pagesCountEl.textContent = `0 / ${totalPages}`;
-
-  const pf = document.getElementById("prog-fill");
-  const pp = document.getElementById("prog-pct");
-  const pl = document.getElementById("prog-label");
-  const pt = document.getElementById("prog-time");
-
-  let checked = 0;
-  const lc = document.getElementById("live-checked");
-  const le = document.getElementById("live-errors");
-  const lw = document.getElementById("live-warnings");
-  const lpass = document.getElementById("live-passed");
-
-  function animCounter(el, target, dur) {
-    let start = 0,
-      step = target / (dur / 50);
-    const iv = setInterval(() => {
-      start = Math.min(start + step, target);
-      el.textContent = Math.round(start);
-      if (start >= target) clearInterval(iv);
-    }, 50);
-  }
-
-  // ── Gemini API call starts here (runs in parallel with animation) ──
-  let geminiPromise = callGeminiAPI(domain);
-
-  const TOTAL_DURATION = 55000;
-  const startTime = Date.now();
-
-  const progIv = setInterval(() => {
-    const elapsed = Date.now() - startTime;
-    const pct = Math.min(Math.round((elapsed / TOTAL_DURATION) * 100), 99);
-    pf.style.width = pct + "%";
-    pp.textContent = pct + "%";
-    const rem = Math.max(0, Math.round((TOTAL_DURATION - elapsed) / 1000));
-    pt.textContent =
-      rem > 0
-        ? `Estimated time remaining: ~${rem} seconds`
-        : "Finalizing results...";
-  }, 200);
-
-  let pageIdx = 0;
-  const pageCrawlInterval = Math.round((TOTAL_DURATION * 0.7) / totalPages);
-
-  function crawlNextPage() {
-    if (pageIdx >= totalPages) return;
-    if (pageIdx > 0) {
-      document.getElementById("ps" + (pageIdx - 1)).textContent = "Done";
-      document.getElementById("ps" + (pageIdx - 1)).className =
-        "page-status done";
-      document
-        .getElementById("pi" + (pageIdx - 1))
-        .scrollIntoView({ block: "nearest", behavior: "smooth" });
-    }
-    document.getElementById("ps" + pageIdx).textContent = "Scanning...";
-    document.getElementById("ps" + pageIdx).className = "page-status scanning";
-    pagesCountEl.textContent = `${pageIdx + 1} / ${totalPages}`;
-    pageIdx++;
-    setTimeout(crawlNextPage, pageCrawlInterval + rng(-200, 200));
-  }
-  setTimeout(crawlNextPage, 500);
-
-  let stepIdx = 0;
-
-  function runNextStep() {
-    if (stepIdx > 0) {
-      const prevEl = document.getElementById("ss" + (stepIdx - 1));
-      prevEl.className = "scan-step done";
-      document.getElementById("ss-time-" + (stepIdx - 1)).textContent = "Done";
-      document.getElementById("ss-time-" + (stepIdx - 1)).style.color =
-        "#21bf6b";
-    }
-    if (stepIdx >= SCAN_STEPS.length) return;
-
-    const step = SCAN_STEPS[stepIdx];
-    const stepEl = document.getElementById("ss" + stepIdx);
-    stepEl.className = "scan-step active";
-    pl.textContent = step.label + "...";
-    const checksPerStep = Math.round(89 / SCAN_STEPS.length);
-    animCounter(lc, Math.min(89, checked + checksPerStep), step.duration - 200);
-    checked = Math.min(89, checked + checksPerStep);
-    stepIdx++;
-    setTimeout(runNextStep, step.duration + rng(-200, 300));
-  }
-  setTimeout(runNextStep, 800);
-
-  // ── Wait for BOTH: animation finish AND Gemini response ──
   try {
-    // Wait minimum animation time (55s) OR Gemini response — whichever is LONGER
-    const animDelay = new Promise((resolve) =>
-      setTimeout(resolve, TOTAL_DURATION),
-    );
+    const animDelay = new Promise((r) => setTimeout(r, TOTAL_DURATION));
     const [auditData] = await Promise.all([geminiPromise, animDelay]);
 
-    // Mark all steps done
-    for (let i = stepIdx - 1; i < SCAN_STEPS.length; i++) {
-      const el = document.getElementById("ss" + i);
-      if (el) {
-        el.className = "scan-step done";
-        const timeEl = document.getElementById("ss-time-" + i);
-        if (timeEl) {
-          timeEl.textContent = "Done";
-          timeEl.style.color = "#21bf6b";
-        }
+    // Sab baaki steps complete mark karo
+    (window.SCAN_STEPS_REF || []).forEach((s, i) => {
+      const circ = document.getElementById("sccirc" + i);
+      if (circ && !circ.classList.contains("done")) {
+        circ.className = "sc-circle done";
+        const ico = document.getElementById("scico" + i);
+        if (ico) ico.outerHTML = `<span id="scico${i}"><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><polyline points="2,5.5 4.5,8 9,3" stroke="#0F6E56" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+        const lbl = document.getElementById("sclbl" + i);
+        if (lbl) lbl.className = "sc-step-label done";
+        const rt = document.getElementById("scrt" + i);
+        if (rt) { rt.className = "sc-step-right done-ok"; rt.textContent = "+" + s.checks + " checks"; }
       }
-    }
+    });
 
-    // Mark all pages done
-    for (let i = pageIdx - 1; i < totalPages; i++) {
-      const ps = document.getElementById("ps" + i);
-      if (ps) {
-        ps.textContent = "Done";
-        ps.className = "page-status done";
-      }
-    }
-    pagesCountEl.textContent = `${totalPages} / ${totalPages}`;
+    const subEl = document.getElementById("sc-sub");
+    if (subEl) subEl.textContent = "Analysis complete — building your report...";
+    const progEl = document.getElementById("sc-prog");
+    if (progEl) progEl.style.width = "100%";
+    const pctEl = document.getElementById("sc-pct");
+    if (pctEl) pctEl.textContent = "100%";
 
-    clearInterval(progIv);
-    pf.style.width = "100%";
-    pp.textContent = "100%";
-    pl.textContent = "Audit complete — building your report...";
-    pt.textContent = "";
+    // 1 second ruko phir results dikhao
+    await new Promise((r) => setTimeout(r, 100));
 
-    // Count actual errors/warnings/passes from Gemini data
-    const allChecks = ["seo", "aeo", "geo"].flatMap((k) =>
-      (auditData.mods[k]?.categories || []).flatMap((c) => c.checks || []),
-    );
-    const totalErrors = allChecks.filter((c) => c.status === "FAIL").length;
-    const totalWarnings = allChecks.filter((c) => c.status === "WARN").length;
-    const totalPassed = allChecks.filter((c) => c.status === "PASS").length;
+    ld.style.display = "none";
+    renderResults(auditData, domain); // ← results page pe navigate karta hai
 
-    animCounter(lc, allChecks.length, 1500);
-    animCounter(le, totalErrors, 1500);
-    animCounter(lw, totalWarnings, 1500);
-    animCounter(lpass, totalPassed, 1500);
-
-    setTimeout(() => {
-      ld.style.display = "none";
-      renderResults(auditData, domain);
-    }, 2000);
   } catch (err) {
-    clearInterval(progIv);
     ld.style.display = "none";
     document.getElementById("audit-btn").disabled = false;
     document.getElementById("page-hero").style.display = "block";
 
-    // Show error message to user
     let errBox = document.getElementById("audit-error-box");
     if (!errBox) {
       errBox = document.createElement("div");
@@ -737,12 +710,8 @@ function renderResults(data, userDomain) {
 }
 
 function switchTab(key, btn) {
-  document
-    .querySelectorAll(".mtab")
-    .forEach((b) => b.classList.remove("active"));
-  document
-    .querySelectorAll(".tab-content")
-    .forEach((p) => p.classList.remove("active"));
+  document.querySelectorAll(".mtab").forEach((b) => b.classList.remove("active"));
+  document.querySelectorAll(".tab-content").forEach((p) => p.classList.remove("active"));
   btn.classList.add("active");
   document.getElementById("tp-" + key).classList.add("active");
 }
@@ -787,7 +756,7 @@ function buildTOC() {
 }
 
 // ──────────────────────────────────────────────────────
-//  OVERVIEW TAB — Dynamic data
+//  OVERVIEW TAB
 // ──────────────────────────────────────────────────────
 function buildOverview(data) {
   const allC = ["seo", "aeo", "geo"].flatMap((k) =>
@@ -802,21 +771,12 @@ function buildOverview(data) {
   const geoScore = data.mods.geo.score;
   const overall = data.overall;
 
-  // Collect strengths (PASS on critical/high) and weaknesses (FAIL/WARN on critical)
   const strengths = allC
-    .filter(
-      (c) =>
-        c.status === "PASS" &&
-        (c.priority === "CRITICAL" || c.priority === "HIGH"),
-    )
+    .filter((c) => c.status === "PASS" && (c.priority === "CRITICAL" || c.priority === "HIGH"))
     .slice(0, 5);
 
   const weaknesses = allC
-    .filter(
-      (c) =>
-        c.status === "FAIL" &&
-        (c.priority === "CRITICAL" || c.priority === "HIGH"),
-    )
+    .filter((c) => c.status === "FAIL" && (c.priority === "CRITICAL" || c.priority === "HIGH"))
     .slice(0, 5);
 
   let html = `
@@ -868,28 +828,20 @@ function buildOverview(data) {
 
   html += `</div>`;
 
-  // Dynamic strengths
   html += `<div style="margin-bottom:10px;font-size:16px;font-weight:700;color:#1a1a2e">Key Strengths</div><div class="sw-list">`;
   if (strengths.length > 0) {
-    strengths.forEach((c) => {
-      html += `<div class="sw-item strength"><div class="sw-dot s"></div>${c.n} — ${c.finding}</div>`;
-    });
+    strengths.forEach((c) => { html += `<div class="sw-item strength"><div class="sw-dot s"></div>${c.n} — ${c.finding}</div>`; });
   } else {
     html += `<div class="sw-item strength"><div class="sw-dot s"></div>Analysis complete — review individual tabs for detailed strengths.</div>`;
   }
   html += `</div>`;
 
-  // Dynamic weaknesses
   html += `<div style="margin-bottom:10px;font-size:16px;font-weight:700;color:#1a1a2e">Critical Weaknesses Requiring Immediate Action</div><div class="sw-list">`;
   if (weaknesses.length > 0) {
-    weaknesses.forEach((c) => {
-      html += `<div class="sw-item weakness"><div class="sw-dot w"></div>${c.n} — ${c.finding}</div>`;
-    });
+    weaknesses.forEach((c) => { html += `<div class="sw-item weakness"><div class="sw-dot w"></div>${c.n} — ${c.finding}</div>`; });
   } else {
     const warns = allC.filter((c) => c.status === "WARN").slice(0, 5);
-    warns.forEach((c) => {
-      html += `<div class="sw-item weakness"><div class="sw-dot w"></div>${c.n} — ${c.finding}</div>`;
-    });
+    warns.forEach((c) => { html += `<div class="sw-item weakness"><div class="sw-dot w"></div>${c.n} — ${c.finding}</div>`; });
   }
   html += `</div>`;
 
@@ -897,23 +849,15 @@ function buildOverview(data) {
 }
 
 // ──────────────────────────────────────────────────────
-//  EXEC SUMMARIES — Generated dynamically from data
+//  EXEC SUMMARIES
 // ──────────────────────────────────────────────────────
 function buildExecSummaryFromData(mod) {
   const allC = mod.categories.flatMap((c) => c.checks);
   const fails = allC.filter((c) => c.status === "FAIL");
   const warns = allC.filter((c) => c.status === "WARN");
-  const passes = allC.filter((c) => c.status === "PASS");
 
-  const topFails = fails
-    .filter((c) => c.priority === "CRITICAL" || c.priority === "HIGH")
-    .slice(0, 8);
-  const topFixes = [...fails, ...warns]
-    .filter((c) => c.priority === "CRITICAL" || c.priority === "HIGH")
-    .slice(0, 8);
-
-  const sectionMap = { SEO: "2", AEO: "3", GEO: "4" };
-  const sNum = sectionMap[mod.label] || "";
+  const topFails = fails.filter((c) => c.priority === "CRITICAL" || c.priority === "HIGH").slice(0, 8);
+  const topFixes = [...fails, ...warns].filter((c) => c.priority === "CRITICAL" || c.priority === "HIGH").slice(0, 8);
 
   const whatMap = {
     SEO: `This section evaluates ${allC.length} technical and content signals that determine how well your website ranks on Google. It covers ${mod.categories.length} categories. The overall SEO score is ${mod.score}/100 (Grade ${grade(mod.score)}).`,
@@ -943,9 +887,7 @@ function buildModulePanel(mod, data) {
   let html = `
   <div class="doc-section-head"><h2>SECTION ${sNum}: ${mod.label} ANALYSIS — Detailed Findings</h2><span>${allC.length} checks · Score: ${mod.score}/100 · Grade: ${grade(mod.score)}</span></div>`;
 
-  if (mod.intro) {
-    html += `<div class="module-intro-para">${mod.intro}</div>`;
-  }
+  if (mod.intro) { html += `<div class="module-intro-para">${mod.intro}</div>`; }
 
   html += `
   <div class="exec-summary">
@@ -975,8 +917,6 @@ function buildModulePanel(mod, data) {
     const catW = cat.checks.filter((c) => c.status === "WARN").length;
     const catP = cat.checks.filter((c) => c.status === "PASS").length;
     const id = "cat-" + cat.name.replace(/\s+/g, "-");
-
-    // Add ★ LOWEST marker if applicable
     const modCats = mod.categories;
     const lowestScore = Math.min(...modCats.map((c) => c.score));
     const isLowest = cat.score === lowestScore;
@@ -1001,9 +941,7 @@ function buildModulePanel(mod, data) {
         </div>
       </div>`;
 
-    if (cat.intro) {
-      html += `<div class="cat-intro-para">${cat.intro}</div>`;
-    }
+    if (cat.intro) { html += `<div class="cat-intro-para">${cat.intro}</div>`; }
 
     html += `
       <div class="table-scroll">
@@ -1033,7 +971,7 @@ function toggleCat(id) {
 }
 
 // ──────────────────────────────────────────────────────
-//  ACTION PLAN — Dynamic from Gemini data
+//  ACTION PLAN
 // ──────────────────────────────────────────────────────
 function buildActionPlan(data) {
   const allC = [];
@@ -1054,25 +992,10 @@ function buildActionPlan(data) {
   const highs = allC.filter((c) => c.priority === "HIGH").length;
 
   const groups = [
-    {
-      key: "CRITICAL",
-      label: "Critical Priority — Fix Within 2 Weeks",
-      bg: "#fef2f2",
-      col: "#dc2626",
-    },
-    {
-      key: "HIGH",
-      label: "High Priority — Fix Within 30 Days",
-      bg: "#fff7ed",
-      col: "#c2410c",
-    },
-    {
-      key: "MEDIUM",
-      label: "Medium Priority — Fix Within 60-90 Days",
-      bg: "#fefce8",
-      col: "#a16207",
-    },
-    { key: "LOW", label: "Low Priority", bg: "#f8f9fc", col: "#6b7280" },
+    { key: "CRITICAL", label: "Critical Priority — Fix Within 2 Weeks",     bg: "#fef2f2", col: "#dc2626" },
+    { key: "HIGH",     label: "High Priority — Fix Within 30 Days",          bg: "#fff7ed", col: "#c2410c" },
+    { key: "MEDIUM",   label: "Medium Priority — Fix Within 60-90 Days",     bg: "#fefce8", col: "#a16207" },
+    { key: "LOW",      label: "Low Priority",                                bg: "#f8f9fc", col: "#6b7280" },
   ];
 
   let html = `<div class="doc-section-head"><h2>SECTION 5: PRIORITIZED ACTION PLAN — All ${allC.length} Actions</h2><span>Critical (2 weeks) · High (30 days) · Medium (60-90 days)</span></div>
@@ -1083,14 +1006,7 @@ function buildActionPlan(data) {
       <div class="exec-summary-col"><h3>🔴 What's Broken Right Now</h3><ul>
         <li><span class="li-dot" style="background:#ef4444"></span>${criticals} Critical issues blocking rankings immediately</li>
         <li><span class="li-dot" style="background:#ef4444"></span>${highs} High priority issues reducing search visibility daily</li>
-        ${allC
-          .filter((c) => c.priority === "CRITICAL")
-          .slice(0, 3)
-          .map(
-            (c) =>
-              `<li><span class="li-dot" style="background:#ef4444"></span>${c.n} — ${c.finding}</li>`,
-          )
-          .join("")}
+        ${allC.filter((c) => c.priority === "CRITICAL").slice(0, 3).map((c) => `<li><span class="li-dot" style="background:#ef4444"></span>${c.n} — ${c.finding}</li>`).join("")}
       </ul></div>
       <div class="exec-summary-col"><h3>✅ What To Do & When</h3><ul>
         <li><span class="li-dot" style="background:#21bf6b"></span>Week 1-2: Developer sprint — fix all ${criticals} Critical technical items</li>
@@ -1116,18 +1032,8 @@ function buildActionPlan(data) {
       <tbody>`;
 
     items.forEach((c) => {
-      const mCol =
-        c.module === "SEO"
-          ? "#ff642d"
-          : c.module === "AEO"
-            ? "#10b981"
-            : "#8b5cf6";
-      const mBg =
-        c.module === "SEO"
-          ? "#fff0eb"
-          : c.module === "AEO"
-            ? "#f0fdf4"
-            : "#f5f3ff";
+      const mCol = c.module === "SEO" ? "#ff642d" : c.module === "AEO" ? "#10b981" : "#8b5cf6";
+      const mBg  = c.module === "SEO" ? "#fff0eb" : c.module === "AEO" ? "#f0fdf4" : "#f5f3ff";
       html += `<tr>
         <td><div class="action-num" style="color:${g.col}">${num++}</div></td>
         <td><div class="check-name">${c.n}</div><div class="check-desc">${c.finding}</div></td>
@@ -1139,86 +1045,23 @@ function buildActionPlan(data) {
     html += `</tbody></table></div>`;
   });
 
-  // Team responsibilities
   html += `<div class="doc-section-head" style="margin-top:24px"><h2>SECTION 6: TEAM RESPONSIBILITIES & TIMELINE</h2><span>30/60-day targets by team</span></div>
   <div class="team-grid">`;
 
-  const devTasks = allC
-    .filter((c) =>
-      [
-        "HTTPS / SSL",
-        "Viewport Meta Tag",
-        "Page Load Speed",
-        "TTFB (Time to First Byte)",
-        "Noindex Tags",
-        "Redirect Chains",
-        "Organization Schema",
-        "BreadcrumbList Schema",
-        "Open Graph Tags",
-        "Twitter Card Tags",
-        "Render-Blocking Resources",
-        "Image Optimization",
-      ].includes(c.n),
-    )
-    .slice(0, 10);
-  const contentTasks = allC
-    .filter((c) =>
-      [
-        "Title Tag",
-        "Meta Description",
-        "H1 Heading",
-        "Keyword in First 100 Words",
-        "Content Word Count",
-        "Definition Sections",
-        "FAQ Section",
-        "Last Updated Date",
-        "Direct Answer Paragraphs",
-        "Question-Based Headings",
-      ].includes(c.n),
-    )
-    .slice(0, 8);
-  const marketingTasks = allC
-    .filter((c) =>
-      [
-        "Trust Badges & Reviews",
-        "Google Business Profile",
-        "NAP Consistency",
-        "Social Proof / Testimonials",
-        "News & Press Mentions",
-        "Industry Directories",
-        "Brand Citability",
-        "Consistent Brand Name",
-      ].includes(c.n),
-    )
-    .slice(0, 7);
+  const devTasks = allC.filter((c) => ["HTTPS / SSL","Viewport Meta Tag","Page Load Speed","TTFB (Time to First Byte)","Noindex Tags","Redirect Chains","Organization Schema","BreadcrumbList Schema","Open Graph Tags","Twitter Card Tags","Render-Blocking Resources","Image Optimization"].includes(c.n)).slice(0, 10);
+  const contentTasks = allC.filter((c) => ["Title Tag","Meta Description","H1 Heading","Keyword in First 100 Words","Content Word Count","Definition Sections","FAQ Section","Last Updated Date","Direct Answer Paragraphs","Question-Based Headings"].includes(c.n)).slice(0, 8);
+  const marketingTasks = allC.filter((c) => ["Trust Badges & Reviews","Google Business Profile","NAP Consistency","Social Proof / Testimonials","News & Press Mentions","Industry Directories","Brand Citability","Consistent Brand Name"].includes(c.n)).slice(0, 7);
 
   const teams = [
-    {
-      name: "Developer / Technical Team",
-      col: "#3b82f6",
-      bg: "#1e3a5f",
-      tasks: devTasks.map((c) => `${c.n}: ${c.action}`),
-    },
-    {
-      name: "Content / SEO Team",
-      col: "#ff642d",
-      bg: "#7c2d12",
-      tasks: contentTasks.map((c) => `${c.n}: ${c.action}`),
-    },
-    {
-      name: "Marketing / Brand Team",
-      col: "#10b981",
-      bg: "#064e3b",
-      tasks: marketingTasks.map((c) => `${c.n}: ${c.action}`),
-    },
+    { name: "Developer / Technical Team", col: "#3b82f6", bg: "#1e3a5f", tasks: devTasks.map((c) => `${c.n}: ${c.action}`) },
+    { name: "Content / SEO Team",         col: "#ff642d", bg: "#7c2d12", tasks: contentTasks.map((c) => `${c.n}: ${c.action}`) },
+    { name: "Marketing / Brand Team",     col: "#10b981", bg: "#064e3b", tasks: marketingTasks.map((c) => `${c.n}: ${c.action}`) },
   ];
 
   teams.forEach((t) => {
     html += `<div class="team-card"><div class="team-card-head" style="background:${t.bg};color:#fff">${t.name}</div><div class="team-task-list">`;
     if (t.tasks.length > 0) {
-      t.tasks.forEach((task) => {
-        html += `<div class="team-task"><div class="team-task-dot" style="background:${t.col}"></div>${task}</div>`;
-      });
+      t.tasks.forEach((task) => { html += `<div class="team-task"><div class="team-task-dot" style="background:${t.col}"></div>${task}</div>`; });
     } else {
       html += `<div class="team-task"><div class="team-task-dot" style="background:${t.col}"></div>Review audit findings and address relevant items</div>`;
     }
@@ -1250,18 +1093,13 @@ function buildActionPlan(data) {
     "Schedule a content audit meeting where the SEO/content team reviews all pages missing FAQs, definitions, and trust signals.",
     "Begin collecting client testimonials and case study approvals from existing clients this week.",
     "Set a re-audit date 30 days from today to measure progress against the baseline scores in this report.",
-  ]
-    .map(
-      (a, i) =>
-        `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 16px;background:#fff;border:1px solid #e2e5ed;border-radius:10px;margin-bottom:8px"><div style="width:28px;height:28px;background:#ff642d;border-radius:8px;color:#fff;font-size:13px;font-weight:700;display:grid;place-items:center;flex-shrink:0">${i + 1}</div><div style="font-size:13px;color:#374151;line-height:1.5;padding-top:4px">${a}</div></div>`,
-    )
-    .join("")}`;
+  ].map((a, i) => `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 16px;background:#fff;border:1px solid #e2e5ed;border-radius:10px;margin-bottom:8px"><div style="width:28px;height:28px;background:#ff642d;border-radius:8px;color:#fff;font-size:13px;font-weight:700;display:grid;place-items:center;flex-shrink:0">${i + 1}</div><div style="font-size:13px;color:#374151;line-height:1.5;padding-top:4px">${a}</div></div>`).join("")}`;
 
   return html;
 }
 
 // ──────────────────────────────────────────────────────
-//  CONTENT CALENDAR — Dynamic from Gemini data
+//  CONTENT CALENDAR
 // ──────────────────────────────────────────────────────
 function buildCalendar(data) {
   const CALENDAR = data.calendar || [];
@@ -1294,9 +1132,7 @@ function buildCalendar(data) {
 
   CALENDAR.forEach((month) => {
     html += `<div class="cal-month"><div class="cal-month-head"><h3>${month.month}</h3><span>Theme: ${month.theme}</span></div>`;
-    if (month.focusText) {
-      html += `<div class="cal-focus-para">${month.focusText}</div>`;
-    }
+    if (month.focusText) { html += `<div class="cal-focus-para">${month.focusText}</div>`; }
     html += `<div class="table-scroll"><table class="cal-table">
       <thead><tr><th style="width:50px">Week</th><th style="width:100px">Type</th><th style="width:240px">Title / Topic</th><th style="width:160px">Target Keywords</th><th>SEO / AEO Goal</th><th style="width:70px">Owner</th></tr></thead>
       <tbody>`;
@@ -1318,68 +1154,17 @@ function buildCalendar(data) {
     <thead><tr><th>KPI Metric</th><th>Starting Point</th><th>Tracking Tool</th><th>Frequency</th><th>6-Month Target</th></tr></thead>
     <tbody>
       ${[
-        [
-          "Organic Traffic",
-          "Baseline (Month 0)",
-          "Google Analytics 4",
-          "Monthly",
-          "+15% by Month 3, +40% by Month 6",
-        ],
-        [
-          "Keyword Rankings",
-          "Track 20 target keywords",
-          "Google Search Console",
-          "Weekly",
-          "5+ in Top 10 by Month 3",
-        ],
-        [
-          "Blog Pageviews",
-          "Baseline (Month 0)",
-          "GA4 / GSC",
-          "Monthly",
-          "2x by Month 6",
-        ],
-        [
-          "Case Study Leads",
-          "0 currently",
-          "CRM / Form tracking",
-          "Monthly",
-          "3+ leads from case studies by Month 4",
-        ],
-        [
-          "Social Engagement",
-          "Baseline this week",
-          "Social Analytics",
-          "Weekly",
-          "+20% engagement by Month 2",
-        ],
-        [
-          "AI Citation Count",
-          "Manual audit",
-          "Perplexity / ChatGPT",
-          "Monthly",
-          "Brand cited in 5+ AI queries by Month 6",
-        ],
-        [
-          "Domain Authority",
-          "Current score",
-          "Ahrefs / Moz",
-          "Monthly",
-          "+5 DA points by Month 6",
-        ],
-        [
-          "Backlinks Earned",
-          "Baseline",
-          "Ahrefs",
-          "Monthly",
-          "10+ new referring domains by Month 6",
-        ],
-      ]
-        .map(
-          ([kpi, start, tool, freq, target], i) =>
-            `<tr style="background:${i % 2 === 0 ? "#fff" : "#f8f9fc"}"><td class="kpi-name">${kpi}</td><td>${start}</td><td>${tool}</td><td><span style="font-size:11px;padding:2px 8px;background:#eff6ff;color:#1d4ed8;border-radius:4px;font-weight:500">${freq}</span></td><td class="kpi-target">${target}</td></tr>`,
-        )
-        .join("")}
+        ["Organic Traffic","Baseline (Month 0)","Google Analytics 4","Monthly","+15% by Month 3, +40% by Month 6"],
+        ["Keyword Rankings","Track 20 target keywords","Google Search Console","Weekly","5+ in Top 10 by Month 3"],
+        ["Blog Pageviews","Baseline (Month 0)","GA4 / GSC","Monthly","2x by Month 6"],
+        ["Case Study Leads","0 currently","CRM / Form tracking","Monthly","3+ leads from case studies by Month 4"],
+        ["Social Engagement","Baseline this week","Social Analytics","Weekly","+20% engagement by Month 2"],
+        ["AI Citation Count","Manual audit","Perplexity / ChatGPT","Monthly","Brand cited in 5+ AI queries by Month 6"],
+        ["Domain Authority","Current score","Ahrefs / Moz","Monthly","+5 DA points by Month 6"],
+        ["Backlinks Earned","Baseline","Ahrefs","Monthly","10+ new referring domains by Month 6"],
+      ].map(([kpi, start, tool, freq, target], i) =>
+        `<tr style="background:${i % 2 === 0 ? "#fff" : "#f8f9fc"}"><td class="kpi-name">${kpi}</td><td>${start}</td><td>${tool}</td><td><span style="font-size:11px;padding:2px 8px;background:#eff6ff;color:#1d4ed8;border-radius:4px;font-weight:500">${freq}</span></td><td class="kpi-target">${target}</td></tr>`
+      ).join("")}
     </tbody>
   </table>`;
 
@@ -1387,7 +1172,7 @@ function buildCalendar(data) {
 }
 
 // ──────────────────────────────────────────────────────
-//  SEO STRATEGY — Dynamic 12-month plan
+//  SEO STRATEGY
 // ──────────────────────────────────────────────────────
 function buildStrategy(data) {
   const seo = data.mods.seo.score;
@@ -1395,19 +1180,13 @@ function buildStrategy(data) {
   const geo = data.mods.geo.score;
   const overall = data.overall;
 
-  // Build phases dynamically based on audit findings
   const allFails = ["seo", "aeo", "geo"].flatMap((k) =>
     data.mods[k].categories.flatMap((c) =>
-      c.checks
-        .filter((ch) => ch.status === "FAIL" || ch.status === "WARN")
-        .map((ch) => ({ ...ch, module: k.toUpperCase() })),
+      c.checks.filter((ch) => ch.status === "FAIL" || ch.status === "WARN").map((ch) => ({ ...ch, module: k.toUpperCase() })),
     ),
   );
 
-  const critItems = allFails
-    .filter((c) => c.priority === "CRITICAL")
-    .slice(0, 9);
-  const highItems = allFails.filter((c) => c.priority === "HIGH").slice(0, 7);
+  const critItems = allFails.filter((c) => c.priority === "CRITICAL").slice(0, 9);
 
   let html = `<div class="doc-section-head"><h2>SECTION 11: 12-MONTH SEO STRATEGY PLAN</h2><span>4 Phases: Fix Foundation → Authority → Scale → Dominate</span></div>
   <div class="module-intro-para">
@@ -1422,13 +1201,7 @@ function buildStrategy(data) {
         <li><span class="li-dot" style="background:#ef4444"></span>SEO ${seo}/100 — ${seo < 70 ? "critical gaps" : "needs improvement"}</li>
         <li><span class="li-dot" style="background:#ef4444"></span>AEO ${aeo}/100 — ${aeo < 75 ? "improvement needed" : "good foundation"}</li>
         <li><span class="li-dot" style="background:#ef4444"></span>GEO ${geo}/100 — AI search visibility ${geo < 70 ? "not optimized" : "partially optimized"}</li>
-        ${critItems
-          .slice(0, 2)
-          .map(
-            (c) =>
-              `<li><span class="li-dot" style="background:#ef4444"></span>${c.n}: ${c.finding}</li>`,
-          )
-          .join("")}
+        ${critItems.slice(0, 2).map((c) => `<li><span class="li-dot" style="background:#ef4444"></span>${c.n}: ${c.finding}</li>`).join("")}
       </ul></div>
       <div class="exec-summary-col"><h3>✅ 12-Month Targets</h3><ul>
         <li><span class="li-dot" style="background:#21bf6b"></span>Month 3: Fix all critical issues, ${Math.min(overall + 7, 99)}/100 overall score</li>
@@ -1443,163 +1216,45 @@ function buildStrategy(data) {
   const phases = [
     {
       name: "Phase 1 — Months 1-3: Fix the Foundation",
-      focus:
-        "Technical fixes, on-page corrections, schema implementation, local SEO setup",
-      col: "#dc2626",
-      bg: "#1a0000",
-      items: critItems
-        .slice(0, 9)
-        .map((c) => [
-          c.action,
-          c.module === "SEO"
-            ? "Developer/SEO"
-            : c.module === "AEO"
-              ? "Content"
-              : "Developer",
-          c.priority === "CRITICAL" ? "Week 1" : "Week 2-3",
-          `${c.module} fix`,
-          "Immediate ranking impact",
-        ]),
+      focus: "Technical fixes, on-page corrections, schema implementation, local SEO setup",
+      col: "#dc2626", bg: "#1a0000",
+      items: critItems.slice(0, 9).map((c) => [c.action, c.module === "SEO" ? "Developer/SEO" : c.module === "AEO" ? "Content" : "Developer", c.priority === "CRITICAL" ? "Week 1" : "Week 2-3", `${c.module} fix`, "Immediate ranking impact"]),
     },
     {
       name: "Phase 2 — Months 4-6: Authority & Content Build",
-      focus:
-        "Content cluster build, E-E-A-T trust signals, link acquisition, case studies",
-      col: "#d97706",
-      bg: "#451a03",
+      focus: "Content cluster build, E-E-A-T trust signals, link acquisition, case studies",
+      col: "#d97706", bg: "#451a03",
       items: [
-        [
-          "Publish 6-month content calendar Weeks 1-4 content",
-          "Content",
-          "Month 4",
-          "Content gap fix",
-          "Featured snippets",
-        ],
-        [
-          "Launch use case pages for niche verticals",
-          "SEO + Content",
-          "Month 4-5",
-          "GEO fix",
-          "Niche traffic",
-        ],
-        [
-          "Publish 2 case studies with measurable results",
-          "Marketing",
-          "Month 4-5",
-          "E-E-A-T fix",
-          "Trust signals",
-        ],
-        [
-          "Build 10+ quality backlinks via guest posts and directories",
-          "SEO",
-          "Month 4-6",
-          "Authority build",
-          "+Domain Authority",
-        ],
-        [
-          "Add 10+ client testimonials and trust badges sitewide",
-          "Marketing",
-          "Month 4-5",
-          "E-E-A-T fix",
-          "Social proof",
-        ],
-        [
-          "Achieve " + Math.min(overall + 12, 99) + "/100 overall audit score",
-          "All Teams",
-          "Month 6",
-          "Milestone",
-          "Score benchmark",
-        ],
+        ["Publish 6-month content calendar Weeks 1-4 content","Content","Month 4","Content gap fix","Featured snippets"],
+        ["Launch use case pages for niche verticals","SEO + Content","Month 4-5","GEO fix","Niche traffic"],
+        ["Publish 2 case studies with measurable results","Marketing","Month 4-5","E-E-A-T fix","Trust signals"],
+        ["Build 10+ quality backlinks via guest posts and directories","SEO","Month 4-6","Authority build","+Domain Authority"],
+        ["Add 10+ client testimonials and trust badges sitewide","Marketing","Month 4-5","E-E-A-T fix","Social proof"],
+        ["Achieve " + Math.min(overall + 12, 99) + "/100 overall audit score","All Teams","Month 6","Milestone","Score benchmark"],
       ],
     },
     {
       name: "Phase 3 — Months 7-9: Scale & Brand Authority",
-      focus:
-        "International targeting, PR outreach, AI citation building, schema expansion",
-      col: "#10b981",
-      bg: "#064e3b",
+      focus: "International targeting, PR outreach, AI citation building, schema expansion",
+      col: "#10b981", bg: "#064e3b",
       items: [
-        [
-          "Create international landing pages for global keywords",
-          "SEO + Dev",
-          "Month 7",
-          "Global keywords",
-          "International leads",
-        ],
-        [
-          "Publish 3 more case studies for E-E-A-T depth",
-          "Marketing",
-          "Month 7-8",
-          "E-E-A-T fix",
-          "Trust authority",
-        ],
-        [
-          "Expand schema to HowTo and QAPage on all eligible content",
-          "Developer",
-          "Month 7",
-          "AEO fix",
-          "Rich results expansion",
-        ],
-        [
-          "Launch link building campaign: target DA60+ referral domains",
-          "SEO",
-          "Month 7-9",
-          "Authority build",
-          "+10 referring domains",
-        ],
-        [
-          "Press outreach: 3-5 media mentions or guest articles",
-          "Marketing",
-          "Month 7-9",
-          "Domain authority",
-          "+3 DA60+ links",
-        ],
+        ["Create international landing pages for global keywords","SEO + Dev","Month 7","Global keywords","International leads"],
+        ["Publish 3 more case studies for E-E-A-T depth","Marketing","Month 7-8","E-E-A-T fix","Trust authority"],
+        ["Expand schema to HowTo and QAPage on all eligible content","Developer","Month 7","AEO fix","Rich results expansion"],
+        ["Launch link building campaign: target DA60+ referral domains","SEO","Month 7-9","Authority build","+10 referring domains"],
+        ["Press outreach: 3-5 media mentions or guest articles","Marketing","Month 7-9","Domain authority","+3 DA60+ links"],
       ],
     },
     {
       name: "Phase 4 — Months 10-12: Dominate & Sustain",
-      focus:
-        "Top 3 keyword push, brand authority consolidation, 2027 AI search preparation",
-      col: "#8b5cf6",
-      bg: "#2e1065",
+      focus: "Top 3 keyword push, brand authority consolidation, 2027 AI search preparation",
+      col: "#8b5cf6", bg: "#2e1065",
       items: [
-        [
-          "Content refresh: update all 2026 blog posts for 2027 accuracy",
-          "Content",
-          "Month 10-11",
-          "Freshness signal",
-          "All posts refreshed",
-        ],
-        [
-          "Push top 10 primary keywords toward Top 3 via link building",
-          "SEO",
-          "Months 10-12",
-          "Revenue-driving",
-          "5+ in Top 3",
-        ],
-        [
-          "Expand to 2 new niche verticals with dedicated pages",
-          "SEO + Content",
-          "Month 10",
-          "Vertical authority",
-          "2 new pages ranked",
-        ],
-        [
-          "Full re-audit: target " +
-            Math.min(overall + 19, 99) +
-            "/100 overall score",
-          "SEO Lead",
-          "Month 12",
-          "Benchmark",
-          Math.min(overall + 19, 99) + "+ overall score",
-        ],
-        [
-          "2027 SEO predictions piece + strategy update",
-          "Content + SEO",
-          "Month 11-12",
-          "Thought leadership",
-          "Rank for 2027 keywords",
-        ],
+        ["Content refresh: update all 2026 blog posts for 2027 accuracy","Content","Month 10-11","Freshness signal","All posts refreshed"],
+        ["Push top 10 primary keywords toward Top 3 via link building","SEO","Months 10-12","Revenue-driving","5+ in Top 3"],
+        ["Expand to 2 new niche verticals with dedicated pages","SEO + Content","Month 10","Vertical authority","2 new pages ranked"],
+        ["Full re-audit: target " + Math.min(overall + 19, 99) + "/100 overall score","SEO Lead","Month 12","Benchmark",Math.min(overall + 19, 99) + "+ overall score"],
+        ["2027 SEO predictions piece + strategy update","Content + SEO","Month 11-12","Thought leadership","Rank for 2027 keywords"],
       ],
     },
   ];
@@ -1643,7 +1298,7 @@ function buildStrategy(data) {
 }
 
 // ──────────────────────────────────────────────────────
-//  COMPETITORS — Dynamic from Gemini data
+//  COMPETITORS
 // ──────────────────────────────────────────────────────
 function buildCompetitors(data) {
   const COMPETITORS = data.competitors || [];
@@ -1658,20 +1313,10 @@ function buildCompetitors(data) {
     <p style="font-size:13px;color:#374151;line-height:1.65;margin-bottom:14px">${COMPETITORS.length} competitors analyzed across SEO, AEO, and GEO strength — specific to ${_userDomain}'s industry and market.</p>
     <div class="exec-summary-grid">
       <div class="exec-summary-col"><h3>📌 Competitor Weaknesses</h3><ul>
-        ${COMPETITORS.slice(0, 4)
-          .map(
-            (c) =>
-              `<li><span class="li-dot" style="background:#ef4444"></span><strong>${c.name}</strong> — ${c.weaknesses?.split(",")[0] || "Limited AEO/GEO focus"}</li>`,
-          )
-          .join("")}
+        ${COMPETITORS.slice(0, 4).map((c) => `<li><span class="li-dot" style="background:#ef4444"></span><strong>${c.name}</strong> — ${c.weaknesses?.split(",")[0] || "Limited AEO/GEO focus"}</li>`).join("")}
       </ul></div>
       <div class="exec-summary-col"><h3>✅ ${_userDomain} Opportunities</h3><ul>
-        ${COMPETITORS.slice(0, 4)
-          .map(
-            (c) =>
-              `<li><span class="li-dot" style="background:#21bf6b"></span>${c.opp || "Leverage AEO/GEO advantage"}</li>`,
-          )
-          .join("")}
+        ${COMPETITORS.slice(0, 4).map((c) => `<li><span class="li-dot" style="background:#21bf6b"></span>${c.opp || "Leverage AEO/GEO advantage"}</li>`).join("")}
       </ul></div>
     </div>
   </div>
@@ -1717,22 +1362,16 @@ function buildCompetitors(data) {
 }
 
 // ──────────────────────────────────────────────────────
-//  KEYWORDS — Dynamic from Gemini data
+//  KEYWORDS
 // ──────────────────────────────────────────────────────
 function buildKeywords(data) {
-  const KW = data.keywords || {
-    primary: [],
-    longtail: [],
-    local: [],
-    global: [],
-  };
+  const KW = data.keywords || { primary: [], longtail: [], local: [], global: [] };
   const totalKw = Object.values(KW).flat().length;
 
   function kwTable(title, desc, kwList) {
     if (!kwList || !kwList.length) return "";
     let html = `<div style="font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:6px;margin-top:20px">${title}</div>`;
-    if (desc)
-      html += `<div style="font-size:12px;color:#6b7280;margin-bottom:10px;line-height:1.5">${desc}</div>`;
+    if (desc) html += `<div style="font-size:12px;color:#6b7280;margin-bottom:10px;line-height:1.5">${desc}</div>`;
     html += `<div class="table-scroll"><table class="kw-table">
       <thead><tr><th>Keyword</th><th style="text-align:right;white-space:nowrap">Vol/mo</th><th>Difficulty</th><th>Intent</th><th>Priority</th><th>Target Page</th></tr></thead>
       <tbody>`;
@@ -1770,26 +1409,10 @@ function buildKeywords(data) {
     </div>
   </div>`;
 
-  html += kwTable(
-    `C.1 — Primary Commercial Keywords (${(KW.primary || []).length} Keywords)`,
-    "Highest-value keywords for driving qualified leads. High competition — winning requires strong domain authority and consistent link building.",
-    KW.primary || [],
-  );
-  html += kwTable(
-    `C.2 — Long-Tail Informational Keywords (${(KW.longtail || []).length} Keywords)`,
-    "Lower competition keywords targeting AEO/GEO gaps — FAQ sections, definition pages, and People Also Ask opportunities.",
-    KW.longtail || [],
-  );
-  html += kwTable(
-    `C.3 — Local SEO Keywords (${(KW.local || []).length} Keywords)`,
-    "Critical for driving nearby business enquiries. Very low competition and high commercial intent — fastest ROI opportunity.",
-    KW.local || [],
-  );
-  html += kwTable(
-    `C.4 — Global & International Keywords (${(KW.global || []).length} Keywords)`,
-    "Target international clients. Strong backlink profile gives the domain authority to compete globally.",
-    KW.global || [],
-  );
+  html += kwTable(`C.1 — Primary Commercial Keywords (${(KW.primary || []).length} Keywords)`, "Highest-value keywords for driving qualified leads. High competition — winning requires strong domain authority and consistent link building.", KW.primary || []);
+  html += kwTable(`C.2 — Long-Tail Informational Keywords (${(KW.longtail || []).length} Keywords)`, "Lower competition keywords targeting AEO/GEO gaps — FAQ sections, definition pages, and People Also Ask opportunities.", KW.longtail || []);
+  html += kwTable(`C.3 — Local SEO Keywords (${(KW.local || []).length} Keywords)`, "Critical for driving nearby business enquiries. Very low competition and high commercial intent — fastest ROI opportunity.", KW.local || []);
+  html += kwTable(`C.4 — Global & International Keywords (${(KW.global || []).length} Keywords)`, "Target international clients. Strong backlink profile gives the domain authority to compete globally.", KW.global || []);
 
   html += `<div style="background:#1a1a2e;border-radius:12px;padding:20px;text-align:center;margin-top:24px">
     <div style="font-size:14px;font-weight:700;color:#ff642d;margin-bottom:6px">${_userDomain} — Complete Digital Marketing Strategy & Audit Report</div>
@@ -1810,7 +1433,6 @@ function resetAudit() {
   document.getElementById("page-hero").style.display = "block";
   document.getElementById("audit-btn").disabled = false;
   document.getElementById("url-input").value = "";
-  // Remove error box if present
   const errBox = document.getElementById("audit-error-box");
   if (errBox) errBox.remove();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1848,7 +1470,7 @@ document.getElementById("url-input").addEventListener("keydown", (e) => {
 })();
 
 // ══════════════════════════════════════════════════════
-//  PDF EXPORT (unchanged from original)
+//  PDF EXPORT (unchanged)
 // ══════════════════════════════════════════════════════
 function showLoadingState(button, isLoading) {
   if (!button) return;
@@ -1871,27 +1493,10 @@ function showNotification(message, type) {
   if (!el) {
     el = document.createElement("div");
     el.id = "pdf-notification";
-    el.style.cssText = [
-      "position:fixed",
-      "top:20px",
-      "right:20px",
-      "padding:12px 20px",
-      "border-radius:8px",
-      "font-size:14px",
-      "font-weight:500",
-      "z-index:99998",
-      "box-shadow:0 4px 16px rgba(0,0,0,0.2)",
-      "max-width:340px",
-      "transition:opacity 0.3s ease",
-    ].join(";");
+    el.style.cssText = ["position:fixed","top:20px","right:20px","padding:12px 20px","border-radius:8px","font-size:14px","font-weight:500","z-index:99998","box-shadow:0 4px 16px rgba(0,0,0,0.2)","max-width:340px","transition:opacity 0.3s ease"].join(";");
     document.body.appendChild(el);
   }
-  const cols = {
-    success: ["#10b981", "#fff"],
-    error: ["#ef4444", "#fff"],
-    info: ["#3b82f6", "#fff"],
-    warning: ["#f59e0b", "#fff"],
-  };
+  const cols = { success: ["#10b981", "#fff"], error: ["#ef4444", "#fff"], info: ["#3b82f6", "#fff"], warning: ["#f59e0b", "#fff"] };
   const c = cols[type] || cols.info;
   el.style.background = c[0];
   el.style.color = c[1];
@@ -1900,37 +1505,20 @@ function showNotification(message, type) {
   clearTimeout(el._t);
   el._t = setTimeout(() => {
     el.style.opacity = "0";
-    setTimeout(() => {
-      if (el.parentNode) el.remove();
-    }, 300);
+    setTimeout(() => { if (el.parentNode) el.remove(); }, 300);
   }, 5000);
 }
 
 function createProgressOverlay() {
   const ov = document.createElement("div");
   ov.id = "pdf-ov";
-  ov.style.cssText = [
-    "position:fixed",
-    "inset:0",
-    "background:rgba(0,0,0,0.6)",
-    "display:flex",
-    "align-items:center",
-    "justify-content:center",
-    "z-index:99999",
-  ].join(";");
+  ov.style.cssText = ["position:fixed","inset:0","background:rgba(0,0,0,0.6)","display:flex","align-items:center","justify-content:center","z-index:99999"].join(";");
   ov.innerHTML = `<div style="background:#fff;border-radius:16px;padding:36px 44px;min-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.35)"><div style="font-size:36px;margin-bottom:14px">📄</div><h3 style="margin:0 0 8px;font-size:18px;color:#1a1a2e;font-weight:800">Generating Full PDF Report</h3><p id="pdf-ov-msg" style="margin:0 0 20px;font-size:13px;color:#6b7280">Starting...</p><div style="background:#f1f3f7;border-radius:8px;height:12px;overflow:hidden;margin-bottom:10px"><div id="pdf-ov-bar" style="height:100%;background:linear-gradient(90deg,#ff642d,#f59e0b);width:0%;transition:width 0.5s ease;border-radius:8px"></div></div><div id="pdf-ov-pct" style="font-size:14px;font-weight:700;color:#ff642d;margin-bottom:8px">0%</div><div id="pdf-ov-tab" style="font-size:11px;color:#9ba3af">Preparing...</div></div>`;
   document.body.appendChild(ov);
   return {
-    msg: (t) => {
-      document.getElementById("pdf-ov-msg").textContent = t;
-    },
-    tab: (t) => {
-      document.getElementById("pdf-ov-tab").textContent = t;
-    },
-    pct: (n) => {
-      document.getElementById("pdf-ov-bar").style.width = n + "%";
-      document.getElementById("pdf-ov-pct").textContent = n + "%";
-    },
+    msg: (t) => { document.getElementById("pdf-ov-msg").textContent = t; },
+    tab: (t) => { document.getElementById("pdf-ov-tab").textContent = t; },
+    pct: (n) => { document.getElementById("pdf-ov-bar").style.width = n + "%"; document.getElementById("pdf-ov-pct").textContent = n + "%"; },
     remove: () => ov.remove(),
   };
 }
@@ -1957,94 +1545,39 @@ function addDividerPage(pdf, name, num, total, W, H) {
   pdf.setFontSize(9);
   pdf.setTextColor(155, 163, 175);
   pdf.setFont("helvetica", "normal");
-  pdf.text(
-    "SEO + AEO + GEO Audit Report  \u00B7  " +
-      _userDomain +
-      "  \u00B7  " +
-      new Date().toLocaleDateString("en-GB"),
-    18,
-    158,
-  );
+  pdf.text("SEO + AEO + GEO Audit Report  \u00B7  " + _userDomain + "  \u00B7  " + new Date().toLocaleDateString("en-GB"), 18, 158);
 }
 
 async function capturePanel(panel) {
   const saved = {
-    class: panel.className,
-    display: panel.style.display,
-    vis: panel.style.visibility,
-    pos: panel.style.position,
-    opacity: panel.style.opacity,
-    left: panel.style.left,
-    top: panel.style.top,
-    z: panel.style.zIndex,
-    w: panel.style.width,
-    p: panel.style.padding,
+    class: panel.className, display: panel.style.display, vis: panel.style.visibility,
+    pos: panel.style.position, opacity: panel.style.opacity, left: panel.style.left,
+    top: panel.style.top, z: panel.style.zIndex, w: panel.style.width, p: panel.style.padding,
   };
   panel.classList.add("active");
-  Object.assign(panel.style, {
-    display: "block",
-    visibility: "visible",
-    opacity: "1",
-    position: "relative",
-    left: "0",
-    top: "0",
-    zIndex: "1",
-    width: "1180px",
-    padding: "20px 24px",
-  });
-  panel
-    .querySelectorAll(".cat-section")
-    .forEach((c) => c.classList.add("open"));
+  Object.assign(panel.style, { display: "block", visibility: "visible", opacity: "1", position: "relative", left: "0", top: "0", zIndex: "1", width: "1180px", padding: "20px 24px" });
+  panel.querySelectorAll(".cat-section").forEach((c) => c.classList.add("open"));
   await pdfSleep(350);
   const canvas = await html2canvas(panel, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    backgroundColor: "#ffffff",
-    windowWidth: 1220,
-    width: 1180,
-    scrollX: 0,
-    scrollY: 0,
-    allowTaint: false,
-    imageTimeout: 20000,
+    scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff",
+    windowWidth: 1220, width: 1180, scrollX: 0, scrollY: 0, allowTaint: false, imageTimeout: 20000,
     onclone: (doc, el) => {
-      el.style.display = "block";
-      el.style.visibility = "visible";
-      el.style.opacity = "1";
-      el.style.width = "1180px";
-      el.style.padding = "20px 24px";
-      doc
-        .querySelectorAll(".cat-section")
-        .forEach((c) => c.classList.add("open"));
+      el.style.display = "block"; el.style.visibility = "visible"; el.style.opacity = "1";
+      el.style.width = "1180px"; el.style.padding = "20px 24px";
+      doc.querySelectorAll(".cat-section").forEach((c) => c.classList.add("open"));
     },
   });
   panel.className = saved.class;
-  Object.assign(panel.style, {
-    display: saved.display,
-    visibility: saved.vis,
-    opacity: saved.opacity,
-    position: saved.pos,
-    left: saved.left,
-    top: saved.top,
-    zIndex: saved.z,
-    width: saved.w,
-    padding: saved.p,
-  });
+  Object.assign(panel.style, { display: saved.display, visibility: saved.vis, opacity: saved.opacity, position: saved.pos, left: saved.left, top: saved.top, zIndex: saved.z, width: saved.w, padding: saved.p });
   return canvas;
 }
 
 function addCanvasToPDF(pdf, canvas, A4_W, A4_H) {
-  const cW = canvas.width,
-    cH = canvas.height;
-  const ML = 10,
-    MR = 10,
-    MT = 10,
-    MB = 14;
-  const cntW = A4_W - ML - MR,
-    cntH = A4_H - MT - MB;
+  const cW = canvas.width, cH = canvas.height;
+  const ML = 10, MR = 10, MT = 10, MB = 14;
+  const cntW = A4_W - ML - MR, cntH = A4_H - MT - MB;
   const safeH = cntH * 0.93;
-  const pxMM = cW / cntW,
-    pxPg = safeH * pxMM;
+  const pxMM = cW / cntW, pxPg = safeH * pxMM;
   const pages = Math.ceil(cH / pxPg);
   for (let pg = 0; pg < pages; pg++) {
     pdf.addPage();
@@ -2052,9 +1585,7 @@ function addCanvasToPDF(pdf, canvas, A4_W, A4_H) {
     pdf.rect(0, 0, A4_W, A4_H, "F");
     pdf.setFillColor(255, 100, 45);
     pdf.rect(0, 0, 2, A4_H, "F");
-    const srcY = pg * pxPg,
-      srcH = Math.min(pxPg, cH - srcY),
-      dstH = srcH / pxMM;
+    const srcY = pg * pxPg, srcH = Math.min(pxPg, cH - srcY), dstH = srcH / pxMM;
     const sl = document.createElement("canvas");
     sl.width = cW;
     sl.height = Math.ceil(srcH);
@@ -2062,32 +1593,34 @@ function addCanvasToPDF(pdf, canvas, A4_W, A4_H) {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, cW, Math.ceil(srcH));
     ctx.drawImage(canvas, 0, srcY, cW, srcH, 0, 0, cW, srcH);
-    pdf.addImage(
-      sl.toDataURL("image/jpeg", 0.92),
-      "JPEG",
-      ML,
-      MT,
-      cntW,
-      dstH,
-      "",
-      "FAST",
-    );
+    pdf.addImage(sl.toDataURL("image/jpeg", 0.92), "JPEG", ML, MT, cntW, dstH, "", "FAST");
     addPageFooter(pdf, A4_W, A4_H, pg + 1, pages, MB);
   }
 }
 
 function addPageFooter(pdf, A4_W, A4_H, pageNum, totalPages, MB) {
-  const fy = A4_H - MB + 2;
-  pdf.setFillColor(248, 249, 252);
-  pdf.rect(0, A4_H - MB, A4_W, MB, "F");
+  const MB2 = 22; // footer thoda bada kiya 2 lines ke liye
+  pdf.setFillColor(169, 0, 6);
+  pdf.rect(0, A4_H - MB2, A4_W, MB2, "F");
   pdf.setFillColor(255, 100, 45);
   pdf.rect(0, A4_H - 1.5, A4_W, 1.5, "F");
-  pdf.setFontSize(7.5);
-  pdf.setTextColor(155, 163, 175);
+
+  pdf.setFontSize(6.5);
+  pdf.setTextColor(255, 255, 255);
   pdf.setFont("helvetica", "normal");
-  pdf.text(_userDomain + "  \u00B7  SEO + AEO + GEO Audit 2026", 10, fy + 6);
+
+  // Line 1 — Company name + address
+  const line1 = "BUIMB RESEARCH LLP  \u00B7  Floor 1, Rajneel Complex, Lamachaur, Haldwani 263139  \u00B7  Regd: C/o Pradeep Singh Negi, Adarsh Nagar, Talli Bamori, Haldwani, Nainital-263139, Uttarakhand";
+  pdf.text(line1, 10, A4_H - MB2 + 7);
+
+  // Line 2 — Contact + domain
+  const line2 = "+91 89237 68209  \u00B7  contact@buimbdigital.com  \u00B7  " + _userDomain + "  \u00B7  SEO + AEO + GEO Audit 2026";
+  pdf.text(line2, 10, A4_H - MB2 + 13);
+
+  // Page number — right aligned
+  pdf.setFontSize(7.5);
   const pt = "Page " + pageNum + " of " + totalPages;
-  pdf.text(pt, A4_W - 10 - pdf.getTextWidth(pt), fy + 6);
+  pdf.text(pt, A4_W - 10 - pdf.getTextWidth(pt), A4_H - MB2 + 10);
 }
 
 async function exportPDF() {
@@ -2100,55 +1633,19 @@ async function exportPDF() {
   showLoadingState(btn, true);
   const prog = createProgressOverlay();
   try {
-    const TAB_NAMES = [
-      "Overview",
-      "SEO Analysis",
-      "AEO Analysis",
-      "GEO Analysis",
-      "Action Plan",
-      "Content Calendar",
-      "SEO Strategy",
-      "Competitors",
-      "Keywords",
-    ];
-    const tabIds = [
-      "tp-overview",
-      "tp-seo",
-      "tp-aeo",
-      "tp-geo",
-      "tp-action",
-      "tp-calendar",
-      "tp-strategy",
-      "tp-competitors",
-      "tp-keywords",
-    ];
-    const orderedPanels = tabIds
-      .map((id) => document.getElementById(id))
-      .filter(Boolean);
-    const A4_W = 210,
-      A4_H = 297;
+    const TAB_NAMES = ["Overview","SEO Analysis","AEO Analysis","GEO Analysis","Action Plan","Content Calendar","SEO Strategy","Competitors","Keywords"];
+    const tabIds = ["tp-overview","tp-seo","tp-aeo","tp-geo","tp-action","tp-calendar","tp-strategy","tp-competitors","tp-keywords"];
+    const orderedPanels = tabIds.map((id) => document.getElementById(id)).filter(Boolean);
+    const A4_W = 210, A4_H = 297;
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     prog.msg("Creating cover page...");
     prog.pct(3);
     addCoverPage(pdf, A4_W, A4_H);
     for (let i = 0; i < orderedPanels.length; i++) {
-      const panel = orderedPanels[i],
-        name = TAB_NAMES[i] || "Section " + (i + 1);
+      const panel = orderedPanels[i], name = TAB_NAMES[i] || "Section " + (i + 1);
       prog.pct(Math.round(5 + (i / orderedPanels.length) * 88));
-      prog.tab(
-        "Processing: " +
-          name +
-          " (" +
-          (i + 1) +
-          "/" +
-          orderedPanels.length +
-          ")",
-      );
+      prog.tab("Processing: " + name + " (" + (i + 1) + "/" + orderedPanels.length + ")");
       prog.msg("Capturing " + name + "...");
       pdf.addPage();
       addDividerPage(pdf, name, i + 1, orderedPanels.length, A4_W, A4_H);
@@ -2168,20 +1665,12 @@ async function exportPDF() {
     prog.tab("Almost done!");
     await pdfSleep(400);
     const domain = (_userDomain || "audit").replace(/[^a-z0-9.-]/gi, "-");
-    pdf.save(
-      domain +
-        "-seo-aeo-geo-full-report-" +
-        new Date().toISOString().split("T")[0] +
-        ".pdf",
-    );
+    pdf.save(domain + "-seo-aeo-geo-full-report-" + new Date().toISOString().split("T")[0] + ".pdf");
     prog.pct(100);
     prog.msg("Done! PDF saved.");
     await pdfSleep(800);
     prog.remove();
-    showNotification(
-      "\u2705 Full PDF exported — all 9 tabs included!",
-      "success",
-    );
+    showNotification("\u2705 Full PDF exported — all 9 tabs included!", "success");
   } catch (err) {
     console.error("PDF export error:", err);
     prog.remove();
@@ -2212,14 +1701,7 @@ function addCoverPage(pdf, W, H) {
   pdf.setFontSize(26);
   pdf.setTextColor(255, 100, 45);
   pdf.setFont("helvetica", "bold");
-  pdf.text(
-    (_data?.overall || 0) +
-      " / 100  (Grade " +
-      grade(_data?.overall || 0) +
-      ")",
-    30,
-    116,
-  );
+  pdf.text((_data?.overall || 0) + " / 100  (Grade " + grade(_data?.overall || 0) + ")", 30, 116);
   const modules = [
     { label: "SEO", score: _data?.mods?.seo?.score || 0, col: [255, 100, 45] },
     { label: "AEO", score: _data?.mods?.aeo?.score || 0, col: [16, 185, 129] },
@@ -2239,32 +1721,9 @@ function addCoverPage(pdf, W, H) {
     pdf.text(m.score + "/100", x + 4, 156);
   });
   const parts = [
-    {
-      num: "PART 1",
-      title: "SEO / AEO / GEO Audit Report",
-      detail: "89 checks across 14 categories",
-    },
-    {
-      num: "PART 2",
-      title: "6-Month Content Calendar",
-      detail:
-        "Weeks breakdown · " +
-        (_data?.calendar || []).reduce(
-          (a, m) => a + (m.items || []).length,
-          0,
-        ) +
-        " content pieces",
-    },
-    {
-      num: "PART 3",
-      title: "SEO Strategy, Competitors & Keywords",
-      detail:
-        "12-month plan · " +
-        (_data?.competitors || []).length +
-        " competitors · " +
-        Object.values(_data?.keywords || {}).flat().length +
-        " keywords",
-    },
+    { num: "PART 1", title: "SEO / AEO / GEO Audit Report", detail: "89 checks across 14 categories" },
+    { num: "PART 2", title: "6-Month Content Calendar", detail: "Weeks breakdown · " + (_data?.calendar || []).reduce((a, m) => a + (m.items || []).length, 0) + " content pieces" },
+    { num: "PART 3", title: "SEO Strategy, Competitors & Keywords", detail: "12-month plan · " + (_data?.competitors || []).length + " competitors · " + Object.values(_data?.keywords || {}).flat().length + " keywords" },
   ];
   let py = 180;
   parts.forEach((p) => {
@@ -2289,16 +1748,10 @@ function addCoverPage(pdf, W, H) {
   pdf.rect(0, H - 8, W, 8, "F");
   pdf.setFontSize(8);
   pdf.setTextColor(255, 255, 255);
-  pdf.text(
-    "Generated by AI Analysis  \u00B7  " +
-      new Date().toLocaleDateString("en-GB") +
-      "  \u00B7  CONFIDENTIAL",
-    18,
-    H - 2,
-  );
+  pdf.text("Generated by AI Analysis  \u00B7  " + new Date().toLocaleDateString("en-GB") + "  \u00B7  CONFIDENTIAL", 18, H - 2);
 }
 
-// PDF export button — always visible, wired to exportPDF
+// PDF export button wire
 document.addEventListener("DOMContentLoaded", () => {
   const btn = document.querySelector(".btn-sm.btn-orange");
   if (btn) btn.onclick = exportPDF;
