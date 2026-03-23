@@ -10,6 +10,17 @@ const GEMINI_API_KEY = [
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
+
+function checkRateLimit() {
+  const used = localStorage.getItem(RATE_LIMIT_KEY);
+  return { allowed: !used };
+}
+
+function setRateLimit() {
+  localStorage.setItem(RATE_LIMIT_KEY, "used");
+}
+
+
 // ══════════════════════════════════════════════════════
 //  GEMINI PROMPT — Full structured audit
 // ══════════════════════════════════════════════════════
@@ -409,7 +420,7 @@ function generatePages(domain) {
     { label: "Running AEO & schema checks",                detail: "FAQ schema, HowTo, E-E-A-T, featured snippet readiness",      checks: 20, duration: 5000 },
     { label: "Scanning GEO & AI visibility signals",       detail: "LLM-ready content, brand citability, AI crawler access",      checks: 20, duration: 5000 },
     { label: "Auditing backlink & local SEO profile",      detail: "Domain authority, NAP consistency, Google Business signals",  checks: 10, duration: 4000 },
-    { label: "Compiling scores & building report",         detail: "Weighting SEO×0.4, AEO×0.3, GEO×0.3 for final score",       checks: 89, duration: 5000 },
+    { label: "Compiling scores & building report",         detail: "Weighting SEO×0.4, AEO×0.3, GEO×0.3 for final score",       checks: 89, duration: 4000 },
   ];
 
   // ── IMPORTANT: bahar accessible banao startAudit ke liye ──
@@ -466,7 +477,7 @@ function generatePages(domain) {
     <div class="sc-wrap">
       <div class="sc-domain-pill"><div class="sc-pulse"></div><span>${base}</span></div>
       <div class="sc-title">AI audit in progress</div>
-      <div class="sc-sub" id="sc-sub">Gemini is analysing your site across 89 checks — takes about 60 seconds</div>
+      <div class="sc-sub" id="sc-sub">AI is Analysing your Website across All checks — It takes Aprox 60 - 90 seconds.</div>
       <div class="sc-prog-row">
         <div class="sc-prog-track"><div class="sc-prog-fill" id="sc-prog" style="width:0%"></div></div>
         <div class="sc-prog-pct" id="sc-pct">0%</div>
@@ -568,6 +579,34 @@ function generatePages(domain) {
   return [];
 }
 
+
+
+// ══════════════════════════════════════════════════════
+//  RATE LIMITING — Ek user ek baar hi audit kar sakta hai
+// ══════════════════════════════════════════════════════
+const RATE_LIMIT_KEY = "audit_last_used";
+const RATE_LIMIT_MS  = 24 * 60 * 60 * 1000; // 24 ghante
+
+function checkRateLimit() {
+  const last = localStorage.getItem(RATE_LIMIT_KEY);
+  if (!last) return { allowed: true };
+  const diff = Date.now() - parseInt(last, 10);
+  if (diff < RATE_LIMIT_MS) {
+    const remaining = RATE_LIMIT_MS - diff;
+    const hrs  = Math.floor(remaining / (1000 * 60 * 60));
+    const mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    return { allowed: false, hrs, mins };
+  }
+  return { allowed: true };
+}
+
+function setRateLimit() {
+  localStorage.setItem(RATE_LIMIT_KEY, Date.now().toString());
+}
+
+
+
+
 // ══════════════════════════════════════════════════════
 //  MAIN startAudit() — Clean version
 // ══════════════════════════════════════════════════════
@@ -576,6 +615,14 @@ async function startAudit() {
   if (!url) { document.getElementById("url-input").focus(); return; }
   if (!/^https?:\/\//i.test(url)) url = "https://" + url;
   const domain = url.replace(/https?:\/\//i, "").replace(/\/$/, "");
+
+
+  // ── RATE LIMIT CHECK ──────────────────────────────
+  const rl = checkRateLimit();
+  if (!rl.allowed) {
+    alert(`⏳ Aap pehle hi ek audit kar chuke hain.\n\nDobara try karo ${rl.hrs} ghante ${rl.mins} minute baad.`);
+    return;
+  }
 
   document.getElementById("audit-btn").disabled = true;
   document.getElementById("page-hero").style.display = "none";
@@ -614,34 +661,18 @@ async function startAudit() {
     const progEl = document.getElementById("sc-prog");
     if (progEl) progEl.style.width = "100%";
     const pctEl = document.getElementById("sc-pct");
-    if (pctEl) pctEl.textContent = "100%";
-
-    // 1 second ruko phir results dikhao
-    await new Promise((r) => setTimeout(r, 100));
+    if (pctEl) pctEl.textContent = "99%";
 
     ld.style.display = "none";
-    renderResults(auditData, domain); // ← results page pe navigate karta hai
+    setRateLimit(); //  yahan rate limit set ho raha hai
+    renderResults(auditData, domain); //results page pe navigate karta hai
 
   } catch (err) {
     ld.style.display = "none";
     document.getElementById("audit-btn").disabled = false;
     document.getElementById("page-hero").style.display = "block";
 
-    let errBox = document.getElementById("audit-error-box");
-    if (!errBox) {
-      errBox = document.createElement("div");
-      errBox.id = "audit-error-box";
-      errBox.style.cssText =
-        "background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:18px 22px;margin:20px auto;max-width:600px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif";
-      document.getElementById("page-hero").after(errBox);
-    }
-    errBox.innerHTML = `
-      <div style="font-size:22px;margin-bottom:8px">❌</div>
-      <div style="font-size:15px;font-weight:700;color:#dc2626;margin-bottom:6px">Audit Failed</div>
-      <div style="font-size:13px;color:#6b7280;line-height:1.6">${err.message}</div>
-      <div style="font-size:12px;color:#9ba3af;margin-top:8px">Please check your Gemini API key and try again.</div>
-    `;
-    console.error("Gemini audit error:", err);
+    alert("Error during audit: " );
   }
 }
 
@@ -1416,7 +1447,7 @@ function buildKeywords(data) {
 
   html += `<div style="background:#1a1a2e;border-radius:12px;padding:20px;text-align:center;margin-top:24px">
     <div style="font-size:14px;font-weight:700;color:#ff642d;margin-bottom:6px">${_userDomain} — Complete Digital Marketing Strategy & Audit Report</div>
-    <div style="font-size:12px;color:#9ba3af">Powered by Gemini AI Analysis · ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</div>
+    <div style="font-size:12px;color:#9ba3af">Powered by AI Seo-Auditor · ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</div>
     <div style="font-size:11px;color:#6b7280;margin-top:4px;font-style:italic">CONFIDENTIAL — For Internal Distribution Only.</div>
   </div>`;
 
@@ -1614,12 +1645,11 @@ function addPageFooter(pdf, A4_W, A4_H, pageNum, totalPages, MB) {
   pdf.text(line1, 10, A4_H - MB2 + 7);
 
   // Line 2 — Contact + domain
-  const line2 = "+91 89237 68209  \u00B7  contact@buimbdigital.com  \u00B7  " + _userDomain + "  \u00B7  SEO + AEO + GEO Audit 2026";
+  const line2 = "Phone: +91 89237 68209  \u00B7 Gmail: contact@buimbdigital.com  \u00B7  " + _userDomain + "  \u00B7  " + new Date().toLocaleDateString("en-GB");
   pdf.text(line2, 10, A4_H - MB2 + 13);
 
   // Page number — right aligned
   pdf.setFontSize(7.5);
-  const pt = "Page " + pageNum + " of " + totalPages;
   pdf.text(pt, A4_W - 10 - pdf.getTextWidth(pt), A4_H - MB2 + 10);
 }
 
